@@ -1,4 +1,6 @@
 mod day1;
+mod day2;
+mod day3;
 
 use std::fs;
 
@@ -43,12 +45,16 @@ struct CommandLineArguments {
 
 fn input(day: usize) -> String {
     fs::read_to_string(format!("input/{day}.txt"))
-        .expect(&format!("input for day {day} should exist"))
+        .unwrap_or_else(|_| panic!("input for day {day} should exist"))
 }
 
 type Solution = fn(String) -> String;
 
-const SOLUTIONS: [(Solution, Solution); 1] = [(day1::first, day1::second)];
+const SOLUTIONS: [(Solution, Solution); 3] = [
+    (day1::first, day1::second),
+    (day2::first, day2::second),
+    (day3::first, day3::second),
+];
 
 fn main() {
     let command_line_arguments = CommandLineArguments::parse();

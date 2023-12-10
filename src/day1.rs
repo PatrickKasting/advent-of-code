@@ -2,6 +2,7 @@ use itertools::Itertools;
 use regex::Regex;
 
 type CalibrationValue = u32;
+type DigitPattern<'pattern> = (&'pattern str, fn(&str) -> CalibrationValue);
 
 fn calibration_value(
     digit_patterns: &[(Regex, impl Fn(&str) -> CalibrationValue)],
@@ -55,7 +56,7 @@ fn value_from_digit(digit: &str) -> CalibrationValue {
 }
 
 pub fn first(input: String) -> String {
-    let digit_patterns: [(&str, fn(&str) -> CalibrationValue); 1] = [(r"\d", value_from_digit)];
+    let digit_patterns: [DigitPattern; 1] = [(r"\d", value_from_digit)];
     sum_of_calibration_values(digit_patterns, &input).to_string()
 }
 
@@ -96,7 +97,7 @@ fn nine(_: &str) -> CalibrationValue {
 }
 
 pub fn second(input: String) -> String {
-    let digit_patterns: [(&str, fn(&str) -> CalibrationValue); 10] = [
+    let digit_patterns: [DigitPattern; 10] = [
         (r"\d", value_from_digit),
         ("one", one),
         ("two", two),
@@ -115,27 +116,29 @@ pub fn second(input: String) -> String {
 mod tests {
     use super::*;
 
+    const DAY: usize = 1;
+
     #[test]
     fn first_example() {
-        let example = crate::example(1, 0);
+        let example = crate::example(DAY, 0);
         assert_eq!(first(example), 142.to_string());
     }
 
     #[test]
     fn first_input() {
-        let input = crate::input(1);
+        let input = crate::input(DAY);
         assert_eq!(first(input), 56042.to_string());
     }
 
     #[test]
     fn second_example() {
-        let example = crate::example(1, 1);
+        let example = crate::example(DAY, 1);
         assert_eq!(second(example), 281.to_string());
     }
 
     #[test]
     fn second_input() {
-        let input = crate::input(1);
+        let input = crate::input(DAY);
         assert_eq!(second(input), 55358.to_string());
     }
 }
