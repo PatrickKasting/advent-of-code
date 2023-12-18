@@ -114,31 +114,27 @@ pub fn second(input: String) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::{tests::*, Input, Puzzle};
 
     const DAY: usize = 1;
 
     #[test]
     fn first_example() {
-        let example = crate::example(DAY, 0);
-        assert_eq!(first(example), 142.to_string());
+        test_on_input(DAY, Puzzle::First, Input::Example(0), 142);
     }
 
     #[test]
     fn first_input() {
-        let input = crate::input(DAY);
-        assert_eq!(first(input), 56042.to_string());
+        test_on_input(DAY, Puzzle::First, Input::Real, 56042);
     }
 
     #[test]
     fn second_example() {
-        let example = crate::example(DAY, 1);
-        assert_eq!(second(example), 281.to_string());
+        test_on_input(DAY, Puzzle::Second, Input::Example(1), 281);
     }
 
     #[test]
     fn second_input() {
-        let input = crate::input(DAY);
-        assert_eq!(second(input), 55358.to_string());
+        test_on_input(DAY, Puzzle::Second, Input::Real, 55358);
     }
 }
