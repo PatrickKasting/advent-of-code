@@ -1,9 +1,12 @@
+#![feature(slice_group_by)]
+
 mod day1;
 mod day2;
 mod day3;
 mod day4;
 mod day5;
 mod day6;
+mod day7;
 
 use std::fs;
 
@@ -62,13 +65,14 @@ fn input(day: usize, input: Input) -> String {
 
 type Solution = fn(String) -> String;
 
-const SOLUTIONS: [(Solution, Solution); 6] = [
+const SOLUTIONS: [(Solution, Solution); 7] = [
     (day1::first, day1::second),
     (day2::first, day2::second),
     (day3::first, day3::second),
     (day4::first, day4::second),
     (day5::first, day5::second),
     (day6::first, day6::second),
+    (day7::first, day7::second),
 ];
 
 fn solution(day: Day, puzzle: Puzzle) -> Solution {

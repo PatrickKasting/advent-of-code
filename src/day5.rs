@@ -28,7 +28,7 @@ fn seed_ranges(seeds: &str) -> Vec<Range<Number>> {
         .collect_vec()
 }
 
-fn map_numbers<'line>(block: &str) -> Vec<[Number; 3]> {
+fn map_numbers(block: &str) -> Vec<[Number; 3]> {
     block
         .lines()
         .skip(1)
@@ -61,8 +61,7 @@ fn map(block: &str) -> Map {
 fn mapped_number_range(map: &Map, number_range: Range<Number>) -> Vec<Range<Number>> {
     let predcecessor = map
         .range(0..=number_range.start)
-        .rev()
-        .next()
+        .next_back()
         .expect("every map should have a map range starting at zero");
     let mut subrange_endpoints = Vec::from([(number_range.start, *predcecessor.1)]);
     for (&start, &translation) in map.range(number_range.clone()) {
@@ -94,7 +93,7 @@ fn location(maps: &[Map], seed_range: Range<Number>) -> Vec<Range<Number>> {
 fn minimum_location(maps: &[Map], seed_ranges: Vec<Range<Number>>) -> Number {
     seed_ranges
         .into_iter()
-        .flat_map(|seed_range| location(&maps, seed_range))
+        .flat_map(|seed_range| location(maps, seed_range))
         .map(|location_range| location_range.start)
         .min()
         .expect("there should be at least one seed range")

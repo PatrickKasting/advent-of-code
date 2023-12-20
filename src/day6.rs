@@ -23,11 +23,11 @@ fn number_ignoring_whitespaces(line: &str) -> Number {
 }
 
 fn single_race(input: &str) -> Race {
-    let lines = input.lines().collect_vec();
-    (
-        number_ignoring_whitespaces(lines[0]),
-        number_ignoring_whitespaces(lines[1]),
-    )
+    input
+        .lines()
+        .map(number_ignoring_whitespaces)
+        .collect_tuple()
+        .expect("input should contain two lines")
 }
 
 fn roots(a: Number, b: Number, c: Number) -> (Number, Number) {
