@@ -7,6 +7,8 @@ mod day4;
 mod day5;
 mod day6;
 mod day7;
+mod day8;
+pub mod math;
 
 use std::fs;
 
@@ -65,7 +67,7 @@ fn input(day: usize, input: Input) -> String {
 
 type Solution = fn(String) -> String;
 
-const SOLUTIONS: [(Solution, Solution); 7] = [
+const SOLUTIONS: [(Solution, Solution); 8] = [
     (day1::first, day1::second),
     (day2::first, day2::second),
     (day3::first, day3::second),
@@ -73,6 +75,7 @@ const SOLUTIONS: [(Solution, Solution); 7] = [
     (day5::first, day5::second),
     (day6::first, day6::second),
     (day7::first, day7::second),
+    (day8::first, day8::second),
 ];
 
 fn solution(day: Day, puzzle: Puzzle) -> Solution {
