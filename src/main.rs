@@ -1,6 +1,7 @@
 #![feature(slice_group_by)]
 
 mod day1;
+mod day10;
 mod day2;
 mod day3;
 mod day4;
@@ -9,6 +10,7 @@ mod day6;
 mod day7;
 mod day8;
 mod day9;
+pub mod grid;
 pub mod math;
 pub mod utilities;
 
@@ -69,7 +71,7 @@ fn input(day: usize, input: Input) -> String {
 
 type Solution = fn(String) -> String;
 
-const SOLUTIONS: [(Solution, Solution); 9] = [
+const SOLUTIONS: &[(Solution, Solution)] = &[
     (day1::first, day1::second),
     (day2::first, day2::second),
     (day3::first, day3::second),
@@ -79,6 +81,7 @@ const SOLUTIONS: [(Solution, Solution); 9] = [
     (day7::first, day7::second),
     (day8::first, day8::second),
     (day9::first, day9::second),
+    (day10::first, day10::second),
 ];
 
 fn solution(day: Day, puzzle: Puzzle) -> Solution {
