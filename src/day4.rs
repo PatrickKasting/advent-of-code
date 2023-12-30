@@ -1,15 +1,11 @@
 use std::collections::HashSet;
 
+use crate::utilities::number;
+
 type Numbers = HashSet<usize>;
 
 fn numbers_from_list(list: &str) -> Numbers {
-    list.split_ascii_whitespace()
-        .map(|number| {
-            number
-                .parse()
-                .expect("the list should contain only numbers")
-        })
-        .collect()
+    list.split_ascii_whitespace().map(number).collect()
 }
 
 fn scratchcard_numbers(scratchcard: &str) -> (Numbers, Numbers) {

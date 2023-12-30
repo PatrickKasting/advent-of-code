@@ -3,6 +3,8 @@ use std::{collections::HashMap, ops::Range};
 use itertools::Itertools;
 use regex::Regex;
 
+use crate::utilities::number;
+
 type PartNumber = usize;
 
 fn range_extended_by_one(bounds: Range<usize>, mut range: Range<usize>) -> Range<usize> {
@@ -30,10 +32,7 @@ fn for_each_part_number(schematic: &str, mut action: impl FnMut(PartNumber, char
             for line_index in vertical_range.clone() {
                 let adjacent_range = &lines[line_index][horizontal_range.clone()];
                 if let Some(symbol_position_within_range) = adjacent_range.find(is_symbol) {
-                    let part_number = mat
-                        .as_str()
-                        .parse::<usize>()
-                        .expect("substring of digits should be parsable");
+                    let part_number = number(mat.as_str());
                     let symbol = adjacent_range
                         .chars()
                         .nth(symbol_position_within_range)

@@ -1,12 +1,12 @@
 use itertools::Itertools;
 
+use crate::utilities::number;
+
 type Number = f64;
 type Race = (Number, Number);
 
 fn numbers(line: &str) -> impl Iterator<Item = Number> + '_ {
-    line.split_ascii_whitespace()
-        .skip(1)
-        .map(|number| number.parse().expect("every number should be numeric"))
+    line.split_ascii_whitespace().skip(1).map(number)
 }
 
 fn multiple_races(input: &str) -> impl Iterator<Item = Race> + '_ {
@@ -15,11 +15,7 @@ fn multiple_races(input: &str) -> impl Iterator<Item = Race> + '_ {
 }
 
 fn number_ignoring_whitespaces(line: &str) -> Number {
-    line.split_ascii_whitespace()
-        .skip(1)
-        .collect::<String>()
-        .parse()
-        .expect("the combined digits of the numbers should be parsable")
+    number(&line.split_ascii_whitespace().skip(1).collect::<String>())
 }
 
 fn single_race(input: &str) -> Race {

@@ -1,5 +1,7 @@
 use itertools::Itertools;
 
+use crate::utilities::number;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum Card {
     Joker,
@@ -51,10 +53,7 @@ fn hand(j: Card, hand: &str) -> Hand {
 
 fn player(j: Card, line: &str) -> (Hand, Bid) {
     let (hand, bid) = line.split_once(' ').expect("a line should include a space");
-    (
-        self::hand(j, hand),
-        bid.parse().expect("bid should be numeric"),
-    )
+    (self::hand(j, hand), number(bid))
 }
 
 fn hand_type(mut hand: Hand) -> HandType {

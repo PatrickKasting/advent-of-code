@@ -1,6 +1,8 @@
 use itertools::Itertools;
 use regex::Regex;
 
+use crate::utilities::number;
+
 type CalibrationValue = u32;
 type DigitPattern<'pattern> = (&'pattern str, fn(&str) -> CalibrationValue);
 
@@ -51,12 +53,8 @@ fn sum_of_calibration_values<'word>(
         .sum()
 }
 
-fn value_from_digit(digit: &str) -> CalibrationValue {
-    digit.parse().expect("the digit should be numeric")
-}
-
 pub fn first(input: String) -> String {
-    let digit_patterns: [DigitPattern; 1] = [(r"\d", value_from_digit)];
+    let digit_patterns: [DigitPattern; 1] = [(r"\d", number)];
     sum_of_calibration_values(digit_patterns, &input).to_string()
 }
 
@@ -98,7 +96,7 @@ fn nine(_: &str) -> CalibrationValue {
 
 pub fn second(input: String) -> String {
     let digit_patterns: [DigitPattern; 10] = [
-        (r"\d", value_from_digit),
+        (r"\d", number),
         ("one", one),
         ("two", two),
         ("three", three),

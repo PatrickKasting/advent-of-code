@@ -3,6 +3,8 @@ use std::cmp;
 use itertools::Itertools;
 use regex::Regex;
 
+use crate::utilities::number;
+
 type Count = usize;
 const NUMBER_OF_COLORS: usize = 3;
 type Counts = [Count; NUMBER_OF_COLORS];
@@ -15,12 +17,12 @@ fn counts(handful: &str) -> Counts {
 
     let [mut red, mut green, mut blue] = [0, 0, 0];
     for capture in captures {
-        let count: Count = capture
-            .name("count")
-            .expect("every match should contain an amount")
-            .as_str()
-            .parse()
-            .expect("the amount should be numerical");
+        let count: Count = number(
+            capture
+                .name("count")
+                .expect("every match should contain an amount")
+                .as_str(),
+        );
         match capture
             .name("color")
             .expect("every match should contain a color")
