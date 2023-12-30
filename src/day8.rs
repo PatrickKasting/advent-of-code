@@ -2,6 +2,8 @@ use std::collections::HashMap;
 
 use itertools::Itertools;
 
+use crate::math::least_common_multiple;
+
 type Node<'input> = &'input str;
 type Connection<'input> = (Node<'input>, (Node<'input>, Node<'input>));
 type Network<'input> = HashMap<Node<'input>, (Node<'input>, Node<'input>)>;
@@ -29,41 +31,39 @@ fn step<'input>(network: &Network<'input>, from: Node, direction: char) -> Node<
     }
 }
 
-fn ghost_starting_nodes<'input>(network: &Network<'input>) -> Vec<Node<'input>> {
-    network
-        .keys()
-        .filter(|node| node.ends_with('A'))
-        .copied()
-        .collect_vec()
-}
-
 fn number_of_steps<'input>(
-    network: Network<'input>,
+    network: &Network<'input>,
     directions: &str,
-    mut nodes: Vec<Node<'input>>,
-    is_destination: impl Fn(Node) -> bool,
+    mut node: Node<'input>,
 ) -> usize {
     for (time, direction) in directions.chars().cycle().enumerate() {
-        if nodes.iter().all(|node| is_destination(node)) {
+        if node.ends_with('Z') {
             return time;
         }
-        for node in nodes.iter_mut() {
-            *node = step(&network, node, direction);
-        }
+        node = step(network, node, direction);
     }
-    unreachable!()
+    unreachable!("directions should repeat indefinitely")
+}
+
+fn ghost_starting_nodes<'network, 'input>(
+    network: &'network Network<'input>,
+) -> impl Iterator<Item = Node<'input>> + 'network {
+    network.keys().copied().filter(|node| node.ends_with('A'))
 }
 
 pub fn first(input: String) -> String {
     let (directions, network) = directions_and_network(&input);
-    number_of_steps(network, directions, vec!["AAA"], |node| node == "ZZZ").to_string()
+    number_of_steps(&network, directions, "AAA").to_string()
 }
 
 pub fn second(input: String) -> String {
+    // We assume that for each ghost, the cycle length is equal to the distance from the starting
+    // node to the destination node.
     let (directions, network) = directions_and_network(&input);
-    let starting_nodes = ghost_starting_nodes(&network);
-    let is_destination = |node: &str| node.ends_with('Z');
-    number_of_steps(network, directions, starting_nodes, is_destination).to_string()
+    let cycle_lengths = ghost_starting_nodes(&network)
+        .map(|node| number_of_steps(&network, directions, node))
+        .collect_vec();
+    least_common_multiple(cycle_lengths).to_string()
 }
 
 #[cfg(test)]
@@ -88,8 +88,8 @@ mod tests {
         test_on_input(DAY, Puzzle::Second, Input::Example(2), 6);
     }
 
-    // #[test]
-    // fn second_input() {
-    //     test_on_input(DAY, Puzzle::Second, Input::Real, 251515496);
-    // }
+    #[test]
+    fn second_input() {
+        test_on_input(DAY, Puzzle::Second, Input::Real, 17972669116327usize);
+    }
 }

@@ -1,5 +1,3 @@
-#![feature(slice_group_by)]
-
 mod day1;
 mod day10;
 mod day2;

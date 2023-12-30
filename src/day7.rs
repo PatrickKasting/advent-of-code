@@ -59,8 +59,10 @@ fn player(j: Card, line: &str) -> (Hand, Bid) {
 fn hand_type(mut hand: Hand) -> HandType {
     hand.sort();
     let mut group_sizes = hand
-        .group_by(|&left, &right| left == right)
-        .filter_map(|group| (group[0] != Card::Joker).then_some(group.len()))
+        .into_iter()
+        .counts()
+        .into_iter()
+        .filter_map(|(card, group_size)| (card != Card::Joker).then_some(group_size))
         .collect_vec();
     group_sizes.sort_unstable_by_key(|&group_size| usize::MAX - group_size);
 

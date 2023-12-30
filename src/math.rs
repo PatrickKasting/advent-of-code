@@ -37,9 +37,8 @@ impl Iterator for Primes {
 }
 
 pub fn prime_factors(mut number: usize) -> Vec<usize> {
-    let prime_factor_upper_bound = (number as f64).sqrt() as usize;
     let mut prime_factors = Vec::new();
-    for prime in Primes::new().take_while(|&prime| prime <= prime_factor_upper_bound) {
+    for prime in Primes::new().take_while(move |&prime| prime <= number) {
         while number % prime == 0 {
             prime_factors.push(prime);
             number /= prime;
@@ -49,10 +48,7 @@ pub fn prime_factors(mut number: usize) -> Vec<usize> {
 }
 
 pub fn prime_factorization(number: usize) -> HashMap<usize, usize> {
-    prime_factors(number)
-        .group_by(|left, right| left == right)
-        .map(|group| (group[0], group.len()))
-        .collect()
+    prime_factors(number).into_iter().counts()
 }
 
 pub fn least_common_multiple(numbers: impl IntoIterator<Item = usize>) -> usize {
@@ -84,6 +80,11 @@ mod tests {
     use super::*;
 
     #[test]
+    fn prime_factors_of_7() {
+        assert_eq!(prime_factors(7), vec![7]);
+    }
+
+    #[test]
     fn prime_factors_of_12() {
         assert_eq!(prime_factors(12), vec![2, 2, 3]);
     }
@@ -99,6 +100,16 @@ mod tests {
     }
 
     #[test]
+    fn prime_factors_of_525() {
+        assert_eq!(prime_factors(525), vec![3, 5, 5, 7]);
+    }
+
+    #[test]
+    fn least_common_multiple_of_2_and_3() {
+        assert_eq!(least_common_multiple([2, 3]), 6);
+    }
+
+    #[test]
     fn least_common_multiple_of_24_and_300() {
         assert_eq!(least_common_multiple([24, 300]), 600);
     }
@@ -106,5 +117,10 @@ mod tests {
     #[test]
     fn least_common_multiple_of_12_18_and_30() {
         assert_eq!(least_common_multiple([12, 18, 30]), 180);
+    }
+
+    #[test]
+    fn least_common_multiple_of_5_8_and_13() {
+        assert_eq!(least_common_multiple([5, 8, 13]), 520);
     }
 }

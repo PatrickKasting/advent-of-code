@@ -7,6 +7,7 @@ use crate::grid::{Direction, Grid, Position};
 
 type Tile = char;
 type Cycle = Vec<(Position, Direction)>;
+type CycleSlice<'cycle> = &'cycle [(Position, Direction)];
 
 fn grid(grid: &str) -> Grid<Tile> {
     let tiles = grid
@@ -76,19 +77,25 @@ fn longest_cycle(grid: &Grid<Tile>) -> Cycle {
         .position_of(|&tile| tile == 'S')
         .expect("input should contain starting position");
     Direction::iter()
-        .filter_map(|direction| cycle(&grid, starting_position, direction))
+        .filter_map(|direction| cycle(grid, starting_position, direction))
         .max_by_key(|cycle| cycle.len())
         .expect("at least one loop should exist")
 }
 
+fn cycle_including_starting_link(
+    cycle: CycleSlice,
+) -> impl Iterator<Item = (Position, Direction)> + '_ {
+    cycle.iter().copied().cycle().take(cycle.len() + 1)
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-enum LinkShape {
+enum Bend {
     LeftTurn,
     Straight,
     RightTurn,
 }
 
-impl From<(Direction, Direction)> for LinkShape {
+impl From<(Direction, Direction)> for Bend {
     fn from((towards, away): (Direction, Direction)) -> Self {
         if away.next_clockwise() == towards {
             Self::LeftTurn
@@ -100,26 +107,23 @@ impl From<(Direction, Direction)> for LinkShape {
     }
 }
 
-fn area(mut clockwise_cycle: Cycle) -> usize {
+fn area(clockwise_cycle: CycleSlice) -> usize {
     let cycle_positions: HashSet<Position> = clockwise_cycle
         .iter()
         .map(|(position, _)| *position)
         .collect();
-    clockwise_cycle.push(
-        *clockwise_cycle
-            .last()
-            .expect("minimum cycle length should be four"),
-    );
     let mut area = HashSet::new();
     let mut frontier = Vec::new();
-    for ((_, towards), (position, away)) in clockwise_cycle.into_iter().tuple_windows() {
-        match LinkShape::from((towards, away)) {
-            LinkShape::LeftTurn => {
+    for ((_, towards), (position, away)) in
+        cycle_including_starting_link(clockwise_cycle).tuple_windows()
+    {
+        match Bend::from((towards, away)) {
+            Bend::LeftTurn => {
                 frontier.push(position.neighbor(away.next_clockwise()));
                 frontier.push(position.neighbor(away.opposite()));
             }
-            LinkShape::Straight => frontier.push(position.neighbor(away.next_clockwise())),
-            LinkShape::RightTurn => (),
+            Bend::Straight => frontier.push(position.neighbor(away.next_clockwise())),
+            Bend::RightTurn => (),
         }
         while let Some(position) = frontier.pop() {
             if !cycle_positions.contains(&position) && area.insert(position) {
@@ -130,17 +134,13 @@ fn area(mut clockwise_cycle: Cycle) -> usize {
     area.len()
 }
 
-fn is_clockwise(cycle: &[(Position, Direction)]) -> bool {
-    let shape_counts = cycle
-        .iter()
-        .cycle()
-        .take(cycle.len() + 1)
-        .map(|(_, direction)| *direction)
+fn is_clockwise(cycle: CycleSlice) -> bool {
+    let bend_counts = cycle_including_starting_link(cycle)
+        .map(|(_, direction)| direction)
         .tuple_windows::<(Direction, Direction)>()
-        .map(LinkShape::from)
+        .map(Bend::from)
         .counts();
-    let difference =
-        shape_counts[&LinkShape::RightTurn] as isize - shape_counts[&LinkShape::LeftTurn] as isize;
+    let difference = bend_counts[&Bend::RightTurn] as isize - bend_counts[&Bend::LeftTurn] as isize;
     debug_assert_eq!(
         difference.abs(),
         4,
@@ -149,9 +149,9 @@ fn is_clockwise(cycle: &[(Position, Direction)]) -> bool {
     difference.is_positive()
 }
 
-fn reverse(cycle: &Cycle) -> Cycle {
-    let positions = cycle.iter().map(|(position, _)| *position);
-    let directions = cycle.iter().map(|(_, direction)| *direction);
+fn reverse(cycle: CycleSlice) -> Cycle {
+    let positions = cycle.iter().map(|&(position, _)| position);
+    let directions = cycle.iter().map(|&(_, direction)| direction);
     positions
         .rev()
         .zip(directions.map(Direction::opposite).rev().cycle().skip(1))
@@ -162,7 +162,7 @@ fn cycle_area(mut cycle: Cycle) -> usize {
     if !is_clockwise(&cycle) {
         cycle = reverse(&cycle);
     }
-    area(cycle)
+    area(&cycle)
 }
 
 pub fn first(input: String) -> String {
