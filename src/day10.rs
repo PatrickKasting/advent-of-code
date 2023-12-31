@@ -82,12 +82,6 @@ fn longest_cycle(grid: &Grid<Tile>) -> Cycle {
         .expect("at least one loop should exist")
 }
 
-fn cycle_including_starting_link(
-    cycle: CycleSlice,
-) -> impl Iterator<Item = (Position, Direction)> + '_ {
-    cycle.iter().copied().cycle().take(cycle.len() + 1)
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum Bend {
     LeftTurn,
@@ -114,9 +108,7 @@ fn area(clockwise_cycle: CycleSlice) -> usize {
         .collect();
     let mut area = HashSet::new();
     let mut frontier = Vec::new();
-    for ((_, towards), (position, away)) in
-        cycle_including_starting_link(clockwise_cycle).tuple_windows()
-    {
+    for (&(_, towards), &(position, away)) in clockwise_cycle.iter().circular_tuple_windows() {
         match Bend::from((towards, away)) {
             Bend::LeftTurn => {
                 frontier.push(position.neighbor(away.next_clockwise()));
@@ -135,9 +127,10 @@ fn area(clockwise_cycle: CycleSlice) -> usize {
 }
 
 fn is_clockwise(cycle: CycleSlice) -> bool {
-    let bend_counts = cycle_including_starting_link(cycle)
-        .map(|(_, direction)| direction)
-        .tuple_windows::<(Direction, Direction)>()
+    let bend_counts = cycle
+        .iter()
+        .map(|&(_, direction)| direction)
+        .circular_tuple_windows::<(Direction, Direction)>()
         .map(Bend::from)
         .counts();
     let difference = bend_counts[&Bend::RightTurn] as isize - bend_counts[&Bend::LeftTurn] as isize;

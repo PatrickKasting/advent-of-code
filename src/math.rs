@@ -8,18 +8,12 @@ pub struct Primes {
     current: usize,
 }
 
-impl Primes {
-    pub fn new() -> Self {
+impl Default for Primes {
+    fn default() -> Self {
         Primes {
             primes: Vec::new(),
             current: 1,
         }
-    }
-}
-
-impl Default for Primes {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
@@ -38,7 +32,7 @@ impl Iterator for Primes {
 
 pub fn prime_factors(mut number: usize) -> Vec<usize> {
     let mut prime_factors = Vec::new();
-    for prime in Primes::new().take_while(move |&prime| prime <= number) {
+    for prime in Primes::default().take_while(move |&prime| prime <= number) {
         while number % prime == 0 {
             prime_factors.push(prime);
             number /= prime;
@@ -60,14 +54,9 @@ pub fn least_common_multiple(numbers: impl IntoIterator<Item = usize>) -> usize 
 
     let mut least_common_multiple = 1;
     for prime_factor in prime_factors {
-        let maximum_occurrence = prime_factorizations
+        let &maximum_occurrence = prime_factorizations
             .iter()
-            .map(|prime_factorization| {
-                prime_factorization
-                    .get(&prime_factor)
-                    .copied()
-                    .unwrap_or_default()
-            })
+            .filter_map(|prime_factorization| prime_factorization.get(&prime_factor))
             .max()
             .expect("least common multiple should be computed from at least one number");
         least_common_multiple *= prime_factor.pow(maximum_occurrence as u32);
