@@ -48,8 +48,8 @@ pub fn first(input: String) -> String {
     sum_of_distances(&input, 2).to_string()
 }
 
-pub fn second(_input: String) -> String {
-    sum_of_distances(&_input, 1_000_000).to_string()
+pub fn second(input: String) -> String {
+    sum_of_distances(&input, 1_000_000).to_string()
 }
 
 #[cfg(test)]
