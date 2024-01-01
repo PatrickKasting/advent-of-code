@@ -1,5 +1,6 @@
 mod day1;
 mod day10;
+mod day11;
 mod day2;
 mod day3;
 mod day4;
@@ -80,6 +81,7 @@ const SOLUTIONS: &[(Solution, Solution)] = &[
     (day8::first, day8::second),
     (day9::first, day9::second),
     (day10::first, day10::second),
+    (day11::first, day11::second),
 ];
 
 fn solution(day: Day, puzzle: Puzzle) -> Solution {

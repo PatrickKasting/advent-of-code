@@ -1,5 +1,6 @@
 use std::fmt::{Debug, Display, Write};
 
+use itertools::Itertools;
 use strum::{EnumIter, IntoEnumIterator};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, EnumIter)]
@@ -17,15 +18,6 @@ impl Direction {
             Direction::East => Direction::South,
             Direction::South => Direction::West,
             Direction::West => Direction::North,
-        }
-    }
-
-    pub fn next_counterclockwise(self) -> Self {
-        match self {
-            Direction::North => Direction::West,
-            Direction::East => Direction::North,
-            Direction::South => Direction::East,
-            Direction::West => Direction::South,
         }
     }
 
@@ -79,64 +71,72 @@ impl Position {
     pub fn neighbors(self) -> impl Iterator<Item = Self> {
         Direction::iter().map(move |direction| self.neighbor(direction))
     }
-
-    pub fn direction_to(self, neighbor: Position) -> Direction {
-        match (neighbor.row - self.row, neighbor.column - self.column) {
-            (-1, 0) => Direction::North,
-            (0, 1) => Direction::East,
-            (1, 0) => Direction::South,
-            (0, -1) => Direction::West,
-            _ => panic!("the positions should be neighbors"),
-        }
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Grid<T> {
-    elements: Vec<T>,
-    width: usize,
+    elements: Vec<Vec<T>>,
 }
 
 impl<T> Grid<T> {
-    pub fn new(elements: Vec<T>, width: usize) -> Self {
-        Self { elements, width }
-    }
-
     pub fn get(&self, position: Position) -> Option<&T> {
-        self.is_position_within(position)
-            .then(|| &self.elements[self.index(position)])
+        let [row, column] = [position.row(), position.column()]
+            .map(|coordinate| (!coordinate.is_negative()).then_some(coordinate as usize));
+        self.elements.get(row?)?.get(column?)
     }
 
-    pub fn position_of(&self, mut predicate: impl FnMut(&T) -> bool) -> Option<Position> {
-        for (row_index, row) in self.elements.chunks(self.width).enumerate() {
+    pub fn positions(&self, mut predicate: impl FnMut(&T) -> bool) -> Vec<Position> {
+        let mut positions = Vec::new();
+        for (row_index, row) in self.elements.iter().enumerate() {
             for (column_index, element) in row.iter().enumerate() {
                 if predicate(element) {
-                    return Some(Position::new(row_index as isize, column_index as isize));
+                    positions.push(Position::new(row_index as isize, column_index as isize));
                 }
             }
         }
-        None
+        positions
     }
 
-    fn height(&self) -> usize {
-        self.elements.len() / self.width
+    pub fn row_indices(&self, mut predicate: impl FnMut(&T) -> bool) -> Vec<Coordinate> {
+        self.elements
+            .iter()
+            .enumerate()
+            .filter(|(_, row)| row.iter().all(&mut predicate))
+            .map(|(row_index, _)| row_index as isize)
+            .collect_vec()
     }
 
-    pub fn is_position_within(&self, position: Position) -> bool {
-        0 <= position.row()
-            && position.row() < self.height() as isize
-            && 0 <= position.column()
-            && position.column() < self.width as isize
+    pub fn column_indices(&self, mut predicate: impl FnMut(&T) -> bool) -> Vec<Coordinate> {
+        (0..self.width())
+            .filter(|&column_index| {
+                self.elements
+                    .iter()
+                    .all(|row| predicate(&row[column_index as usize]))
+            })
+            .collect_vec()
     }
 
-    fn index(&self, position: Position) -> usize {
-        position.row() as usize * self.width + position.column() as usize
+    fn width(&self) -> Coordinate {
+        self.elements
+            .first()
+            .map(|row| row.len() as isize)
+            .unwrap_or_default()
+    }
+}
+
+impl From<&str> for Grid<char> {
+    fn from(grid: &str) -> Self {
+        let elements = grid
+            .lines()
+            .map(|line| line.chars().collect_vec())
+            .collect_vec();
+        Self { elements }
     }
 }
 
 impl Display for Grid<char> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for row in self.elements.chunks(self.width) {
+        for row in &self.elements {
             for &element in row {
                 f.write_char(element)?;
             }

@@ -54,7 +54,6 @@ fn destination_and_time<'input>(
 fn time_to_all_ghosts_at_destinations(network: &Network, directions: &str) -> usize {
     let mut ghosts = network
         .keys()
-        .copied()
         .filter(|node| is_starting(node))
         .map(|node| destination_and_time(network, directions, 0, node))
         .collect_vec();

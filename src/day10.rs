@@ -9,19 +9,6 @@ type Tile = char;
 type Cycle = Vec<(Position, Direction)>;
 type CycleSlice<'cycle> = &'cycle [(Position, Direction)];
 
-fn grid(grid: &str) -> Grid<Tile> {
-    let tiles = grid
-        .chars()
-        .filter(|tile| !tile.is_ascii_whitespace())
-        .collect_vec();
-    let width = grid
-        .lines()
-        .next()
-        .expect("input should have at least one line")
-        .len();
-    Grid::new(tiles, width)
-}
-
 const CONNECTIONS: &[(Tile, &[Direction])] = &[
     ('|', &[Direction::North, Direction::South]),
     ('-', &[Direction::East, Direction::West]),
@@ -73,9 +60,7 @@ fn cycle(grid: &Grid<Tile>, from: Position, towards: Direction) -> Option<Cycle>
 }
 
 fn longest_cycle(grid: &Grid<Tile>) -> Cycle {
-    let starting_position = grid
-        .position_of(|&tile| tile == 'S')
-        .expect("input should contain starting position");
+    let starting_position = grid.positions(|&tile| tile == 'S')[0];
     Direction::iter()
         .filter_map(|direction| cycle(grid, starting_position, direction))
         .max_by_key(|cycle| cycle.len())
@@ -159,11 +144,11 @@ fn cycle_area(mut cycle: Cycle) -> usize {
 }
 
 pub fn first(input: String) -> String {
-    (longest_cycle(&grid(&input)).len() / 2).to_string()
+    (longest_cycle(&Grid::from(input.as_str())).len() / 2).to_string()
 }
 
 pub fn second(input: String) -> String {
-    cycle_area(longest_cycle(&grid(&input))).to_string()
+    cycle_area(longest_cycle(&Grid::from(input.as_str()))).to_string()
 }
 
 #[cfg(test)]
