@@ -1,6 +1,7 @@
 mod day1;
 mod day10;
 mod day11;
+mod day12;
 mod day2;
 mod day3;
 mod day4;
@@ -82,6 +83,7 @@ const SOLUTIONS: &[(Solution, Solution)] = &[
     (day9::first, day9::second),
     (day10::first, day10::second),
     (day11::first, day11::second),
+    (day12::first, day12::second),
 ];
 
 fn solution(day: Day, puzzle: Puzzle) -> Solution {
@@ -102,10 +104,24 @@ fn main() {
 
 #[cfg(test)]
 pub mod tests {
+    use std::fmt::Debug;
+
+    use itertools::Itertools;
+
     use super::*;
 
     pub fn test_on_input(day: Day, puzzle: Puzzle, input: Input, expected: impl ToString) {
         let actual = solution(day, puzzle)(super::input(day, input));
         assert_eq!(actual, expected.to_string());
+    }
+
+    pub fn test_cases<Case, Answer: Debug + Eq>(
+        function: impl FnMut(Case) -> Answer,
+        cases: impl IntoIterator<Item = Case>,
+        expected: impl IntoIterator<Item = Answer>,
+    ) {
+        for (answer, expected) in cases.into_iter().map(function).zip_eq(expected) {
+            assert_eq!(answer, expected);
+        }
     }
 }
