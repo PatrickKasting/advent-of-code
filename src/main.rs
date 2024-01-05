@@ -1,16 +1,16 @@
-mod day1;
+mod day01;
+mod day02;
+mod day03;
+mod day04;
+mod day05;
+mod day06;
+mod day07;
+mod day08;
+mod day09;
 mod day10;
 mod day11;
 mod day12;
 mod day13;
-mod day2;
-mod day3;
-mod day4;
-mod day5;
-mod day6;
-mod day7;
-mod day8;
-mod day9;
 pub mod grid;
 pub mod math;
 pub mod utilities;
@@ -64,8 +64,8 @@ pub enum Input {
 
 fn input(day: usize, input: Input) -> String {
     let path = match input {
-        Input::Example(example) => format!("examples/{day}/{example}.txt"),
-        Input::Real => format!("input/{day}.txt"),
+        Input::Example(example) => format!("examples/{day:02}/{example}.txt"),
+        Input::Real => format!("input/{day:02}.txt"),
     };
     fs::read_to_string(&path).unwrap_or_else(|_| panic!("'{path}' should exist"))
 }
@@ -73,15 +73,15 @@ fn input(day: usize, input: Input) -> String {
 type Solution = fn(String) -> String;
 
 const SOLUTIONS: &[(Solution, Solution)] = &[
-    (day1::first, day1::second),
-    (day2::first, day2::second),
-    (day3::first, day3::second),
-    (day4::first, day4::second),
-    (day5::first, day5::second),
-    (day6::first, day6::second),
-    (day7::first, day7::second),
-    (day8::first, day8::second),
-    (day9::first, day9::second),
+    (day01::first, day01::second),
+    (day02::first, day02::second),
+    (day03::first, day03::second),
+    (day04::first, day04::second),
+    (day05::first, day05::second),
+    (day06::first, day06::second),
+    (day07::first, day07::second),
+    (day08::first, day08::second),
+    (day09::first, day09::second),
     (day10::first, day10::second),
     (day11::first, day11::second),
     (day12::first, day12::second),
