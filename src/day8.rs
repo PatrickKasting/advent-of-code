@@ -58,7 +58,7 @@ fn time_to_all_ghosts_at_destinations(network: &Network, directions: &str) -> us
         .map(|node| destination_and_time(network, directions, 0, node))
         .collect_vec();
     let mut destination_network = ahash::HashMap::default();
-    while !ghosts.iter().all(|ghost| ghost.1 == ghosts[0].1) {
+    while !ghosts.iter().map(|(_, time)| *time).all_equal() {
         let ghost = ghosts
             .iter_mut()
             .min_by_key(|(_, time)| *time)
