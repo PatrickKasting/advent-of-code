@@ -60,7 +60,12 @@ fn cycle(grid: &Grid<Tile>, from: Position, towards: Direction) -> Option<Cycle>
 }
 
 fn longest_cycle(grid: &Grid<Tile>) -> Cycle {
-    let starting_position = grid.positions(|&tile| tile == 'S')[0];
+    let starting_position = grid
+        .iter_row_major()
+        .filter_map(|(position, &tile)| (tile == 'S').then_some(position))
+        .exactly_one()
+        .ok()
+        .expect("there should be exactly one starting position");
     Direction::iter()
         .filter_map(|direction| cycle(grid, starting_position, direction))
         .max_by_key(|cycle| cycle.len())

@@ -1,4 +1,7 @@
-use std::fmt::{Debug, Display, Write};
+use std::{
+    fmt::{Debug, Display, Write},
+    ops::{Index, IndexMut},
+};
 
 use itertools::Itertools;
 use strum::{EnumIter, IntoEnumIterator};
@@ -6,18 +9,18 @@ use strum::{EnumIter, IntoEnumIterator};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, EnumIter)]
 pub enum Direction {
     North,
-    East,
-    South,
     West,
+    South,
+    East,
 }
 
 impl Direction {
     pub fn next_clockwise(self) -> Self {
         match self {
             Direction::North => Direction::East,
-            Direction::East => Direction::South,
-            Direction::South => Direction::West,
             Direction::West => Direction::North,
+            Direction::South => Direction::West,
+            Direction::East => Direction::South,
         }
     }
 
@@ -71,53 +74,70 @@ impl Position {
     pub fn neighbors(self) -> impl Iterator<Item = Self> {
         Direction::iter().map(move |direction| self.neighbor(direction))
     }
+
+    fn coordinates_as_usize(self) -> [Option<usize>; 2] {
+        [self.row, self.column]
+            .map(|coordinate| (!coordinate.is_negative()).then_some(coordinate as usize))
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Grid<T> {
-    elements: Vec<Vec<T>>,
-}
+pub struct Grid<T>(Vec<Vec<T>>);
 
 impl<T> Grid<T> {
     pub fn get(&self, position: Position) -> Option<&T> {
-        let [row, column] = [position.row(), position.column()]
-            .map(|coordinate| (!coordinate.is_negative()).then_some(coordinate as usize));
-        self.elements.get(row?)?.get(column?)
+        let [row, column] = position.coordinates_as_usize();
+        self.0.get(row?)?.get(column?)
     }
 
-    pub fn positions(&self, mut predicate: impl FnMut(&T) -> bool) -> Vec<Position> {
-        let mut positions = Vec::new();
-        for (row_index, row) in self.elements.iter().enumerate() {
-            for (column_index, element) in row.iter().enumerate() {
-                if predicate(element) {
-                    positions.push(Position::new(row_index as isize, column_index as isize));
-                }
-            }
-        }
-        positions
+    pub fn get_mut(&mut self, position: Position) -> Option<&mut T> {
+        let [row, column] = position.coordinates_as_usize();
+        self.0.get_mut(row?)?.get_mut(column?)
     }
 
-    pub fn row_indices(&self, mut predicate: impl FnMut(&T) -> bool) -> Vec<Coordinate> {
-        self.elements
-            .iter()
-            .enumerate()
-            .filter(|(_, row)| row.iter().all(&mut predicate))
-            .map(|(row_index, _)| row_index as isize)
-            .collect_vec()
-    }
-
-    pub fn column_indices(&self, mut predicate: impl FnMut(&T) -> bool) -> Vec<Coordinate> {
-        (0..self.width())
-            .filter(|&column_index| {
-                self.elements
-                    .iter()
-                    .all(|row| predicate(&row[column_index as usize]))
+    pub fn iter_row_major(&self) -> impl Iterator<Item = (Position, &T)> {
+        self.rows().enumerate().flat_map(|(row_index, row)| {
+            row.enumerate().map(move |(column_index, element)| {
+                (
+                    Position::new(row_index as isize, column_index as isize),
+                    element,
+                )
             })
-            .collect_vec()
+        })
     }
 
-    fn width(&self) -> Coordinate {
-        self.elements
+    pub fn iter_column_major(&self) -> impl Iterator<Item = (Position, &T)> {
+        self.columns()
+            .enumerate()
+            .flat_map(|(column_index, column)| {
+                column.enumerate().map(move |(row_index, element)| {
+                    (
+                        Position::new(row_index as isize, column_index as isize),
+                        element,
+                    )
+                })
+            })
+    }
+
+    pub fn rows(
+        &self,
+    ) -> impl ExactSizeIterator<Item = impl Iterator<Item = &T>> + DoubleEndedIterator {
+        self.0.iter().map(|row| row.iter())
+    }
+
+    pub fn columns(
+        &self,
+    ) -> impl ExactSizeIterator<Item = impl Iterator<Item = &T>> + DoubleEndedIterator {
+        (0..self.width())
+            .map(|column_index| self.0.iter().map(move |row| &row[column_index as usize]))
+    }
+
+    pub fn height(&self) -> Coordinate {
+        self.0.len() as isize
+    }
+
+    pub fn width(&self) -> Coordinate {
+        self.0
             .first()
             .map(|row| row.len() as isize)
             .unwrap_or_default()
@@ -130,18 +150,33 @@ impl From<&str> for Grid<char> {
             .lines()
             .map(|line| line.chars().collect_vec())
             .collect_vec();
-        Self { elements }
+        Self(elements)
     }
 }
 
 impl Display for Grid<char> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for row in &self.elements {
+        for row in &self.0 {
             for &element in row {
                 f.write_char(element)?;
             }
             f.write_char('\n')?;
         }
         Ok(())
+    }
+}
+
+impl<T> Index<Position> for Grid<T> {
+    type Output = T;
+
+    fn index(&self, position: Position) -> &Self::Output {
+        self.get(position).expect("position should be within grid")
+    }
+}
+
+impl<T> IndexMut<Position> for Grid<T> {
+    fn index_mut(&mut self, position: Position) -> &mut Self::Output {
+        self.get_mut(position)
+            .expect("position should be within grid")
     }
 }

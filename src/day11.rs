@@ -4,8 +4,8 @@ use crate::grid::Grid;
 
 type Image = Grid<char>;
 
-fn is_galaxy(char: &char) -> bool {
-    *char == '#'
+fn is_galaxy(element: &char) -> bool {
+    *element == '#'
 }
 
 fn one_dimensinoal_distance(
@@ -24,18 +24,35 @@ fn one_dimensinoal_distance(
 
 fn sum_of_distances(input: &str, expansion_factor: isize) -> isize {
     let image = Image::from(input);
-    let galaxies = image.positions(is_galaxy);
-    let empty_rows = image.row_indices(|position| !is_galaxy(position));
-    let empty_columns = image.column_indices(|position| !is_galaxy(position));
+    let empty_rows = image
+        .rows()
+        .enumerate()
+        .filter_map(|(row_index, mut row)| {
+            row.all(|position| !is_galaxy(position))
+                .then_some(row_index as isize)
+        })
+        .collect_vec();
+    let empty_columns = image
+        .columns()
+        .enumerate()
+        .filter_map(|(column_index, mut column)| {
+            column
+                .all(|position| !is_galaxy(position))
+                .then_some(column_index as isize)
+        })
+        .collect_vec();
 
-    let distances = galaxies.iter().combinations(2).map(|pair| {
+    let galaxies = image
+        .iter_row_major()
+        .filter_map(|(position, element)| is_galaxy(element).then_some(position));
+    let distances = galaxies.combinations(2).map(|pair| {
         let vertical_distance = one_dimensinoal_distance(
-            &empty_rows,
+            &empty_rows[..],
             expansion_factor,
             [pair[0].row(), pair[1].row()],
         );
         let horizontal_distance = one_dimensinoal_distance(
-            &empty_columns,
+            &empty_columns[..],
             expansion_factor,
             [pair[0].column(), pair[1].column()],
         );
