@@ -164,8 +164,8 @@ mod tests {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 64);
     }
 
-    // #[test]
-    // fn second_input() {
-    //     test_on_input(DAY, Puzzle::Second, Input::Real, 33438);
-    // }
+    #[test]
+    fn second_input() {
+        test_on_input(DAY, Puzzle::Second, Input::Real, 89089);
+    }
 }
