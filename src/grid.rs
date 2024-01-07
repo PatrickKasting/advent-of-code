@@ -32,6 +32,24 @@ impl Direction {
             Direction::West => Direction::East,
         }
     }
+
+    pub fn reflection_north_west_diagonal(self) -> Self {
+        match self {
+            Direction::North => Direction::West,
+            Direction::West => Direction::North,
+            Direction::South => Direction::East,
+            Direction::East => Direction::South,
+        }
+    }
+
+    pub fn reflection_north_east_diagonal(self) -> Self {
+        match self {
+            Direction::North => Direction::East,
+            Direction::West => Direction::South,
+            Direction::South => Direction::West,
+            Direction::East => Direction::North,
+        }
+    }
 }
 
 type Coordinate = isize;
@@ -130,6 +148,24 @@ impl<T> Grid<T> {
     ) -> impl ExactSizeIterator<Item = impl Iterator<Item = &T>> + DoubleEndedIterator {
         (0..self.width())
             .map(|column_index| self.0.iter().map(move |row| &row[column_index as usize]))
+    }
+
+    pub fn map<U>(&self, mut map: impl FnMut(Position, &T) -> U) -> Grid<U> {
+        let elements = self
+            .rows()
+            .enumerate()
+            .map(|(row_index, row)| {
+                row.enumerate()
+                    .map(|(column_index, element)| {
+                        map(
+                            Position::new(row_index as isize, column_index as isize),
+                            element,
+                        )
+                    })
+                    .collect_vec()
+            })
+            .collect_vec();
+        Grid(elements)
     }
 
     pub fn height(&self) -> Coordinate {
