@@ -63,13 +63,13 @@ fn maximum_number_of_energized_tiles(grid: &Grid<char>) -> usize {
 }
 
 pub fn first(input: String) -> String {
-    let grid = Grid::from(input.as_str());
+    let grid = Grid::from(input);
     let beam = (Direction::East, Position::new(0, 0));
     number_of_energized_tiles(&grid, beam).to_string()
 }
 
 pub fn second(input: String) -> String {
-    let grid = Grid::from(input.as_str());
+    let grid = Grid::from(input);
     maximum_number_of_energized_tiles(&grid).to_string()
 }
 
@@ -86,7 +86,7 @@ mod tests {
 
     #[test]
     fn first_input() {
-        test_on_input(DAY, Puzzle::First, Input::Real, 8551);
+        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 8551);
     }
 
     #[test]
@@ -96,6 +96,6 @@ mod tests {
 
     #[test]
     fn second_input() {
-        test_on_input(DAY, Puzzle::Second, Input::Real, 8754);
+        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 8754);
     }
 }

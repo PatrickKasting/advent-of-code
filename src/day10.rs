@@ -149,11 +149,11 @@ fn cycle_area(mut cycle: Cycle) -> usize {
 }
 
 pub fn first(input: String) -> String {
-    (longest_cycle(&Grid::from(input.as_str())).len() / 2).to_string()
+    (longest_cycle(&Grid::from(input)).len() / 2).to_string()
 }
 
 pub fn second(input: String) -> String {
-    cycle_area(longest_cycle(&Grid::from(input.as_str()))).to_string()
+    cycle_area(longest_cycle(&Grid::from(input))).to_string()
 }
 
 #[cfg(test)]
@@ -170,7 +170,7 @@ mod tests {
 
     #[test]
     fn first_input() {
-        test_on_input(DAY, Puzzle::First, Input::Real, 6690);
+        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 6690);
     }
 
     #[test]
@@ -182,6 +182,6 @@ mod tests {
 
     #[test]
     fn second_input() {
-        test_on_input(DAY, Puzzle::Second, Input::Real, 525);
+        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 525);
     }
 }

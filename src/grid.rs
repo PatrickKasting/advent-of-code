@@ -1,6 +1,7 @@
 use std::{
+    convert::identity,
     fmt::{Debug, Display, Write},
-    ops::{Index, IndexMut},
+    ops::{Deref, Index, IndexMut},
 };
 
 use itertools::Itertools;
@@ -15,6 +16,15 @@ pub enum Direction {
 }
 
 impl Direction {
+    pub fn opposite(self) -> Self {
+        match self {
+            Direction::North => Direction::South,
+            Direction::East => Direction::West,
+            Direction::South => Direction::North,
+            Direction::West => Direction::East,
+        }
+    }
+
     pub fn next_clockwise(self) -> Self {
         match self {
             Direction::North => Direction::East,
@@ -24,13 +34,8 @@ impl Direction {
         }
     }
 
-    pub fn opposite(self) -> Self {
-        match self {
-            Direction::North => Direction::South,
-            Direction::East => Direction::West,
-            Direction::South => Direction::North,
-            Direction::West => Direction::East,
-        }
+    pub fn next_counterclockwise(self) -> Direction {
+        self.opposite().next_clockwise()
     }
 
     pub fn reflection_north_west_diagonal(self) -> Self {
@@ -103,6 +108,14 @@ impl Position {
 pub struct Grid<T>(Vec<Vec<T>>);
 
 impl<T> Grid<T> {
+    fn from_str(grid: &str, mut element_from_char: impl FnMut(char) -> T) -> Self {
+        let elements = grid
+            .lines()
+            .map(|line| line.chars().map(&mut element_from_char).collect_vec())
+            .collect_vec();
+        Self(elements)
+    }
+
     pub fn get(&self, position: Position) -> Option<&T> {
         let [row, column] = position.coordinates_as_usize();
         self.0.get(row?)?.get(column?)
@@ -180,13 +193,15 @@ impl<T> Grid<T> {
     }
 }
 
-impl From<&str> for Grid<char> {
-    fn from(grid: &str) -> Self {
-        let elements = grid
-            .lines()
-            .map(|line| line.chars().collect_vec())
-            .collect_vec();
-        Self(elements)
+impl<S: Deref<Target = str>> From<S> for Grid<char> {
+    fn from(grid: S) -> Self {
+        Self::from_str(&grid, identity)
+    }
+}
+
+impl<S: Deref<Target = str>> From<S> for Grid<usize> {
+    fn from(grid: S) -> Self {
+        Self::from_str(&grid, |char| char as usize - '0' as usize)
     }
 }
 

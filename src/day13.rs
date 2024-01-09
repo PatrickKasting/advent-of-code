@@ -130,7 +130,7 @@ mod tests {
 
     #[test]
     fn first_input() {
-        test_on_input(DAY, Puzzle::First, Input::Real, 29130);
+        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 29130);
     }
 
     #[test]
@@ -140,6 +140,6 @@ mod tests {
 
     #[test]
     fn second_input() {
-        test_on_input(DAY, Puzzle::Second, Input::Real, 33438);
+        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 33438);
     }
 }

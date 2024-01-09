@@ -14,8 +14,10 @@ mod day13;
 mod day14;
 mod day15;
 mod day16;
+mod day17;
 pub mod grid;
 pub mod math;
+mod search;
 pub mod utilities;
 
 use std::fs;
@@ -62,13 +64,13 @@ struct CommandLineArguments {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Input {
     Example(usize),
-    Real,
+    PuzzleInput,
 }
 
 fn input(day: usize, input: Input) -> String {
     let path = match input {
         Input::Example(example) => format!("examples/{day:02}/{example}.txt"),
-        Input::Real => format!("input/{day:02}.txt"),
+        Input::PuzzleInput => format!("puzzle-inputs/{day:02}.txt"),
     };
     fs::read_to_string(&path).unwrap_or_else(|_| panic!("'{path}' should exist"))
 }
@@ -92,6 +94,7 @@ const SOLUTIONS: &[(Solution, Solution)] = &[
     (day14::first, day14::second),
     (day15::first, day15::second),
     (day16::first, day16::second),
+    (day17::first, day17::second),
 ];
 
 fn solution(day: Day, puzzle: Puzzle) -> Solution {
@@ -104,7 +107,7 @@ fn solution(day: Day, puzzle: Puzzle) -> Solution {
 fn main() {
     let command_line_arguments = CommandLineArguments::parse();
 
-    let input = input(command_line_arguments.day, Input::Real);
+    let input = input(command_line_arguments.day, Input::PuzzleInput);
     let solution = solution(command_line_arguments.day, command_line_arguments.puzzle);
     let answer = solution(input);
     println!("{}", answer);

@@ -98,7 +98,7 @@ mod tests {
 
     #[test]
     fn first_input() {
-        test_on_input(DAY, Puzzle::First, Input::Real, 18673);
+        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 18673);
     }
 
     #[test]

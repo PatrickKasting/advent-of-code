@@ -95,7 +95,7 @@ mod tests {
 
     #[test]
     fn first_input() {
-        test_on_input(DAY, Puzzle::First, Input::Real, 108759);
+        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 108759);
     }
 
     fn after_cycles(number_of_cycles: usize) -> Platform {
@@ -166,6 +166,6 @@ mod tests {
 
     #[test]
     fn second_input() {
-        test_on_input(DAY, Puzzle::Second, Input::Real, 89089);
+        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 89089);
     }
 }
