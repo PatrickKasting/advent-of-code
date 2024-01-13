@@ -1,8 +1,10 @@
+use std::collections::HashMap;
+
 use itertools::Itertools;
 
 type Node<'input> = &'input str;
 type Connection<'input> = (Node<'input>, (Node<'input>, Node<'input>));
-type Network<'input> = ahash::HashMap<Node<'input>, (Node<'input>, Node<'input>)>;
+type Network<'input> = HashMap<Node<'input>, (Node<'input>, Node<'input>)>;
 
 fn connection(connection: &str) -> Connection {
     (&connection[0..3], (&connection[7..10], &connection[12..15]))
@@ -57,7 +59,7 @@ fn time_to_all_ghosts_at_destinations(network: &Network, directions: &str) -> us
         .filter(|node| is_starting(node))
         .map(|node| destination_and_time(network, directions, 0, node))
         .collect_vec();
-    let mut destination_network = ahash::HashMap::default();
+    let mut destination_network = HashMap::new();
     while !ghosts.iter().map(|(_, time)| *time).all_equal() {
         let ghost = ghosts
             .iter_mut()

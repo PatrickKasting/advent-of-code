@@ -3,7 +3,7 @@ use std::{collections::HashMap, ops::Range};
 use itertools::Itertools;
 use regex::Regex;
 
-use crate::utilities::number;
+use crate::utilities::{char_at, number};
 
 type PartNumber = usize;
 
@@ -33,10 +33,7 @@ fn for_each_part_number(schematic: &str, mut action: impl FnMut(PartNumber, char
                 let adjacent_range = &lines[line_index][horizontal_range.clone()];
                 if let Some(symbol_position_within_range) = adjacent_range.find(is_symbol) {
                     let part_number = number(mat.as_str());
-                    let symbol = adjacent_range
-                        .chars()
-                        .nth(symbol_position_within_range)
-                        .expect("symbol should be found within adjacent range");
+                    let symbol = char_at(adjacent_range, symbol_position_within_range);
                     let location = (
                         line_index,
                         symbol_position_within_range + horizontal_range.start,

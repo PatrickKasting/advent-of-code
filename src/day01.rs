@@ -54,7 +54,7 @@ fn sum_of_calibration_values<'word>(
 }
 
 pub fn first(input: String) -> String {
-    let digit_patterns: [DigitPattern; 1] = [(r"\d", number)];
+    let digit_patterns: [DigitPattern; 1] = [(r"\d", |str| number(str))];
     sum_of_calibration_values(digit_patterns, &input).to_string()
 }
 
@@ -96,7 +96,7 @@ fn nine(_: &str) -> CalibrationValue {
 
 pub fn second(input: String) -> String {
     let digit_patterns: [DigitPattern; 10] = [
-        (r"\d", number),
+        (r"\d", |str| number(str)),
         ("one", one),
         ("two", two),
         ("three", three),

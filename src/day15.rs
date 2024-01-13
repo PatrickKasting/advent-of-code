@@ -1,3 +1,5 @@
+use crate::utilities::char_at;
+
 type Bucket<'label> = Vec<(&'label str, usize)>;
 type HashMap<'label> = Vec<Bucket<'label>>;
 
@@ -16,9 +18,9 @@ fn operation(step: &str) -> (&str, Operation) {
         .find(|char: char| char.is_ascii_punctuation())
         .expect("operation should contain '-' or '='");
     let (label, operation) = (&step[0..operation_index], &step[operation_index..]);
-    let operation = match &operation[0..1] {
-        "-" => Operation::Removal,
-        "=" => {
+    let operation = match char_at(operation, 0) {
+        '-' => Operation::Removal,
+        '=' => {
             let focal_length = operation[1..]
                 .parse()
                 .expect("focal length should be numeric");
@@ -33,9 +35,8 @@ fn operations(sequence: &str) -> impl Iterator<Item = (&str, Operation)> {
     steps(sequence).map(operation)
 }
 
-fn hash(string: &str) -> usize {
-    string
-        .as_bytes()
+fn hash(str: &str) -> usize {
+    str.as_bytes()
         .iter()
         .fold(0u8, |hash, &char| hash.wrapping_add(char).wrapping_mul(17)) as usize
 }

@@ -15,10 +15,11 @@ mod day14;
 mod day15;
 mod day16;
 mod day17;
-pub mod grid;
-pub mod math;
+mod day18;
+mod day19;
+mod grid;
 mod search;
-pub mod utilities;
+mod utilities;
 
 use std::fs;
 
@@ -95,6 +96,8 @@ const SOLUTIONS: &[(Solution, Solution)] = &[
     (day15::first, day15::second),
     (day16::first, day16::second),
     (day17::first, day17::second),
+    (day18::first, day18::second),
+    (day19::first, day19::second),
 ];
 
 fn solution(day: Day, puzzle: Puzzle) -> Solution {

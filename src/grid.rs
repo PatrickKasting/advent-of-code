@@ -163,24 +163,6 @@ impl<T> Grid<T> {
             .map(|column_index| self.0.iter().map(move |row| &row[column_index as usize]))
     }
 
-    pub fn map<U>(&self, mut map: impl FnMut(Position, &T) -> U) -> Grid<U> {
-        let elements = self
-            .rows()
-            .enumerate()
-            .map(|(row_index, row)| {
-                row.enumerate()
-                    .map(|(column_index, element)| {
-                        map(
-                            Position::new(row_index as isize, column_index as isize),
-                            element,
-                        )
-                    })
-                    .collect_vec()
-            })
-            .collect_vec();
-        Grid(elements)
-    }
-
     pub fn height(&self) -> Coordinate {
         self.0.len() as isize
     }

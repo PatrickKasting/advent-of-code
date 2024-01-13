@@ -15,7 +15,7 @@ fn multiple_races(input: &str) -> impl Iterator<Item = Race> + '_ {
 }
 
 fn number_ignoring_whitespaces(line: &str) -> Number {
-    number(&line.split_ascii_whitespace().skip(1).collect::<String>())
+    number(line.split_ascii_whitespace().skip(1).collect::<String>())
 }
 
 fn single_race(input: &str) -> Race {
