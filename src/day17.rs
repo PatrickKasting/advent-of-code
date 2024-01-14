@@ -5,7 +5,7 @@ use strum::IntoEnumIterator;
 
 use crate::{
     grid::{Direction, Grid, Position},
-    search::uniform_cost_search,
+    search::uniform_cost,
 };
 
 type Move = (Option<Direction>, Position);
@@ -45,7 +45,7 @@ fn minimum_heat_loss(map: &Grid<usize>, possible_number_of_steps: RangeInclusive
     let starting_point = (None, Position::new(0, 0));
     let machine_parts_factory = Position::new(map.height() - 1, map.width() - 1);
     let is_machine_parts_factory = |(_, position)| position == machine_parts_factory;
-    uniform_cost_search(
+    uniform_cost(
         starting_point,
         |mov| possible_next_moves(map, possible_number_of_steps.clone(), mov),
         is_machine_parts_factory,
@@ -53,12 +53,12 @@ fn minimum_heat_loss(map: &Grid<usize>, possible_number_of_steps: RangeInclusive
     .expect("search should reach the machine parts factory")
 }
 
-pub fn first(input: String) -> String {
+pub fn first(input: &str) -> String {
     let map: Grid<usize> = Grid::from(input);
     minimum_heat_loss(&map, 1..=3).to_string()
 }
 
-pub fn second(input: String) -> String {
+pub fn second(input: &str) -> String {
     let map: Grid<usize> = Grid::from(input);
     minimum_heat_loss(&map, 4..=10).to_string()
 }

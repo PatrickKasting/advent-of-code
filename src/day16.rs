@@ -62,13 +62,13 @@ fn maximum_number_of_energized_tiles(grid: &Grid<char>) -> usize {
         .expect("many possible beams from the edges of the grid should exist")
 }
 
-pub fn first(input: String) -> String {
+pub fn first(input: &str) -> String {
     let grid = Grid::from(input);
     let beam = (Direction::East, Position::new(0, 0));
     number_of_energized_tiles(&grid, beam).to_string()
 }
 
-pub fn second(input: String) -> String {
+pub fn second(input: &str) -> String {
     let grid = Grid::from(input);
     maximum_number_of_energized_tiles(&grid).to_string()
 }

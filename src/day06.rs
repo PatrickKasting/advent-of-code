@@ -36,14 +36,14 @@ fn number_of_ways_to_beat_record((time, distance): Race) -> usize {
     max.ceil() as usize - min.floor() as usize - 1
 }
 
-pub fn first(input: String) -> String {
+pub fn first(input: &str) -> String {
     multiple_races(&input)
         .map(number_of_ways_to_beat_record)
         .product::<usize>()
         .to_string()
 }
 
-pub fn second(input: String) -> String {
+pub fn second(input: &str) -> String {
     number_of_ways_to_beat_record(single_race(&input)).to_string()
 }
 

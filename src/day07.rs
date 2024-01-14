@@ -90,11 +90,11 @@ fn total_winnings(j: Card, input: &str) -> usize {
         .sum()
 }
 
-pub fn first(input: String) -> String {
+pub fn first(input: &str) -> String {
     total_winnings(Card::Jack, &input).to_string()
 }
 
-pub fn second(input: String) -> String {
+pub fn second(input: &str) -> String {
     total_winnings(Card::Joker, &input).to_string()
 }
 

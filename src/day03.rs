@@ -46,13 +46,13 @@ fn for_each_part_number(schematic: &str, mut action: impl FnMut(PartNumber, char
     }
 }
 
-pub fn first(input: String) -> String {
+pub fn first(input: &str) -> String {
     let mut sum: usize = 0;
-    for_each_part_number(&input, |part_number, _, _| sum += part_number);
+    for_each_part_number(input, |part_number, _, _| sum += part_number);
     sum.to_string()
 }
 
-pub fn second(input: String) -> String {
+pub fn second(input: &str) -> String {
     let mut gears = HashMap::new();
     let on_part_number = |part_number, symbol, location| {
         if symbol == '*' {
@@ -62,7 +62,7 @@ pub fn second(input: String) -> String {
                 .push(part_number);
         }
     };
-    for_each_part_number(&input, on_part_number);
+    for_each_part_number(input, on_part_number);
 
     gears
         .values()

@@ -164,7 +164,10 @@ impl<T> Grid<T> {
     }
 
     pub fn height(&self) -> Coordinate {
-        self.0.len() as isize
+        self.0
+            .len()
+            .try_into()
+            .expect("height should be smaller than isize::MAX")
     }
 
     pub fn width(&self) -> Coordinate {

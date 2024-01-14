@@ -4,8 +4,8 @@ use crate::grid::Grid;
 
 type Image = Grid<char>;
 
-fn is_galaxy(element: &char) -> bool {
-    *element == '#'
+fn is_galaxy(element: char) -> bool {
+    element == '#'
 }
 
 fn one_dimensinoal_distance(
@@ -13,7 +13,7 @@ fn one_dimensinoal_distance(
     expensive_step_cost: isize,
     mut points: [isize; 2],
 ) -> isize {
-    points.sort();
+    points.sort_unstable();
     let [first, second] = points;
     let number_of_expensive_steps = expensive_steps
         .iter()
@@ -28,7 +28,7 @@ fn sum_of_distances(input: &str, expansion_factor: isize) -> isize {
         .rows()
         .enumerate()
         .filter_map(|(row_index, mut row)| {
-            row.all(|position| !is_galaxy(position))
+            row.all(|&position| !is_galaxy(position))
                 .then_some(row_index as isize)
         })
         .collect_vec();
@@ -37,14 +37,14 @@ fn sum_of_distances(input: &str, expansion_factor: isize) -> isize {
         .enumerate()
         .filter_map(|(column_index, mut column)| {
             column
-                .all(|position| !is_galaxy(position))
+                .all(|&position| !is_galaxy(position))
                 .then_some(column_index as isize)
         })
         .collect_vec();
 
     let galaxies = image
         .iter_row_major()
-        .filter_map(|(position, element)| is_galaxy(element).then_some(position));
+        .filter_map(|(position, &element)| is_galaxy(element).then_some(position));
     let distances = galaxies.combinations(2).map(|pair| {
         let vertical_distance = one_dimensinoal_distance(
             &empty_rows[..],
@@ -61,11 +61,11 @@ fn sum_of_distances(input: &str, expansion_factor: isize) -> isize {
     distances.sum()
 }
 
-pub fn first(input: String) -> String {
+pub fn first(input: &str) -> String {
     sum_of_distances(&input, 2).to_string()
 }
 
-pub fn second(input: String) -> String {
+pub fn second(input: &str) -> String {
     sum_of_distances(&input, 1_000_000).to_string()
 }
 

@@ -73,18 +73,18 @@ fn sum_of_focusing_powers(hash_map: &HashMap) -> usize {
     let mut sum = 0;
     for (bucket_number, bucket) in (1..).zip(hash_map) {
         for (lens_number, (_, focal_length)) in (1..).zip(bucket) {
-            sum += bucket_number * lens_number * *focal_length
+            sum += bucket_number * lens_number * *focal_length;
         }
     }
     sum
 }
 
-pub fn first(input: String) -> String {
-    steps(input.as_str()).map(hash).sum::<usize>().to_string()
+pub fn first(input: &str) -> String {
+    steps(input).map(hash).sum::<usize>().to_string()
 }
 
-pub fn second(input: String) -> String {
-    sum_of_focusing_powers(&hash_map(operations(input.as_str()))).to_string()
+pub fn second(input: &str) -> String {
+    sum_of_focusing_powers(&hash_map(operations(input))).to_string()
 }
 
 #[cfg(test)]

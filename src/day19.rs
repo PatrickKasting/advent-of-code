@@ -266,7 +266,7 @@ fn number_of_combinations(accepted_ranges: &[RatingRanges]) -> usize {
         .sum::<usize>()
 }
 
-pub fn first(input: String) -> String {
+pub fn first(input: &str) -> String {
     let (workflows, parts) = input
         .split_once("\n\n")
         .expect("input should contain workflows and parts separated by an empty line");
@@ -278,7 +278,7 @@ pub fn first(input: String) -> String {
     sum_of_sum_of_ratings(&acceptable_rating_ranges, &parts).to_string()
 }
 
-pub fn second(input: String) -> String {
+pub fn second(input: &str) -> String {
     let (workflows, _) = input
         .split_once("\n\n")
         .expect("input should contain workflows and parts separated by an empty line");

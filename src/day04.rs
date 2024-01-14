@@ -30,7 +30,7 @@ fn scratchcard_score(scratchcard: &str) -> usize {
     }
 }
 
-pub fn first(input: String) -> String {
+pub fn first(input: &str) -> String {
     input
         .lines()
         .map(scratchcard_score)
@@ -38,7 +38,7 @@ pub fn first(input: String) -> String {
         .to_string()
 }
 
-pub fn second(input: String) -> String {
+pub fn second(input: &str) -> String {
     let mut number_of_copies = vec![1usize; input.lines().count()];
     for (index, scratchcard) in input.lines().enumerate() {
         let number_of_copies_of_current_scratchcard = number_of_copies[index];

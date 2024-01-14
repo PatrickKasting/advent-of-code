@@ -61,11 +61,11 @@ fn sum_of_predictions(input: &str, reverse: bool) -> Number {
         .sum()
 }
 
-pub fn first(input: String) -> String {
+pub fn first(input: &str) -> String {
     sum_of_predictions(&input, false).to_string()
 }
 
-pub fn second(input: String) -> String {
+pub fn second(input: &str) -> String {
     sum_of_predictions(&input, true).to_string()
 }
 

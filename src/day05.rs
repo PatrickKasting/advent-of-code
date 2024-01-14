@@ -97,14 +97,14 @@ fn minimum_location(maps: &[Map], seed_ranges: Vec<Range<Number>>) -> Number {
         .expect("there should be at least one seed range")
 }
 
-pub fn first(input: String) -> String {
+pub fn first(input: &str) -> String {
     let blocks = input.split("\n\n").collect_vec();
     let seed_ranges = singleton_seed_ranges(blocks[0]);
     let maps = blocks[1..].iter().map(|&block| map(block)).collect_vec();
     minimum_location(&maps, seed_ranges).to_string()
 }
 
-pub fn second(input: String) -> String {
+pub fn second(input: &str) -> String {
     let blocks = input.split("\n\n").collect_vec();
     let seed_ranges = seed_ranges(blocks[0]);
     let maps = blocks[1..].iter().map(|&block| map(block)).collect_vec();

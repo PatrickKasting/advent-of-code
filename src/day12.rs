@@ -45,7 +45,7 @@ fn valid_positions(row: &[u8], group_size: usize) -> Vec<usize> {
 
 fn arrangements(row: &[u8], group_sizes: &[usize]) -> usize {
     let Some((group_size, remaining_group_sizes)) = group_sizes.split_first() else {
-        return if row.contains(&b'#') { 0 } else { 1 };
+        return usize::from(!row.contains(&b'#'));
     };
     valid_positions(row, *group_size)
         .into_iter()
@@ -73,11 +73,11 @@ fn sum_of_number_of_arrangements(input: &str, unfold_factor: usize) -> usize {
         .sum()
 }
 
-pub fn first(input: String) -> String {
+pub fn first(input: &str) -> String {
     sum_of_number_of_arrangements(&input, 1).to_string()
 }
 
-pub fn second(input: String) -> String {
+pub fn second(input: &str) -> String {
     sum_of_number_of_arrangements(&input, 5).to_string()
 }
 

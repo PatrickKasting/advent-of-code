@@ -5,7 +5,7 @@ use std::{
     ops::Add,
 };
 
-pub fn uniform_cost_search<
+pub fn uniform_cost<
     State: Copy + Eq + Hash + Ord,
     Cost: Copy + Ord + Default + Add<Cost, Output = Cost>,
     Successors: IntoIterator<Item = (State, Cost)>,

@@ -74,14 +74,14 @@ fn time_to_all_ghosts_at_destinations(network: &Network, directions: &str) -> us
     ghosts[0].1
 }
 
-pub fn first(input: String) -> String {
+pub fn first(input: &str) -> String {
     let (directions, network) = directions_and_network(&input);
     destination_and_time(&network, directions, 0, "AAA")
         .1
         .to_string()
 }
 
-pub fn second(input: String) -> String {
+pub fn second(input: &str) -> String {
     let (directions, network) = directions_and_network(&input);
     time_to_all_ghosts_at_destinations(&network, directions).to_string()
 }
@@ -110,6 +110,6 @@ mod tests {
 
     // #[test]
     // fn second_input() {
-    //     test_on_input(DAY, Puzzle::Second, Input::Real, 17_972_669_116_327usize);
+    //     test_on_input(DAY, Puzzle::Second, Input::Real, 17_972_669_116_327_usize);
     // }
 }

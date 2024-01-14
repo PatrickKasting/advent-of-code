@@ -1,3 +1,6 @@
+#![warn(clippy::all)]
+#![warn(clippy::pedantic)]
+
 mod day01;
 mod day02;
 mod day03;
@@ -17,6 +20,7 @@ mod day16;
 mod day17;
 mod day18;
 mod day19;
+mod day20;
 mod grid;
 mod search;
 mod utilities;
@@ -76,7 +80,7 @@ fn input(day: usize, input: Input) -> String {
     fs::read_to_string(&path).unwrap_or_else(|_| panic!("'{path}' should exist"))
 }
 
-type Solution = fn(String) -> String;
+type Solution = fn(&str) -> String;
 
 const SOLUTIONS: &[(Solution, Solution)] = &[
     (day01::first, day01::second),
@@ -98,6 +102,7 @@ const SOLUTIONS: &[(Solution, Solution)] = &[
     (day17::first, day17::second),
     (day18::first, day18::second),
     (day19::first, day19::second),
+    (day20::first, day20::second),
 ];
 
 fn solution(day: Day, puzzle: Puzzle) -> Solution {
@@ -112,8 +117,8 @@ fn main() {
 
     let input = input(command_line_arguments.day, Input::PuzzleInput);
     let solution = solution(command_line_arguments.day, command_line_arguments.puzzle);
-    let answer = solution(input);
-    println!("{}", answer);
+    let answer = solution(&input);
+    println!("{answer}");
 }
 
 #[cfg(test)]
@@ -125,7 +130,7 @@ pub mod tests {
     use super::*;
 
     pub fn test_on_input(day: Day, puzzle: Puzzle, input: Input, expected: impl ToString) {
-        let actual = solution(day, puzzle)(super::input(day, input));
+        let actual = solution(day, puzzle)(&super::input(day, input));
         assert_eq!(actual, expected.to_string());
     }
 

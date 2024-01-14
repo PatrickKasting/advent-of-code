@@ -49,7 +49,7 @@ fn cycle(platform: &mut Platform, number_of_cycles: usize) {
 
 fn cycle_start_and_length(platform: &mut Platform) -> (usize, usize) {
     let mut previous = HashMap::new();
-    for number_of_cycles in 0usize.. {
+    for number_of_cycles in 0_usize.. {
         previous.insert(platform.clone(), number_of_cycles);
         cycle(platform, 1);
         if let Some(&cycle_start) = previous.get(platform) {
@@ -66,13 +66,13 @@ fn total_load(platform: &Platform) -> usize {
         .sum()
 }
 
-pub fn first(input: String) -> String {
+pub fn first(input: &str) -> String {
     let mut platform = Platform::from(&input[..]);
     tilt(&mut platform, Direction::North);
     total_load(&platform).to_string()
 }
 
-pub fn second(input: String) -> String {
+pub fn second(input: &str) -> String {
     let mut platform = Platform::from(&input[..]);
     let (cycle_start, cycle_length) = cycle_start_and_length(&mut platform);
     let number_of_missing_cycles = (1_000_000_000 - cycle_start) % cycle_length;

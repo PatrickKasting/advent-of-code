@@ -109,11 +109,11 @@ fn sum_of_pattern_summaries(
         .sum()
 }
 
-pub fn first(input: String) -> String {
+pub fn first(input: &str) -> String {
     sum_of_pattern_summaries(&input, pattern_summary).to_string()
 }
 
-pub fn second(input: String) -> String {
+pub fn second(input: &str) -> String {
     sum_of_pattern_summaries(&input, correct_pattern_summary).to_string()
 }
 

@@ -68,7 +68,7 @@ fn longest_cycle(grid: &Grid<Tile>) -> Cycle {
         .expect("there should be exactly one starting position");
     Direction::iter()
         .filter_map(|direction| cycle(grid, starting_position, direction))
-        .max_by_key(|cycle| cycle.len())
+        .max_by_key(Vec::len)
         .expect("at least one loop should exist")
 }
 
@@ -148,11 +148,11 @@ fn cycle_area(mut cycle: Cycle) -> usize {
     area(&cycle)
 }
 
-pub fn first(input: String) -> String {
+pub fn first(input: &str) -> String {
     (longest_cycle(&Grid::from(input)).len() / 2).to_string()
 }
 
-pub fn second(input: String) -> String {
+pub fn second(input: &str) -> String {
     cycle_area(longest_cycle(&Grid::from(input))).to_string()
 }
 

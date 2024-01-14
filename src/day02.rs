@@ -60,9 +60,9 @@ fn is_game_possible(game: &Game) -> bool {
     game.iter().copied().all(are_counts_possible)
 }
 
-pub fn first(input: String) -> String {
+pub fn first(input: &str) -> String {
     (1..)
-        .zip(games(&input))
+        .zip(games(input))
         .filter(|(_, game)| is_game_possible(game))
         .map(|(game_number, _)| game_number)
         .sum::<usize>()
@@ -83,8 +83,8 @@ fn power(counts: Counts) -> Count {
     counts.into_iter().product()
 }
 
-pub fn second(input: String) -> String {
-    games(&input)
+pub fn second(input: &str) -> String {
+    games(input)
         .map(maximum_counts)
         .map(power)
         .sum::<Count>()
