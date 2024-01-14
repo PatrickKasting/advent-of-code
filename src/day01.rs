@@ -12,7 +12,7 @@ fn calibration_value(
 ) -> CalibrationValue {
     let first_and_last_matches = digit_patterns
         .iter()
-        .flat_map(|(pattern, value)| {
+        .filter_map(|(pattern, value)| {
             let matches = pattern.find_iter(line).collect_vec();
             if matches.is_empty() {
                 None

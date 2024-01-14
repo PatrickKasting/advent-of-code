@@ -26,7 +26,11 @@ fn number_of_matches(scratchcard: &str) -> usize {
 fn scratchcard_score(scratchcard: &str) -> usize {
     match number_of_matches(scratchcard) {
         0 => 0,
-        number_of_matches => 2usize.pow(number_of_matches as u32 - 1),
+        number_of_matches => {
+            let number_of_matches = u32::try_from(number_of_matches)
+                .expect("number of matches should be less than 'u32::MAX'");
+            2usize.pow(number_of_matches - 1)
+        }
     }
 }
 

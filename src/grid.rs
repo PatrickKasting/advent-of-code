@@ -1,7 +1,10 @@
+#![allow(clippy::cast_possible_wrap)]
+#![allow(clippy::cast_sign_loss)]
+
 use std::{
     convert::identity,
     fmt::{Debug, Display, Write},
-    ops::{Deref, Index, IndexMut},
+    ops::{Index, IndexMut},
 };
 
 use itertools::Itertools;
@@ -164,29 +167,26 @@ impl<T> Grid<T> {
     }
 
     pub fn height(&self) -> Coordinate {
-        self.0
-            .len()
-            .try_into()
-            .expect("height should be smaller than isize::MAX")
+        self.0.len() as Coordinate
     }
 
     pub fn width(&self) -> Coordinate {
         self.0
             .first()
-            .map(|row| row.len() as isize)
+            .map(|row| row.len() as Coordinate)
             .unwrap_or_default()
     }
 }
 
-impl<S: Deref<Target = str>> From<S> for Grid<char> {
+impl<S: AsRef<str>> From<S> for Grid<char> {
     fn from(grid: S) -> Self {
-        Self::from_str(&grid, identity)
+        Self::from_str(grid.as_ref(), identity)
     }
 }
 
-impl<S: Deref<Target = str>> From<S> for Grid<usize> {
+impl<S: AsRef<str>> From<S> for Grid<usize> {
     fn from(grid: S) -> Self {
-        Self::from_str(&grid, |char| char as usize - '0' as usize)
+        Self::from_str(grid.as_ref(), |char| char as usize - '0' as usize)
     }
 }
 

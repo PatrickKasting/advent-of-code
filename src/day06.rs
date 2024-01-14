@@ -31,20 +31,20 @@ fn roots(a: Number, b: Number, c: Number) -> (Number, Number) {
     ((-b - d.sqrt()) / (2.0 * a), (-b + d.sqrt()) / (2.0 * a))
 }
 
-fn number_of_ways_to_beat_record((time, distance): Race) -> usize {
+fn number_of_ways_to_beat_record((time, distance): Race) -> f64 {
     let (min, max) = roots(1.0, -time, distance);
-    max.ceil() as usize - min.floor() as usize - 1
+    max.ceil() - min.floor() - 1.0
 }
 
 pub fn first(input: &str) -> String {
-    multiple_races(&input)
+    multiple_races(input)
         .map(number_of_ways_to_beat_record)
-        .product::<usize>()
+        .product::<f64>()
         .to_string()
 }
 
 pub fn second(input: &str) -> String {
-    number_of_ways_to_beat_record(single_race(&input)).to_string()
+    number_of_ways_to_beat_record(single_race(input)).to_string()
 }
 
 #[cfg(test)]

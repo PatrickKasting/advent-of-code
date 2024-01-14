@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use crate::grid::Grid;
+use crate::{grid::Grid, utilities::as_isize};
 
 type Image = Grid<char>;
 
@@ -19,7 +19,7 @@ fn one_dimensinoal_distance(
         .iter()
         .filter(|expensive_step| (first..second).contains(expensive_step))
         .count();
-    (second - first) + number_of_expensive_steps as isize * (expensive_step_cost - 1)
+    (second - first) + as_isize(number_of_expensive_steps) * (expensive_step_cost - 1)
 }
 
 fn sum_of_distances(input: &str, expansion_factor: isize) -> isize {
@@ -29,7 +29,7 @@ fn sum_of_distances(input: &str, expansion_factor: isize) -> isize {
         .enumerate()
         .filter_map(|(row_index, mut row)| {
             row.all(|&position| !is_galaxy(position))
-                .then_some(row_index as isize)
+                .then_some(as_isize(row_index))
         })
         .collect_vec();
     let empty_columns = image
@@ -38,7 +38,7 @@ fn sum_of_distances(input: &str, expansion_factor: isize) -> isize {
         .filter_map(|(column_index, mut column)| {
             column
                 .all(|&position| !is_galaxy(position))
-                .then_some(column_index as isize)
+                .then_some(as_isize(column_index))
         })
         .collect_vec();
 
@@ -62,11 +62,11 @@ fn sum_of_distances(input: &str, expansion_factor: isize) -> isize {
 }
 
 pub fn first(input: &str) -> String {
-    sum_of_distances(&input, 2).to_string()
+    sum_of_distances(input, 2).to_string()
 }
 
 pub fn second(input: &str) -> String {
-    sum_of_distances(&input, 1_000_000).to_string()
+    sum_of_distances(input, 1_000_000).to_string()
 }
 
 #[cfg(test)]

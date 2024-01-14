@@ -91,11 +91,11 @@ fn total_winnings(j: Card, input: &str) -> usize {
 }
 
 pub fn first(input: &str) -> String {
-    total_winnings(Card::Jack, &input).to_string()
+    total_winnings(Card::Jack, input).to_string()
 }
 
 pub fn second(input: &str) -> String {
-    total_winnings(Card::Joker, &input).to_string()
+    total_winnings(Card::Joker, input).to_string()
 }
 
 #[cfg(test)]

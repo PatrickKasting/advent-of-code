@@ -67,13 +67,13 @@ fn total_load(platform: &Platform) -> usize {
 }
 
 pub fn first(input: &str) -> String {
-    let mut platform = Platform::from(&input[..]);
+    let mut platform = Platform::from(input);
     tilt(&mut platform, Direction::North);
     total_load(&platform).to_string()
 }
 
 pub fn second(input: &str) -> String {
-    let mut platform = Platform::from(&input[..]);
+    let mut platform = Platform::from(input);
     let (cycle_start, cycle_length) = cycle_start_and_length(&mut platform);
     let number_of_missing_cycles = (1_000_000_000 - cycle_start) % cycle_length;
     cycle(&mut platform, number_of_missing_cycles);

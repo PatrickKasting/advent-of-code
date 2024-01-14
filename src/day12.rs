@@ -74,11 +74,11 @@ fn sum_of_number_of_arrangements(input: &str, unfold_factor: usize) -> usize {
 }
 
 pub fn first(input: &str) -> String {
-    sum_of_number_of_arrangements(&input, 1).to_string()
+    sum_of_number_of_arrangements(input, 1).to_string()
 }
 
 pub fn second(input: &str) -> String {
-    sum_of_number_of_arrangements(&input, 5).to_string()
+    sum_of_number_of_arrangements(input, 5).to_string()
 }
 
 #[cfg(test)]

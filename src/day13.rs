@@ -110,11 +110,11 @@ fn sum_of_pattern_summaries(
 }
 
 pub fn first(input: &str) -> String {
-    sum_of_pattern_summaries(&input, pattern_summary).to_string()
+    sum_of_pattern_summaries(input, pattern_summary).to_string()
 }
 
 pub fn second(input: &str) -> String {
-    sum_of_pattern_summaries(&input, correct_pattern_summary).to_string()
+    sum_of_pattern_summaries(input, correct_pattern_summary).to_string()
 }
 
 #[cfg(test)]

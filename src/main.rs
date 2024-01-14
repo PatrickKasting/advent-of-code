@@ -1,5 +1,6 @@
 #![warn(clippy::all)]
 #![warn(clippy::pedantic)]
+#![allow(clippy::range_plus_one)]
 
 mod day01;
 mod day02;

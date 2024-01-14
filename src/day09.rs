@@ -16,20 +16,20 @@ fn history(history: &str) -> Vec<Number> {
     history.split_ascii_whitespace().map(number).collect_vec()
 }
 
-fn row(preceding_row: Vec<Number>, combination: fn(Number, Number) -> Number) -> Vec<Number> {
+fn row(preceding_row: &[Number], combination: fn(Number, Number) -> Number) -> Vec<Number> {
     preceding_row
         .windows(2)
         .map(|pair| combination(pair[0], pair[1]))
         .collect_vec()
 }
 
-fn extrapolation(history: Vec<Number>, extrapolation: Extrapolation) -> Number {
+fn extrapolation(history: &[Number], extrapolation: Extrapolation) -> Number {
     if history.iter().all(|&number| number == 0) {
         return 0;
     }
     let &last_number = history.last().expect("history should not be empty");
     let succeeding_row = row(history, extrapolation.combination);
-    let succeeding_prediction = self::extrapolation(succeeding_row, extrapolation);
+    let succeeding_prediction = self::extrapolation(&succeeding_row, extrapolation);
     (extrapolation.prediction)(last_number, succeeding_prediction)
 }
 
@@ -51,7 +51,7 @@ fn prediction(history: &str, reverse: bool) -> Number {
         }
     };
 
-    self::extrapolation(history, extrapolation)
+    self::extrapolation(&history, extrapolation)
 }
 
 fn sum_of_predictions(input: &str, reverse: bool) -> Number {
@@ -62,11 +62,11 @@ fn sum_of_predictions(input: &str, reverse: bool) -> Number {
 }
 
 pub fn first(input: &str) -> String {
-    sum_of_predictions(&input, false).to_string()
+    sum_of_predictions(input, false).to_string()
 }
 
 pub fn second(input: &str) -> String {
-    sum_of_predictions(&input, true).to_string()
+    sum_of_predictions(input, true).to_string()
 }
 
 #[cfg(test)]

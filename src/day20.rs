@@ -94,7 +94,7 @@ fn button_press(configuration: &mut Configuration) -> (usize, usize) {
 }
 
 pub fn first(input: &str) -> String {
-    let mut configuration = configuration(&input);
+    let mut configuration = configuration(input);
     let (number_of_low_pulses, number_of_high_pulses): (Vec<_>, Vec<_>) =
         (0..1000).map(|_| button_press(&mut configuration)).unzip();
     let total_number_of_low_pulses: usize = number_of_low_pulses.into_iter().sum();

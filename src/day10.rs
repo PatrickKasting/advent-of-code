@@ -3,7 +3,10 @@ use std::collections::HashSet;
 use itertools::Itertools;
 use strum::IntoEnumIterator;
 
-use crate::grid::{Direction, Grid, Position};
+use crate::{
+    grid::{Direction, Grid, Position},
+    utilities::as_isize,
+};
 
 type Tile = char;
 type Cycle = Vec<(Position, Direction)>;
@@ -123,7 +126,8 @@ fn is_clockwise(cycle: CycleSlice) -> bool {
         .circular_tuple_windows::<(Direction, Direction)>()
         .map(Bend::from)
         .counts();
-    let difference = bend_counts[&Bend::RightTurn] as isize - bend_counts[&Bend::LeftTurn] as isize;
+    let difference =
+        as_isize(bend_counts[&Bend::RightTurn]) - as_isize(bend_counts[&Bend::LeftTurn]);
     debug_assert_eq!(
         difference.abs(),
         4,
