@@ -1,10 +1,13 @@
-use std::collections::HashSet;
+use std::{
+    collections::{HashMap, HashSet},
+    sync::OnceLock,
+};
 
 use itertools::Itertools;
 use strum::IntoEnumIterator;
 
 use crate::{
-    grid::{Direction, Grid, Position},
+    grid::{Curvature, Direction, Grid, Position},
     utilities::as_isize,
 };
 
@@ -12,31 +15,28 @@ type Tile = char;
 type Cycle = Vec<(Position, Direction)>;
 type CycleSlice<'cycle> = &'cycle [(Position, Direction)];
 
-const CONNECTIONS: &[(Tile, &[Direction])] = &[
-    ('|', &[Direction::North, Direction::South]),
-    ('-', &[Direction::East, Direction::West]),
-    ('L', &[Direction::North, Direction::East]),
-    ('J', &[Direction::North, Direction::West]),
-    ('7', &[Direction::South, Direction::West]),
-    ('F', &[Direction::East, Direction::South]),
-    ('.', &[]),
-    (
-        'S',
-        &[
-            Direction::North,
-            Direction::East,
-            Direction::South,
-            Direction::West,
-        ],
-    ),
-];
-
 fn connections(tile: Tile) -> &'static [Direction] {
-    CONNECTIONS
-        .iter()
-        .find(|(other, _)| *other == tile)
-        .expect("tile should be known")
-        .1
+    const CONNECTIONS: &[(Tile, &[Direction])] = &[
+        ('|', &[Direction::North, Direction::South]),
+        ('-', &[Direction::East, Direction::West]),
+        ('L', &[Direction::North, Direction::East]),
+        ('J', &[Direction::North, Direction::West]),
+        ('7', &[Direction::South, Direction::West]),
+        ('F', &[Direction::East, Direction::South]),
+        ('.', &[]),
+        (
+            'S',
+            &[
+                Direction::North,
+                Direction::East,
+                Direction::South,
+                Direction::West,
+            ],
+        ),
+    ];
+
+    static CONNECTIONS_LOCK: OnceLock<HashMap<char, &'static [Direction]>> = OnceLock::new();
+    CONNECTIONS_LOCK.get_or_init(|| CONNECTIONS.iter().copied().collect())[&tile]
 }
 
 fn out_direction(tile: Tile, in_direction: Direction) -> Option<Direction> {
@@ -73,40 +73,22 @@ fn longest_cycle(grid: &Grid<Tile>) -> Cycle {
         .expect("at least one loop should exist")
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-enum Bend {
-    LeftTurn,
-    Straight,
-    RightTurn,
-}
-
-impl From<(Direction, Direction)> for Bend {
-    fn from((towards, away): (Direction, Direction)) -> Self {
-        if away.next_clockwise() == towards {
-            Self::LeftTurn
-        } else if away == towards.next_clockwise() {
-            Self::RightTurn
-        } else {
-            Self::Straight
-        }
-    }
-}
-
 fn area(clockwise_cycle: CycleSlice) -> usize {
     let cycle_positions: HashSet<Position> = clockwise_cycle
         .iter()
-        .map(|(position, _)| *position)
+        .map(|&(position, _)| position)
         .collect();
     let mut area = HashSet::new();
     let mut frontier = Vec::new();
     for (&(_, towards), &(position, away)) in clockwise_cycle.iter().circular_tuple_windows() {
-        match Bend::from((towards, away)) {
-            Bend::LeftTurn => {
+        match Curvature::from((towards, away)) {
+            Curvature::LeftTurn => {
                 frontier.push(position.neighbor(away.next_clockwise()));
                 frontier.push(position.neighbor(away.opposite()));
             }
-            Bend::Straight => frontier.push(position.neighbor(away.next_clockwise())),
-            Bend::RightTurn => (),
+            Curvature::Straight => frontier.push(position.neighbor(away.next_clockwise())),
+            Curvature::RightTurn => (),
+            Curvature::UTurn => panic!("cycle should turn no more than 90 degrees at a time"),
         }
         while let Some(position) = frontier.pop() {
             if !cycle_positions.contains(&position) && area.insert(position) {
@@ -118,14 +100,14 @@ fn area(clockwise_cycle: CycleSlice) -> usize {
 }
 
 fn is_clockwise(cycle: CycleSlice) -> bool {
-    let bend_counts = cycle
+    let curvature_counts = cycle
         .iter()
         .map(|&(_, direction)| direction)
         .circular_tuple_windows::<(Direction, Direction)>()
-        .map(Bend::from)
+        .map(Curvature::from)
         .counts();
-    let difference =
-        as_isize(bend_counts[&Bend::RightTurn]) - as_isize(bend_counts[&Bend::LeftTurn]);
+    let difference = as_isize(curvature_counts[&Curvature::RightTurn])
+        - as_isize(curvature_counts[&Curvature::LeftTurn]);
     debug_assert_eq!(
         difference.abs(),
         4,

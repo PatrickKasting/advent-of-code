@@ -19,15 +19,6 @@ pub enum Direction {
 }
 
 impl Direction {
-    pub fn opposite(self) -> Self {
-        match self {
-            Direction::North => Direction::South,
-            Direction::East => Direction::West,
-            Direction::South => Direction::North,
-            Direction::West => Direction::East,
-        }
-    }
-
     pub fn next_clockwise(self) -> Self {
         match self {
             Direction::North => Direction::East,
@@ -35,6 +26,10 @@ impl Direction {
             Direction::South => Direction::West,
             Direction::East => Direction::South,
         }
+    }
+
+    pub fn opposite(self) -> Self {
+        self.next_clockwise().next_clockwise()
     }
 
     pub fn next_counterclockwise(self) -> Direction {
@@ -56,6 +51,28 @@ impl Direction {
             Direction::West => Direction::South,
             Direction::South => Direction::West,
             Direction::East => Direction::North,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum Curvature {
+    Straight,
+    LeftTurn,
+    UTurn,
+    RightTurn,
+}
+
+impl From<(Direction, Direction)> for Curvature {
+    fn from((towards, away): (Direction, Direction)) -> Self {
+        if towards == away {
+            Self::Straight
+        } else if towards == away.next_clockwise() {
+            Self::LeftTurn
+        } else if towards.opposite() == away {
+            Self::UTurn
+        } else {
+            Self::RightTurn
         }
     }
 }
