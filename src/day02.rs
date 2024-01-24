@@ -12,30 +12,21 @@ type Counts = [Count; NUMBER_OF_COLORS];
 type Game = Vec<Counts>;
 
 fn counts(handful: &str) -> Counts {
-    let count_and_color =
-        Regex::new(r"(?<count>\d+) (?<color>red|green|blue)").expect("regex should be valid");
-    let captures = count_and_color.captures_iter(handful);
+    let count_and_color = Regex::new(r"(\d+) (red|green|blue)").expect("regex should be valid");
+    let captures = count_and_color
+        .captures_iter(handful)
+        .map(|capture| capture.extract());
 
     let [mut red, mut green, mut blue] = [0, 0, 0];
-    for capture in captures {
-        let count: Count = number(
-            capture
-                .name("count")
-                .expect("every match should contain an amount")
-                .as_str(),
-        );
-        match capture
-            .name("color")
-            .expect("every match should contain a color")
-            .as_str()
-        {
+    for (_, [count, color]) in captures {
+        let count: Count = number(count);
+        match color {
             "red" => red += count,
             "green" => green += count,
             "blue" => blue += count,
             _ => panic!("color should be 'red', 'green', or 'blue'"),
         }
     }
-
     [red, green, blue]
 }
 

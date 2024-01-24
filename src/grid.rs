@@ -2,6 +2,7 @@
 #![allow(clippy::cast_sign_loss)]
 
 use std::{
+    collections::HashSet,
     convert::identity,
     fmt::{Debug, Display, Write},
     ops::{Index, IndexMut},
@@ -9,6 +10,8 @@ use std::{
 
 use itertools::Itertools;
 use strum::{EnumIter, IntoEnumIterator};
+
+use crate::utilities::as_isize;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, EnumIter)]
 pub enum Direction {
@@ -52,6 +55,16 @@ impl Direction {
             Direction::South => Direction::West,
             Direction::East => Direction::North,
         }
+    }
+}
+
+impl TryFrom<(Position, Position)> for Direction {
+    type Error = &'static str;
+
+    fn try_from((from, to): (Position, Position)) -> Result<Self, Self::Error> {
+        Direction::iter()
+            .find(|&direction| from.neighbor(direction) == to)
+            .ok_or("positions should be neighbors")
     }
 }
 
@@ -122,6 +135,67 @@ impl Position {
         [self.row, self.column]
             .map(|coordinate| (!coordinate.is_negative()).then_some(coordinate as usize))
     }
+}
+
+fn is_clockwise(cycle: &[Position]) -> bool {
+    let curvature_counts = cycle
+        .iter()
+        .copied()
+        .circular_tuple_windows::<(Position, Position, Position)>()
+        .map(|(first, second, third)| {
+            let [towards, away] = [
+                Direction::try_from((first, second)),
+                Direction::try_from((second, third)),
+            ]
+            .map(|direction| direction.expect("positions should be neighbors"));
+            Curvature::from((towards, away))
+        })
+        .counts();
+    let difference = as_isize(curvature_counts[&Curvature::RightTurn])
+        - as_isize(curvature_counts[&Curvature::LeftTurn]);
+    debug_assert_eq!(
+        difference.abs(),
+        4,
+        "turn count difference should be four or negative four",
+    );
+    difference.is_positive()
+}
+
+pub fn area(cycle: &mut [Position]) -> HashSet<Position> {
+    if !is_clockwise(cycle) {
+        cycle.reverse();
+    }
+
+    let cycle_as_hash_set: HashSet<Position> = cycle.iter().copied().collect();
+    let mut area = HashSet::new();
+    let mut frontier = Vec::new();
+    for (&first, &second, &third) in cycle.iter().circular_tuple_windows() {
+        let [towards, away] = [
+            Direction::try_from((first, second)),
+            Direction::try_from((second, third)),
+        ]
+        .map(|direction| direction.expect("positions should be neighbors"));
+        let directions_towards_area = match Curvature::from((towards, away)) {
+            Curvature::UTurn => vec![
+                away.next_clockwise(),
+                away.opposite(),
+                away.next_counterclockwise(),
+            ],
+            Curvature::LeftTurn => vec![away.next_clockwise(), away.opposite()],
+            Curvature::Straight => vec![away.next_clockwise()],
+            Curvature::RightTurn => vec![],
+        };
+        for direction in directions_towards_area {
+            frontier.push(second.neighbor(direction));
+        }
+
+        while let Some(position) = frontier.pop() {
+            if !cycle_as_hash_set.contains(&position) && area.insert(position) {
+                frontier.extend(position.neighbors());
+            }
+        }
+    }
+    area
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

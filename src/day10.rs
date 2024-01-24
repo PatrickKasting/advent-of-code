@@ -1,19 +1,11 @@
-use std::{
-    collections::{HashMap, HashSet},
-    sync::OnceLock,
-};
+use std::{collections::HashMap, sync::OnceLock};
 
-use itertools::Itertools;
 use strum::IntoEnumIterator;
 
-use crate::{
-    grid::{Curvature, Direction, Grid, Position},
-    utilities::as_isize,
-};
+use crate::grid::{area, Direction, Grid, Position};
 
 type Tile = char;
-type Cycle = Vec<(Position, Direction)>;
-type CycleSlice<'cycle> = &'cycle [(Position, Direction)];
+type Cycle = Vec<Position>;
 
 fn connections(tile: Tile) -> &'static [Direction] {
     const CONNECTIONS: &[(Tile, &[Direction])] = &[
@@ -48,17 +40,17 @@ fn out_direction(tile: Tile, in_direction: Direction) -> Option<Direction> {
     Some(connections[out_direction_index])
 }
 
-fn cycle(grid: &Grid<Tile>, from: Position, towards: Direction) -> Option<Cycle> {
-    let mut cycle = Vec::from([(from, towards)]);
+fn cycle(grid: &Grid<Tile>, from: Position, mut towards: Direction) -> Option<Cycle> {
+    let mut cycle = Vec::from([from]);
     loop {
-        let &(position, direction) = cycle.last().expect("cycle should be non-empty");
-        let next_position = position.neighbor(direction);
+        let &position = cycle.last().expect("cycle should be non-empty");
+        let next_position = position.neighbor(towards);
         let &next_tile = grid.get(next_position)?;
         if next_tile == 'S' {
             return Some(cycle);
         }
-        let next_direction = out_direction(next_tile, direction.opposite())?;
-        cycle.push((next_position, next_direction));
+        towards = out_direction(next_tile, towards.opposite())?;
+        cycle.push(next_position);
     }
 }
 
@@ -73,71 +65,14 @@ fn longest_cycle(grid: &Grid<Tile>) -> Cycle {
         .expect("at least one loop should exist")
 }
 
-fn area(clockwise_cycle: CycleSlice) -> usize {
-    let cycle_positions: HashSet<Position> = clockwise_cycle
-        .iter()
-        .map(|&(position, _)| position)
-        .collect();
-    let mut area = HashSet::new();
-    let mut frontier = Vec::new();
-    for (&(_, towards), &(position, away)) in clockwise_cycle.iter().circular_tuple_windows() {
-        match Curvature::from((towards, away)) {
-            Curvature::LeftTurn => {
-                frontier.push(position.neighbor(away.next_clockwise()));
-                frontier.push(position.neighbor(away.opposite()));
-            }
-            Curvature::Straight => frontier.push(position.neighbor(away.next_clockwise())),
-            Curvature::RightTurn => (),
-            Curvature::UTurn => panic!("cycle should turn no more than 90 degrees at a time"),
-        }
-        while let Some(position) = frontier.pop() {
-            if !cycle_positions.contains(&position) && area.insert(position) {
-                frontier.extend(position.neighbors());
-            }
-        }
-    }
-    area.len()
-}
-
-fn is_clockwise(cycle: CycleSlice) -> bool {
-    let curvature_counts = cycle
-        .iter()
-        .map(|&(_, direction)| direction)
-        .circular_tuple_windows::<(Direction, Direction)>()
-        .map(Curvature::from)
-        .counts();
-    let difference = as_isize(curvature_counts[&Curvature::RightTurn])
-        - as_isize(curvature_counts[&Curvature::LeftTurn]);
-    debug_assert_eq!(
-        difference.abs(),
-        4,
-        "turn count difference should be four or negative four",
-    );
-    difference.is_positive()
-}
-
-fn reverse(cycle: CycleSlice) -> Cycle {
-    let positions = cycle.iter().map(|&(position, _)| position);
-    let directions = cycle.iter().map(|&(_, direction)| direction);
-    positions
-        .rev()
-        .zip(directions.map(Direction::opposite).rev().cycle().skip(1))
-        .collect_vec()
-}
-
-fn cycle_area(mut cycle: Cycle) -> usize {
-    if !is_clockwise(&cycle) {
-        cycle = reverse(&cycle);
-    }
-    area(&cycle)
-}
-
 pub fn first(input: &str) -> String {
     (longest_cycle(&Grid::from(input)).len() / 2).to_string()
 }
 
 pub fn second(input: &str) -> String {
-    cycle_area(longest_cycle(&Grid::from(input))).to_string()
+    area(&mut longest_cycle(&Grid::from(input)))
+        .len()
+        .to_string()
 }
 
 #[cfg(test)]
