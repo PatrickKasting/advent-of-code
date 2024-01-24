@@ -1,113 +1,64 @@
+use std::cmp;
+
 use itertools::Itertools;
-use regex::Regex;
 
-use crate::utilities::number;
+type CalibrationValue = usize;
 
-type CalibrationValue = u32;
-type DigitPattern<'pattern> = (&'pattern str, fn(&str) -> CalibrationValue);
+const NUMERALS: [(&str, CalibrationValue); 9] = [
+    ("one", 1),
+    ("two", 2),
+    ("three", 3),
+    ("four", 4),
+    ("five", 5),
+    ("six", 6),
+    ("seven", 7),
+    ("eight", 8),
+    ("nine", 9),
+];
 
-fn calibration_value(
-    digit_patterns: &[(Regex, impl Fn(&str) -> CalibrationValue)],
-    line: &str,
-) -> CalibrationValue {
-    let first_and_last_matches = digit_patterns
-        .iter()
-        .filter_map(|(pattern, value)| {
-            let matches = pattern.find_iter(line).collect_vec();
-            if matches.is_empty() {
-                None
-            } else {
-                let first_and_last_match = [matches[0], matches[matches.len() - 1]];
-                Some(first_and_last_match.map(|m| (m.start(), value(m.as_str()))))
-            }
-        })
-        .collect_vec();
-
-    let first_digit = first_and_last_matches
-        .iter()
-        .map(|first_and_last_match| first_and_last_match[0])
-        .min()
-        .expect("every line should contain at least one digit")
-        .1;
-    let last_digit = first_and_last_matches
-        .iter()
-        .map(|first_and_last_match| first_and_last_match[1])
-        .max()
-        .expect("every line should contain at least one digit")
-        .1;
-
-    first_digit * 10 + last_digit
+fn first_and_last_digit(line: &str) -> [Option<(usize, CalibrationValue)>; 2] {
+    [str::find, str::rfind].map(|finder| {
+        let index = finder(line, char::is_numeric);
+        index.map(|index| (index, (line.as_bytes()[index] - b'0') as CalibrationValue))
+    })
 }
 
-fn sum_of_calibration_values<'word>(
-    digit_patterns: impl IntoIterator<Item = (&'word str, fn(&str) -> CalibrationValue)>,
-    input: &str,
-) -> CalibrationValue {
-    let digit_patterns = digit_patterns
+fn first_and_last_numeral(line: &str) -> [Option<(usize, CalibrationValue)>; 2] {
+    let numerals = NUMERALS
         .into_iter()
-        .map(|(word, value)| (Regex::new(word).expect("regex should be valid"), value))
+        .flat_map(|(numeral, value)| {
+            line.match_indices(numeral)
+                .map(move |(index, _)| (index, value))
+        })
         .collect_vec();
+    [Iterator::min, Iterator::max].map(|extremum| extremum(numerals.iter().copied()))
+}
+
+fn calibration_value(consider_numerals: bool, line: &str) -> CalibrationValue {
+    let [mut first_value, mut last_value] = first_and_last_digit(line);
+    if consider_numerals {
+        let [first_numeral, last_numeral] = first_and_last_numeral(line);
+        first_value = cmp::min(first_value.or(first_numeral), first_numeral.or(first_value));
+        last_value = cmp::max(last_value.or(last_numeral), last_numeral.or(last_value));
+    }
+    let [first_value, last_value] = [first_value, last_value]
+        .map(|value| value.expect("line should contain at least one digit").1);
+    first_value * 10 + last_value
+}
+
+fn sum_of_calibration_values(consider_numerals: bool, input: &str) -> CalibrationValue {
     input
         .lines()
-        .map(|line| calibration_value(&digit_patterns, line))
+        .map(|line| calibration_value(consider_numerals, line))
         .sum()
 }
 
 pub fn first(input: &str) -> String {
-    let digit_patterns: [DigitPattern; 1] = [(r"\d", |str| number(str))];
-    sum_of_calibration_values(digit_patterns, input).to_string()
-}
-
-fn one(_: &str) -> CalibrationValue {
-    1
-}
-
-fn two(_: &str) -> CalibrationValue {
-    2
-}
-
-fn three(_: &str) -> CalibrationValue {
-    3
-}
-
-fn four(_: &str) -> CalibrationValue {
-    4
-}
-
-fn five(_: &str) -> CalibrationValue {
-    5
-}
-
-fn six(_: &str) -> CalibrationValue {
-    6
-}
-
-fn seven(_: &str) -> CalibrationValue {
-    7
-}
-
-fn eight(_: &str) -> CalibrationValue {
-    8
-}
-
-fn nine(_: &str) -> CalibrationValue {
-    9
+    sum_of_calibration_values(false, input).to_string()
 }
 
 pub fn second(input: &str) -> String {
-    let digit_patterns: [DigitPattern; 10] = [
-        (r"\d", |str| number(str)),
-        ("one", one),
-        ("two", two),
-        ("three", three),
-        ("four", four),
-        ("five", five),
-        ("six", six),
-        ("seven", seven),
-        ("eight", eight),
-        ("nine", nine),
-    ];
-    sum_of_calibration_values(digit_patterns, input).to_string()
+    sum_of_calibration_values(true, input).to_string()
 }
 
 #[cfg(test)]
