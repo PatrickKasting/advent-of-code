@@ -26,7 +26,7 @@ fn operation(step: &str) -> (&str, Operation) {
                 .expect("focal length should be numeric");
             Operation::Insertion(focal_length)
         }
-        _ => unreachable!("operation should be '-' or '='"),
+        _ => panic!("operation should be '-' or '='"),
     };
     (label, operation)
 }
@@ -89,27 +89,27 @@ pub fn second(input: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use crate::{tests::*, Input, Puzzle};
+    use crate::{tests::*, InputType, Puzzle};
 
     const DAY: usize = 15;
 
     #[test]
     fn first_example() {
-        test_on_input(DAY, Puzzle::First, Input::Example(0), 1320);
+        test_on_input(DAY, Puzzle::First, InputType::Example(0), 1320);
     }
 
     #[test]
     fn first_input() {
-        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 513158);
+        test_on_input(DAY, Puzzle::First, InputType::PuzzleInput, 513158);
     }
 
     #[test]
     fn second_example() {
-        test_on_input(DAY, Puzzle::Second, Input::Example(0), 145);
+        test_on_input(DAY, Puzzle::Second, InputType::Example(0), 145);
     }
 
     #[test]
     fn second_input() {
-        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 200277);
+        test_on_input(DAY, Puzzle::Second, InputType::PuzzleInput, 200277);
     }
 }

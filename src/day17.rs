@@ -65,28 +65,28 @@ pub fn second(input: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use crate::{tests::*, Input, Puzzle};
+    use crate::{tests::*, InputType, Puzzle};
 
     const DAY: usize = 17;
 
     #[test]
     fn first_example() {
-        test_on_input(DAY, Puzzle::First, Input::Example(0), 102);
+        test_on_input(DAY, Puzzle::First, InputType::Example(0), 102);
     }
 
     #[test]
     fn first_input() {
-        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 953);
+        test_on_input(DAY, Puzzle::First, InputType::PuzzleInput, 953);
     }
 
     #[test]
-    fn second_example() {
-        test_on_input(DAY, Puzzle::Second, Input::Example(0), 94);
-        test_on_input(DAY, Puzzle::Second, Input::Example(1), 71);
+    fn second_examples() {
+        test_on_input(DAY, Puzzle::Second, InputType::Example(0), 94);
+        test_on_input(DAY, Puzzle::Second, InputType::Example(1), 71);
     }
 
     #[test]
     fn second_input() {
-        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 1180);
+        test_on_input(DAY, Puzzle::Second, InputType::PuzzleInput, 1180);
     }
 }

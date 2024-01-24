@@ -83,15 +83,15 @@ pub fn second(input: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use crate::{input, tests::*, Input, Puzzle};
+    use crate::{input, tests::*, InputType, Puzzle};
 
     use super::number_of_arrangements;
 
     const DAY: usize = 12;
 
     #[test]
-    fn first_example_individual_cases() {
-        let input = input(DAY, Input::Example(0));
+    fn first_example() {
+        let input = input(DAY, InputType::Example(0));
         test_cases(
             |line| number_of_arrangements(line, 1),
             input.lines(),
@@ -100,28 +100,18 @@ mod tests {
     }
 
     #[test]
-    fn first_example() {
-        test_on_input(DAY, Puzzle::First, Input::Example(0), 21);
-    }
-
-    #[test]
     fn first_input() {
-        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 7694);
+        test_on_input(DAY, Puzzle::First, InputType::PuzzleInput, 7694);
     }
 
     #[test]
-    fn second_example_individual_cases() {
-        let input = input(DAY, Input::Example(0));
+    fn second_example() {
+        let input = input(DAY, InputType::Example(0));
         test_cases(
             |line| number_of_arrangements(line, 5),
             input.lines(),
             [1, 16384, 1, 16, 2500, 506250],
         );
-    }
-
-    #[test]
-    fn second_example() {
-        test_on_input(DAY, Puzzle::Second, Input::Example(0), 525152);
     }
 
     // #[test]

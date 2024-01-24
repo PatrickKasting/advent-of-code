@@ -35,7 +35,7 @@ fn card(j: Card, char: char) -> Card {
         'Q' => Card::Queen,
         'K' => Card::King,
         'A' => Card::Ace,
-        _ => unreachable!("card should be one of the 13 known ones"),
+        _ => panic!("card should be one of the 13 known ones"),
     }
 }
 
@@ -100,27 +100,27 @@ pub fn second(input: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use crate::{tests::*, Input, Puzzle};
+    use crate::{tests::*, InputType, Puzzle};
 
     const DAY: usize = 7;
 
     #[test]
     fn first_example() {
-        test_on_input(DAY, Puzzle::First, Input::Example(0), 6440);
+        test_on_input(DAY, Puzzle::First, InputType::Example(0), 6440);
     }
 
     #[test]
     fn first_input() {
-        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 250957639);
+        test_on_input(DAY, Puzzle::First, InputType::PuzzleInput, 250957639);
     }
 
     #[test]
     fn second_example() {
-        test_on_input(DAY, Puzzle::Second, Input::Example(0), 5905);
+        test_on_input(DAY, Puzzle::Second, InputType::Example(0), 5905);
     }
 
     #[test]
     fn second_input() {
-        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 251515496);
+        test_on_input(DAY, Puzzle::Second, InputType::PuzzleInput, 251515496);
     }
 }

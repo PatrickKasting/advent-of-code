@@ -53,7 +53,7 @@ fn summary_from_folds(
         (None, None) => None,
         (Some(horizontal_fold), None) => Some(100 * horizontal_fold),
         (None, Some(vertical_fold)) => Some(vertical_fold),
-        _ => unreachable!("pattern should never have both a horizontal fold and a vertical fold"),
+        _ => panic!("pattern should never have both a horizontal fold and a vertical fold"),
     }
 }
 
@@ -95,7 +95,7 @@ fn correct_pattern_summary(pattern: &mut Pattern) -> usize {
             pattern[row_index][column_index] = opposite_type(pattern[row_index][column_index]);
         }
     }
-    unreachable!("pattern should be corrected by exactly one change");
+    panic!("pattern should be corrected by exactly one change");
 }
 
 fn sum_of_pattern_summaries(
@@ -119,27 +119,27 @@ pub fn second(input: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use crate::{tests::*, Input, Puzzle};
+    use crate::{tests::*, InputType, Puzzle};
 
     const DAY: usize = 13;
 
     #[test]
     fn first_example() {
-        test_on_input(DAY, Puzzle::First, Input::Example(0), 405);
+        test_on_input(DAY, Puzzle::First, InputType::Example(0), 405);
     }
 
     #[test]
     fn first_input() {
-        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 29130);
+        test_on_input(DAY, Puzzle::First, InputType::PuzzleInput, 29130);
     }
 
     #[test]
     fn second_example() {
-        test_on_input(DAY, Puzzle::Second, Input::Example(0), 400);
+        test_on_input(DAY, Puzzle::Second, InputType::Example(0), 400);
     }
 
     #[test]
     fn second_input() {
-        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 33438);
+        test_on_input(DAY, Puzzle::Second, InputType::PuzzleInput, 33438);
     }
 }

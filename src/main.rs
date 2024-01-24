@@ -22,6 +22,7 @@ mod day17;
 mod day18;
 mod day19;
 mod day20;
+mod day21;
 mod grid;
 mod search;
 mod utilities;
@@ -68,15 +69,15 @@ struct CommandLineArguments {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum Input {
+pub enum InputType {
     Example(usize),
     PuzzleInput,
 }
 
-fn input(day: usize, input: Input) -> String {
-    let path = match input {
-        Input::Example(example) => format!("examples/{day:02}/{example}.txt"),
-        Input::PuzzleInput => format!("puzzle-inputs/{day:02}.txt"),
+fn input(day: usize, input_type: InputType) -> String {
+    let path = match input_type {
+        InputType::Example(example) => format!("examples/{day:02}/{example}.txt"),
+        InputType::PuzzleInput => format!("puzzle-inputs/{day:02}.txt"),
     };
     fs::read_to_string(&path).unwrap_or_else(|_| panic!("'{path}' should exist"))
 }
@@ -104,6 +105,7 @@ const SOLUTIONS: &[(Solution, Solution)] = &[
     (day18::first, day18::second),
     (day19::first, day19::second),
     (day20::first, day20::second),
+    (day21::first, day21::second),
 ];
 
 fn solution(day: Day, puzzle: Puzzle) -> Solution {
@@ -116,7 +118,7 @@ fn solution(day: Day, puzzle: Puzzle) -> Solution {
 fn main() {
     let command_line_arguments = CommandLineArguments::parse();
 
-    let input = input(command_line_arguments.day, Input::PuzzleInput);
+    let input = input(command_line_arguments.day, InputType::PuzzleInput);
     let solution = solution(command_line_arguments.day, command_line_arguments.puzzle);
     let answer = solution(&input);
     println!("{answer}");
@@ -130,7 +132,7 @@ pub mod tests {
 
     use super::*;
 
-    pub fn test_on_input(day: Day, puzzle: Puzzle, input: Input, expected: impl ToString) {
+    pub fn test_on_input(day: Day, puzzle: Puzzle, input: InputType, expected: impl ToString) {
         let actual = solution(day, puzzle)(&super::input(day, input));
         assert_eq!(actual, expected.to_string());
     }
@@ -140,8 +142,8 @@ pub mod tests {
         cases: impl IntoIterator<Item = Case>,
         expected: impl IntoIterator<Item = Answer>,
     ) {
-        for (answer, expected) in cases.into_iter().map(function).zip_eq(expected) {
-            assert_eq!(answer, expected);
+        for (actual, expected) in cases.into_iter().map(function).zip_eq(expected) {
+            assert_eq!(actual, expected);
         }
     }
 }

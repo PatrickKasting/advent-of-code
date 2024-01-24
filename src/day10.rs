@@ -65,9 +65,7 @@ fn cycle(grid: &Grid<Tile>, from: Position, towards: Direction) -> Option<Cycle>
 fn longest_cycle(grid: &Grid<Tile>) -> Cycle {
     let starting_position = grid
         .iter_row_major()
-        .filter_map(|(position, &tile)| (tile == 'S').then_some(position))
-        .exactly_one()
-        .ok()
+        .find_map(|(position, &tile)| (tile == 'S').then_some(position))
         .expect("there should be exactly one starting position");
     Direction::iter()
         .filter_map(|direction| cycle(grid, starting_position, direction))
@@ -162,30 +160,30 @@ pub fn second(input: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use crate::{tests::*, Input, Puzzle};
+    use crate::{tests::*, InputType, Puzzle};
 
     const DAY: usize = 10;
 
     #[test]
     fn first_examples() {
-        test_on_input(DAY, Puzzle::First, Input::Example(0), 4);
-        test_on_input(DAY, Puzzle::First, Input::Example(1), 8);
+        test_on_input(DAY, Puzzle::First, InputType::Example(0), 4);
+        test_on_input(DAY, Puzzle::First, InputType::Example(1), 8);
     }
 
     #[test]
     fn first_input() {
-        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 6690);
+        test_on_input(DAY, Puzzle::First, InputType::PuzzleInput, 6690);
     }
 
     #[test]
     fn second_example() {
-        test_on_input(DAY, Puzzle::Second, Input::Example(2), 4);
-        test_on_input(DAY, Puzzle::Second, Input::Example(3), 8);
-        test_on_input(DAY, Puzzle::Second, Input::Example(4), 10);
+        test_on_input(DAY, Puzzle::Second, InputType::Example(2), 4);
+        test_on_input(DAY, Puzzle::Second, InputType::Example(3), 8);
+        test_on_input(DAY, Puzzle::Second, InputType::Example(4), 10);
     }
 
     #[test]
     fn second_input() {
-        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 525);
+        test_on_input(DAY, Puzzle::Second, InputType::PuzzleInput, 525);
     }
 }

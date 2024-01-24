@@ -27,10 +27,7 @@ fn tilt(platform: &mut Platform, direction: Direction) {
         let mut current_position = rock_position;
         loop {
             let next_position = current_position.neighbor(direction);
-            if !platform
-                .get(next_position)
-                .is_some_and(|&space| space == '.')
-            {
+            if platform.get(next_position) != Some(&'.') {
                 break;
             }
             current_position = next_position;
@@ -82,7 +79,7 @@ pub fn second(input: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use crate::{input, tests::*, Input, Puzzle};
+    use crate::{input, tests::*, InputType, Puzzle};
 
     use super::{cycle, Platform};
 
@@ -90,16 +87,16 @@ mod tests {
 
     #[test]
     fn first_example() {
-        test_on_input(DAY, Puzzle::First, Input::Example(0), 136);
+        test_on_input(DAY, Puzzle::First, InputType::Example(0), 136);
     }
 
     #[test]
     fn first_input() {
-        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 108759);
+        test_on_input(DAY, Puzzle::First, InputType::PuzzleInput, 108759);
     }
 
     fn after_cycles(number_of_cycles: usize) -> Platform {
-        let mut platform = Platform::from(&input(DAY, Input::Example(0))[..]);
+        let mut platform = Platform::from(&input(DAY, InputType::Example(0))[..]);
         cycle(&mut platform, number_of_cycles);
         platform
     }
@@ -161,11 +158,11 @@ mod tests {
 
     #[test]
     fn second_example() {
-        test_on_input(DAY, Puzzle::Second, Input::Example(0), 64);
+        test_on_input(DAY, Puzzle::Second, InputType::Example(0), 64);
     }
 
     #[test]
     fn second_input() {
-        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 89089);
+        test_on_input(DAY, Puzzle::Second, InputType::PuzzleInput, 89089);
     }
 }

@@ -5,8 +5,9 @@ use regex::Regex;
 
 use crate::utilities::number;
 
-type Count = usize;
 const NUMBER_OF_COLORS: usize = 3;
+
+type Count = usize;
 type Counts = [Count; NUMBER_OF_COLORS];
 type Game = Vec<Counts>;
 
@@ -31,15 +32,16 @@ fn counts(handful: &str) -> Counts {
             "red" => red += count,
             "green" => green += count,
             "blue" => blue += count,
-            _ => unreachable!("color should be 'red', 'green', or 'blue'"),
+            _ => panic!("color should be 'red', 'green', or 'blue'"),
         }
     }
 
     [red, green, blue]
 }
 
-fn game(game: &str) -> Game {
-    let handfuls = &game[1 + game.find(':').expect("every line should contain a colon")..];
+fn game(line: &str) -> Game {
+    let colon_index = line.find(':').expect("every line should contain a colon");
+    let handfuls = &line[colon_index + 1..];
     handfuls.split(';').map(counts).collect_vec()
 }
 
@@ -93,27 +95,27 @@ pub fn second(input: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use crate::{tests::*, Input, Puzzle};
+    use crate::{tests::*, InputType, Puzzle};
 
     const DAY: usize = 2;
 
     #[test]
     fn first_example() {
-        test_on_input(DAY, Puzzle::First, Input::Example(0), 8);
+        test_on_input(DAY, Puzzle::First, InputType::Example(0), 8);
     }
 
     #[test]
     fn first_input() {
-        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 2149);
+        test_on_input(DAY, Puzzle::First, InputType::PuzzleInput, 2149);
     }
 
     #[test]
     fn second_example() {
-        test_on_input(DAY, Puzzle::Second, Input::Example(0), 2286);
+        test_on_input(DAY, Puzzle::Second, InputType::Example(0), 2286);
     }
 
     #[test]
     fn second_input() {
-        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 71274);
+        test_on_input(DAY, Puzzle::Second, InputType::PuzzleInput, 71274);
     }
 }
