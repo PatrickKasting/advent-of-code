@@ -1,24 +1,13 @@
-use std::iter;
-
 use itertools::Itertools;
 
 use crate::utilities::number;
 
-fn row_and_group_sizes(line: &str, unfold_factor: usize) -> (Vec<u8>, Vec<usize>) {
+fn row_and_group_sizes(line: &str) -> (&[u8], Vec<usize>) {
     let (row, group_sizes) = line
         .split_once(' ')
         .expect("a space should separate row and group sizes");
-    let unfolded_row = Itertools::intersperse(
-        iter::repeat(row.as_bytes().iter().copied()).take(unfold_factor),
-        [b'?'].iter().copied(),
-    )
-    .flatten()
-    .collect_vec();
-    let unfolded_group_sizes = iter::repeat(group_sizes.split(',').map(number))
-        .take(unfold_factor)
-        .flatten()
-        .collect_vec();
-    (unfolded_row, unfolded_group_sizes)
+    let group_sizes = group_sizes.split(',').map(number).collect_vec();
+    (row.as_bytes(), group_sizes)
 }
 
 fn is_damaged(row: &[u8], position: usize) -> bool {
@@ -61,24 +50,22 @@ fn arrangements(row: &[u8], group_sizes: &[usize]) -> usize {
         .sum()
 }
 
-fn number_of_arrangements(line: &str, unfold_factor: usize) -> usize {
-    let (row, group_sizes) = row_and_group_sizes(line, unfold_factor);
-    arrangements(&row, &group_sizes)
+fn number_of_arrangements(line: &str) -> usize {
+    let (row, group_sizes) = row_and_group_sizes(line);
+    arrangements(row, &group_sizes)
 }
 
-fn sum_of_number_of_arrangements(input: &str, unfold_factor: usize) -> usize {
-    input
-        .lines()
-        .map(|line| number_of_arrangements(line, unfold_factor))
-        .sum()
+fn sum_of_number_of_arrangements(input: &str) -> usize {
+    input.lines().map(number_of_arrangements).sum()
 }
 
 pub fn first(input: &str) -> String {
-    sum_of_number_of_arrangements(input, 1).to_string()
+    sum_of_number_of_arrangements(input).to_string()
 }
 
 pub fn second(input: &str) -> String {
-    sum_of_number_of_arrangements(input, 5).to_string()
+    sum_of_number_of_arrangements(input).to_string();
+    todo!();
 }
 
 #[cfg(test)]
@@ -93,7 +80,7 @@ mod tests {
     fn first_example() {
         let input = input(DAY, InputType::Example(0));
         test_cases(
-            |line| number_of_arrangements(line, 1),
+            |line| number_of_arrangements(line),
             input.lines(),
             [1, 4, 1, 1, 4, 10],
         );
@@ -104,15 +91,15 @@ mod tests {
         test_on_input(DAY, Puzzle::First, InputType::PuzzleInput, 7694);
     }
 
-    #[test]
-    fn second_example() {
-        let input = input(DAY, InputType::Example(0));
-        test_cases(
-            |line| number_of_arrangements(line, 5),
-            input.lines(),
-            [1, 16384, 1, 16, 2500, 506250],
-        );
-    }
+    // #[test]
+    // fn second_example() {
+    //     let input = input(DAY, InputType::Example(0));
+    //     test_cases(
+    //         |line| number_of_arrangements(line),
+    //         input.lines(),
+    //         [1, 16384, 1, 16, 2500, 506250],
+    //     );
+    // }
 
     // #[test]
     // fn second_input() {
