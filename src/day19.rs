@@ -2,7 +2,6 @@ use std::{
     cmp::Ordering,
     collections::HashMap,
     ops::{Index, IndexMut},
-    str::FromStr,
 };
 
 use itertools::Itertools;
@@ -18,16 +17,14 @@ enum Category {
     S,
 }
 
-impl FromStr for Category {
-    type Err = ();
-
-    fn from_str(category: &str) -> Result<Self, Self::Err> {
-        match category {
-            "x" => Ok(Category::X),
-            "m" => Ok(Category::M),
-            "a" => Ok(Category::A),
-            "s" => Ok(Category::S),
-            _ => Err(()),
+impl From<&str> for Category {
+    fn from(str: &str) -> Self {
+        match str {
+            "x" => Self::X,
+            "m" => Self::M,
+            "a" => Self::A,
+            "s" => Self::S,
+            _ => panic!("category should be 'x', 'm', 'a', or 's'"),
         }
     }
 }
@@ -44,10 +41,48 @@ struct Condition<'condition> {
     destination: WorkflowName<'condition>,
 }
 
+impl<'condition> From<&'condition str> for Condition<'condition> {
+    fn from(str: &'condition str) -> Self {
+        let category = Category::from(&str[0..1]);
+        let comparison = if &str[1..2] == "<" {
+            Ordering::Less
+        } else {
+            Ordering::Greater
+        };
+        let colon_index = str
+            .find(':')
+            .expect("condition should use ':' to separate condition and destination");
+        let limit = str[2..colon_index]
+            .parse()
+            .expect("limit should be numerical");
+        let destination = &str[colon_index + 1..];
+        Self {
+            category,
+            comparison,
+            limit,
+            destination,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 struct WorkflowRules<'rules> {
     conditions: Vec<Condition<'rules>>,
     default: &'rules str,
+}
+
+impl<'rules> From<&'rules str> for WorkflowRules<'rules> {
+    fn from(str: &'rules str) -> Self {
+        let rules = str.split(',').collect_vec();
+        let (&default, conditions) = rules
+            .split_last()
+            .expect("workflow should contain at least one rule");
+        let conditions = conditions.iter().copied().map(Condition::from).collect();
+        Self {
+            conditions,
+            default,
+        }
+    }
 }
 
 type Workflow<'workflow> = (WorkflowName<'workflow>, WorkflowRules<'workflow>);
@@ -62,10 +97,8 @@ impl Part {
     }
 }
 
-impl FromStr for Part {
-    type Err = &'static str;
-
-    fn from_str(str: &str) -> Result<Self, Self::Err> {
+impl From<&str> for Part {
+    fn from(str: &str) -> Self {
         let regex = Regex::new(r"\d+").expect("regex should be valid");
         let ratings = regex
             .find_iter(str)
@@ -73,7 +106,7 @@ impl FromStr for Part {
             .collect_vec()
             .try_into()
             .expect("part should consist of four ratings");
-        Ok(Self(ratings))
+        Self(ratings)
     }
 }
 
@@ -136,42 +169,6 @@ impl RatingRanges {
     }
 }
 
-fn condition(str: &str) -> Condition {
-    let category = str[0..1]
-        .parse()
-        .expect("category should be 'x', 'm', 'a', or 's'");
-    let comparison = if &str[1..2] == "<" {
-        Ordering::Less
-    } else {
-        Ordering::Greater
-    };
-    let colon_index = str
-        .find(':')
-        .expect("condition should use ':' to separate condition and destination");
-    let limit = str[2..colon_index]
-        .parse()
-        .expect("limit should be numerical");
-    let destination = &str[colon_index + 1..];
-    Condition {
-        category,
-        comparison,
-        limit,
-        destination,
-    }
-}
-
-fn workflow_rules(str: &str) -> WorkflowRules {
-    let rules = str.split(',').collect_vec();
-    let (&default, conditions) = rules
-        .split_last()
-        .expect("workflow should contain at least one rule");
-    let conditions = conditions.iter().map(|cond| condition(cond)).collect();
-    WorkflowRules {
-        conditions,
-        default,
-    }
-}
-
 fn workflow(str: &str) -> Workflow {
     let bracket_indices = ['{', '}'].map(|bracket| {
         str.find(bracket)
@@ -181,7 +178,7 @@ fn workflow(str: &str) -> Workflow {
         &str[0..bracket_indices[0]],
         &str[bracket_indices[0] + 1..bracket_indices[1]],
     );
-    (name, workflow_rules(rules))
+    (name, WorkflowRules::from(rules))
 }
 
 fn workflow_system(str: &str) -> WorkflowSystem {
@@ -271,10 +268,7 @@ pub fn first(input: &str) -> String {
         .split_once("\n\n")
         .expect("input should contain workflows and parts separated by an empty line");
     let acceptable_rating_ranges = acceptable_rating_ranges(workflows);
-    let parts = parts
-        .lines()
-        .map(|line| line.parse().expect("part should be parsable"))
-        .collect_vec();
+    let parts = parts.lines().map(Part::from).collect_vec();
     sum_of_sum_of_ratings(&acceptable_rating_ranges, &parts).to_string()
 }
 
