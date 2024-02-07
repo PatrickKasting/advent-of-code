@@ -81,16 +81,18 @@ fn apply_gravity(sorted_bricks: &mut [Brick]) {
     for brick_index in 0..sorted_bricks.len() {
         let mut brick = sorted_bricks[brick_index];
         let mut brick_below_index = brick_index;
-        while brick_below_index > 0 {
+        loop {
+            if brick_below_index == 0 {
+                brick.fall_to(1);
+                break;
+            }
+
             let brick_below = sorted_bricks[brick_below_index - 1];
             if brick.cross_section_overlaps(brick_below) {
                 brick.fall_to(brick_below.upper_end.z + 1);
                 break;
             }
             brick_below_index -= 1;
-        }
-        if brick_below_index == 0 {
-            brick.fall_to(1);
         }
         sorted_bricks[brick_index] = brick;
         sorted_bricks[brick_below_index..=brick_index].sort_unstable();
