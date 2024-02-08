@@ -11,25 +11,18 @@ fn row_and_group_sizes(line: &str) -> (&[u8], Vec<usize>) {
 }
 
 fn is_damaged(row: &[u8], position: usize) -> bool {
-    match row.get(position) {
-        Some(&spring) => spring == b'#',
-        None => false,
-    }
+    row.get(position) == Some(&b'#')
 }
 
-fn valid_positions(row: &[u8], group_size: usize) -> Vec<usize> {
-    let mut valid_positions = Vec::new();
-    for (position, window) in row.windows(group_size).enumerate() {
-        if is_damaged(row, position.wrapping_sub(1)) {
-            break;
-        }
-        if window.iter().all(|spring| [b'#', b'?'].contains(spring))
-            && !is_damaged(row, position + group_size)
-        {
-            valid_positions.push(position);
-        }
-    }
-    valid_positions
+fn valid_positions(row: &[u8], group_size: usize) -> impl Iterator<Item = usize> + '_ {
+    row.windows(group_size)
+        .enumerate()
+        .take_while(|(position, _)| !is_damaged(row, position.wrapping_sub(1)))
+        .filter(move |(position, window)| {
+            window.iter().all(|spring| [b'#', b'?'].contains(spring))
+                && !is_damaged(row, position + group_size)
+        })
+        .map(|(position, _)| position)
 }
 
 fn arrangements(row: &[u8], group_sizes: &[usize]) -> usize {
