@@ -30,7 +30,6 @@ fn arrangements(row: &[u8], group_sizes: &[usize]) -> usize {
         return usize::from(!row.contains(&b'#'));
     };
     valid_positions(row, *group_size)
-        .into_iter()
         .map(|position| {
             let remaining_row_start = position + group_size + 1;
             let remaining_row = if remaining_row_start < row.len() {

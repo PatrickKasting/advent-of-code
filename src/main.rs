@@ -25,7 +25,9 @@ mod day20;
 mod day21;
 mod day22;
 mod day23;
+mod day24;
 mod grid;
+pub mod matrix;
 mod search;
 mod utilities;
 
@@ -110,6 +112,7 @@ const SOLUTIONS: &[(Solution, Solution)] = &[
     (day21::first, day21::second),
     (day22::first, day22::second),
     (day23::first, day23::second),
+    (day24::first, day24::second),
 ];
 
 fn solution(day: Day, puzzle: Puzzle) -> Solution {
