@@ -13,7 +13,7 @@ enum Module<'input> {
 }
 
 impl<'input> Module<'input> {
-    fn receive(&mut self, pulse: Pulse, emitter: &str) -> Option<Pulse> {
+    fn receive(&mut self, pulse: Pulse, source: &str) -> Option<Pulse> {
         match self {
             Module::FlipFlop(is_on) => {
                 if pulse {
@@ -23,11 +23,11 @@ impl<'input> Module<'input> {
                     Some(*is_on)
                 }
             }
-            Module::Conjunction(most_recent_pulse_from_each_emitter) => {
-                *most_recent_pulse_from_each_emitter
-                    .get_mut(emitter)
-                    .expect("emitter should be recognized") = pulse;
-                let all_high = most_recent_pulse_from_each_emitter
+            Module::Conjunction(most_recent_pulse_from_each_source) => {
+                *most_recent_pulse_from_each_source
+                    .get_mut(source)
+                    .expect("source should be recognized") = pulse;
+                let all_high = most_recent_pulse_from_each_source
                     .values()
                     .all(|&pulse| pulse);
                 Some(!all_high)
@@ -59,12 +59,12 @@ fn module(line: &str) -> (&str, (Module, Vec<&str>)) {
 fn configuration(str: &str) -> Configuration {
     let mut configuration: Configuration = str.lines().map(module).collect();
 
-    for emitter in configuration.keys().copied().collect_vec() {
-        for receiver in configuration[&emitter].1.clone() {
-            if let Some((Module::Conjunction(most_recent_pulse_from_each_emitter), _)) =
-                configuration.get_mut(&receiver)
+    for source in configuration.keys().copied().collect_vec() {
+        for destination in configuration[&source].1.clone() {
+            if let Some((Module::Conjunction(most_recent_pulse_from_each_source), _)) =
+                configuration.get_mut(&destination)
             {
-                most_recent_pulse_from_each_emitter.insert(emitter, LOW);
+                most_recent_pulse_from_each_source.insert(source, LOW);
             }
         }
     }
@@ -75,17 +75,19 @@ fn configuration(str: &str) -> Configuration {
 fn press_button(configuration: &mut Configuration) -> (usize, usize) {
     let (mut number_of_low_pulses, mut number_of_high_pulses) = (0, 0);
     let mut pulses = VecDeque::from([("button", LOW, "broadcaster")]);
-    while let Some((emitter, pulse, receiver)) = pulses.pop_front() {
+    while let Some((source, pulse, destination)) = pulses.pop_front() {
         if pulse {
             number_of_high_pulses += 1;
         } else {
             number_of_low_pulses += 1;
         }
 
-        if let Some((receiver_module, output_pulse_receivers)) = configuration.get_mut(&receiver) {
-            if let Some(output_pulse) = receiver_module.receive(pulse, emitter) {
-                for output_pulse_receiver in output_pulse_receivers {
-                    pulses.push_back((receiver, output_pulse, output_pulse_receiver));
+        if let Some((destination_module, output_pulse_destinations)) =
+            configuration.get_mut(&destination)
+        {
+            if let Some(output_pulse) = destination_module.receive(pulse, source) {
+                for output_pulse_destination in output_pulse_destinations {
+                    pulses.push_back((destination, output_pulse, output_pulse_destination));
                 }
             }
         }
@@ -110,13 +112,6 @@ pub fn first(input: &str) -> String {
 
 pub fn second(_input: &str) -> String {
     todo!()
-    // let mut configuration = configuration(input);
-    // for num_presses in 1usize.. {
-    //     if let (_, (1, 0)) = press_button(&mut configuration) {
-    //         return num_presses.to_string();
-    //     }
-    // }
-    // unreachable!("a single low pulse should reach 'rx' in a finite number of button presses");
 }
 
 #[cfg(test)]
