@@ -56,15 +56,35 @@ impl Direction {
             Direction::East => Direction::North,
         }
     }
+
+    pub fn as_unit_vector(self) -> Position {
+        Position::new(0, 0).neighbor(self)
+    }
 }
 
 impl TryFrom<(Position, Position)> for Direction {
     type Error = &'static str;
 
     fn try_from((from, to): (Position, Position)) -> Result<Self, Self::Error> {
-        Direction::iter()
-            .find(|&direction| from.neighbor(direction) == to)
-            .ok_or("positions should be neighbors")
+        if from == to {
+            return Err("positions should not be identical");
+        }
+
+        if from.row() == to.row() {
+            if from.column() < to.column() {
+                Ok(Direction::East)
+            } else {
+                Ok(Direction::West)
+            }
+        } else if from.column() == to.column() {
+            if from.row() < to.row() {
+                Ok(Direction::South)
+            } else {
+                Ok(Direction::North)
+            }
+        } else {
+            Err("positions should share a row or a column")
+        }
     }
 }
 
@@ -74,6 +94,17 @@ pub enum Curvature {
     LeftTurn,
     UTurn,
     RightTurn,
+}
+
+impl Curvature {
+    pub fn as_seen_from_opposite_direction(self) -> Curvature {
+        match self {
+            Curvature::Straight => Curvature::Straight,
+            Curvature::LeftTurn => Curvature::RightTurn,
+            Curvature::UTurn => Curvature::UTurn,
+            Curvature::RightTurn => Curvature::LeftTurn,
+        }
+    }
 }
 
 impl From<(Direction, Direction)> for Curvature {
@@ -90,7 +121,7 @@ impl From<(Direction, Direction)> for Curvature {
     }
 }
 
-type Coordinate = isize;
+pub type Coordinate = isize;
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Position {
@@ -117,6 +148,14 @@ impl Position {
         self.column
     }
 
+    pub fn set_row(&mut self, coordinate: Coordinate) {
+        self.row = coordinate;
+    }
+
+    pub fn set_column(&mut self, coordinate: Coordinate) {
+        self.column = coordinate;
+    }
+
     pub fn neighbor(mut self, direction: Direction) -> Position {
         match direction {
             Direction::North => self.row -= 1,
@@ -129,6 +168,22 @@ impl Position {
 
     pub fn neighbors(self) -> impl Iterator<Item = Self> {
         Direction::iter().map(move |direction| self.neighbor(direction))
+    }
+
+    pub fn addition(mut self, other: Position) -> Position {
+        self.row += other.row;
+        self.column += other.column;
+        self
+    }
+
+    pub fn scalar_product(mut self, scalar: Coordinate) -> Position {
+        self.row *= scalar;
+        self.column *= scalar;
+        self
+    }
+
+    pub fn dot_product(self, other: Position) -> Coordinate {
+        self.row * other.row + self.column * other.column
     }
 
     fn coordinates_as_usize(self) -> [Option<usize>; 2] {
