@@ -1,5 +1,6 @@
-use std::{collections::HashMap, hash::Hash};
+use std::{collections::HashMap, fmt::Debug, hash::Hash};
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DisjointSet<T: Copy + Eq + Hash> {
     parents: HashMap<T, T>,
     tree_sizes: HashMap<T, usize>,
@@ -18,30 +19,35 @@ impl<T: Copy + Eq + Hash> DisjointSet<T> {
         }
     }
 
-    pub fn union(&mut self, left: T, right: T) {
-        let left_root = self.find_set(left);
-        let right_root = self.find_set(right);
-        if left_root == right_root {
-            return;
-        }
-
-        let left_tree_size = self.tree_sizes[&left_root];
-        let right_tree_size = self.tree_sizes[&right_root];
+    fn link(&mut self, left_tree_root: T, right_tree_root: T) {
+        let left_tree_size = self.tree_sizes[&left_tree_root];
+        let right_tree_size = self.tree_sizes[&right_tree_root];
         let (smallest_tree_root, biggest_tree_root) = if left_tree_size < right_tree_size {
-            (left_root, right_root)
+            (left_tree_root, right_tree_root)
         } else {
-            (right_root, left_root)
+            (right_tree_root, left_tree_root)
         };
         self.parents.insert(smallest_tree_root, biggest_tree_root);
         self.tree_sizes
             .insert(biggest_tree_root, left_tree_size + right_tree_size);
     }
 
-    pub fn find_set(&self, mut element: T) -> T {
-        while self.parents[&element] != element {
-            element = self.parents[&element];
+    pub fn union(&mut self, left: T, right: T) {
+        let left_tree_root = self.find_set(left);
+        let right_tree_root = self.find_set(right);
+        if left_tree_root != right_tree_root {
+            self.link(left_tree_root, right_tree_root)
         }
-        element
+    }
+
+    pub fn find_set(&mut self, element: T) -> T {
+        let mut root = element;
+        let parent = self.parents[&element];
+        if parent != element {
+            root = self.find_set(parent);
+            self.parents.insert(element, root);
+        }
+        root
     }
 }
 
@@ -65,6 +71,6 @@ mod tests {
         disjoint_set.union('a', 'd');
         disjoint_set.union('e', 'a');
         assert_eq!(disjoint_set.find_set('d'), disjoint_set.find_set('f'));
-        assert_ne!(disjoint_set.find_set('a'), disjoint_set.find_set('c'),)
+        assert_ne!(disjoint_set.find_set('a'), disjoint_set.find_set('c'));
     }
 }
