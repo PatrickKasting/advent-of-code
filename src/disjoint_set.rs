@@ -1,26 +1,47 @@
 use std::{collections::HashMap, hash::Hash};
 
-pub struct DisjointSet<T: Copy + Eq + Hash>(HashMap<T, T>);
+pub struct DisjointSet<T: Copy + Eq + Hash> {
+    parents: HashMap<T, T>,
+    tree_sizes: HashMap<T, usize>,
+}
 
 impl<T: Copy + Eq + Hash> DisjointSet<T> {
     pub fn new(elements: impl IntoIterator<Item = T>) -> Self {
-        Self(HashMap::from_iter(
-            elements.into_iter().map(|element| (element, element)),
-        ))
-    }
-
-    pub fn union(&mut self, left: T, right: T) {
-        let left_representative = self.find_set(left);
-        let right_representative = self.find_set(right);
-        for (_, representative) in self.0.iter_mut() {
-            if *representative == left_representative {
-                *representative = right_representative;
-            }
+        let parents: HashMap<T, T> = elements
+            .into_iter()
+            .map(|element| (element, element))
+            .collect();
+        let tree_sizes = parents.keys().map(|&element| (element, 1)).collect();
+        Self {
+            parents,
+            tree_sizes,
         }
     }
 
-    pub fn find_set(&self, element: T) -> T {
-        self.0[&element]
+    pub fn union(&mut self, left: T, right: T) {
+        let left_root = self.find_set(left);
+        let right_root = self.find_set(right);
+        if left_root == right_root {
+            return;
+        }
+
+        let left_tree_size = self.tree_sizes[&left_root];
+        let right_tree_size = self.tree_sizes[&right_root];
+        let (smallest_tree_root, biggest_tree_root) = if left_tree_size < right_tree_size {
+            (left_root, right_root)
+        } else {
+            (right_root, left_root)
+        };
+        self.parents.insert(smallest_tree_root, biggest_tree_root);
+        self.tree_sizes
+            .insert(biggest_tree_root, left_tree_size + right_tree_size);
+    }
+
+    pub fn find_set(&self, mut element: T) -> T {
+        while self.parents[&element] != element {
+            element = self.parents[&element];
+        }
+        element
     }
 }
 
