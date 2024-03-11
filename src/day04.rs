@@ -34,15 +34,11 @@ fn scratchcard_score(scratchcard: &str) -> usize {
     }
 }
 
-pub fn first(input: &str) -> String {
-    input
-        .lines()
-        .map(scratchcard_score)
-        .sum::<usize>()
-        .to_string()
+fn total_score_of_original_scratchcards(input: &str) -> usize {
+    input.lines().map(scratchcard_score).sum()
 }
 
-pub fn second(input: &str) -> String {
+fn final_number_of_scratchcards(input: &str) -> usize {
     let mut number_of_copies = vec![1usize; input.lines().count()];
     for (index, scratchcard) in input.lines().enumerate() {
         let number_of_copies_of_current_scratchcard = number_of_copies[index];
@@ -51,7 +47,15 @@ pub fn second(input: &str) -> String {
             *number_of_copies += number_of_copies_of_current_scratchcard;
         }
     }
-    number_of_copies.into_iter().sum::<usize>().to_string()
+    number_of_copies.into_iter().sum::<usize>()
+}
+
+pub fn first(input: &str) -> String {
+    total_score_of_original_scratchcards(input).to_string()
+}
+
+pub fn second(input: &str) -> String {
+    final_number_of_scratchcards(input).to_string()
 }
 
 #[cfg(test)]
