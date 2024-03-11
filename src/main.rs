@@ -73,15 +73,15 @@ struct CommandLineArguments {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum InputType {
+pub enum Input {
     Example(usize),
     PuzzleInput,
 }
 
-fn input(day: usize, input_type: InputType) -> String {
+fn input(day: usize, input_type: Input) -> String {
     let path = match input_type {
-        InputType::Example(example) => format!("examples/{day:02}/{example}.txt"),
-        InputType::PuzzleInput => format!("puzzle-inputs/{day:02}.txt"),
+        Input::Example(example) => format!("examples/{day:02}/{example}.txt"),
+        Input::PuzzleInput => format!("puzzle-inputs/{day:02}.txt"),
     };
     fs::read_to_string(&path).unwrap_or_else(|_| panic!("'{path}' should exist"))
 }
@@ -126,7 +126,7 @@ fn solution(day: Day, puzzle: Puzzle) -> Solution {
 fn main() {
     let command_line_arguments = CommandLineArguments::parse();
 
-    let input = input(command_line_arguments.day, InputType::PuzzleInput);
+    let input = input(command_line_arguments.day, Input::PuzzleInput);
     let solution = solution(command_line_arguments.day, command_line_arguments.puzzle);
     let answer = solution(&input);
     println!("{answer}");
@@ -145,7 +145,7 @@ pub mod tests {
     /// Panics if the return value of the solution applied to the input does not equal
     /// `expected.to_string()`.
     #[allow(clippy::needless_pass_by_value)]
-    pub fn test_on_input(day: Day, puzzle: Puzzle, input: InputType, expected: impl ToString) {
+    pub fn test_on_input(day: Day, puzzle: Puzzle, input: Input, expected: impl ToString) {
         let actual = solution(day, puzzle)(&super::input(day, input));
         assert_eq!(actual, expected.to_string());
     }

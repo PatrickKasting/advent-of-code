@@ -29,12 +29,12 @@ pub fn second(_input: &str) -> String {
 
 // #[cfg(test)]
 // mod tests {
-//     use crate::{tests::*, InputType, Puzzle};
+//     use crate::{tests::*, Input, Puzzle};
 
 //     const DAY: usize = 25;
 
 //     #[test]
 //     fn first_example() {
-//         test_on_input(DAY, Puzzle::First, InputType::Example(0), 54);
+//         test_on_input(DAY, Puzzle::First, Input::Example(0), 54);
 //     }
 // }

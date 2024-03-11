@@ -53,7 +53,7 @@ pub fn second(_input: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use crate::{input, tests::*, InputType, Puzzle};
+    use crate::{input, tests::*, Input, Puzzle};
 
     use super::*;
 
@@ -61,19 +61,19 @@ mod tests {
 
     #[test]
     fn first_example() {
-        let example = Map::from(&input(DAY, InputType::Example(0)));
+        let example = Map::from(&input(DAY, Input::Example(0)));
         let actual = number_of_reachable_garden_plots(&example, 6);
         assert_eq!(actual, 16);
     }
 
     #[test]
     fn first_input() {
-        test_on_input(DAY, Puzzle::First, InputType::PuzzleInput, 3642);
+        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 3642);
     }
 
     // #[test]
     // fn second_example() {
-    //     let map = Map::from(&input(DAY, InputType::Example(0)));
+    //     let map = Map::from(&input(DAY, Input::Example(0)));
     //     test_cases(
     //         |number_of_steps| number_of_reachable_garden_plots(&map, number_of_steps),
     //         [6, 10, 50, 100, 500, 1000, 5000],

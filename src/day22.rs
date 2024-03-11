@@ -169,7 +169,7 @@ pub fn second(_input: &str) -> String {
 mod tests {
     use std::collections::HashSet;
 
-    use crate::{input, tests::*, InputType};
+    use crate::{input, tests::*, Input};
 
     use super::*;
 
@@ -177,7 +177,7 @@ mod tests {
 
     #[test]
     fn overlapping_cross_sections() {
-        let bricks = bricks(&input(DAY, InputType::Example(0)));
+        let bricks = bricks(&input(DAY, Input::Example(0)));
         let bricks_with_indices = bricks.iter().enumerate();
         let actual: HashSet<[usize; 2]> = bricks_with_indices
             .clone()
@@ -211,7 +211,7 @@ mod tests {
 
     #[test]
     fn settled_stack() {
-        let actual = settled_bricks(&input(DAY, InputType::Example(0)));
+        let actual = settled_bricks(&input(DAY, Input::Example(0)));
         let expected = "\
             1,0,1~1,2,1\n\
             0,0,2~2,0,2\n\
@@ -226,7 +226,7 @@ mod tests {
 
     #[test]
     fn supported_bricks() {
-        let settled_bricks = settled_bricks(&input(DAY, InputType::Example(0)));
+        let settled_bricks = settled_bricks(&input(DAY, Input::Example(0)));
         let function = |index| indices_of_supported_bricks(&settled_bricks, index);
         let cases = 0..settled_bricks.len();
         let expected = [
@@ -243,13 +243,13 @@ mod tests {
 
     #[test]
     fn disintegrable_bricks() {
-        let settled_bricks = settled_bricks(&input(DAY, InputType::Example(0)));
+        let settled_bricks = settled_bricks(&input(DAY, Input::Example(0)));
         let actual: HashSet<usize> = indices_of_disintegrable_bricks(&settled_bricks).collect();
         assert_eq!(actual, HashSet::from([1, 2, 3, 4, 6]));
     }
 
     // #[test]
     // fn first_example() {
-    //     test_on_input(DAY, Puzzle::First, InputType::Example(0), 5);
+    //     test_on_input(DAY, Puzzle::First, Input::Example(0), 5);
     // }
 }

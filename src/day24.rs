@@ -79,7 +79,7 @@ pub fn second(_input: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use crate::{input, tests::*, InputType, Puzzle};
+    use crate::{input, tests::*, Input, Puzzle};
 
     use super::*;
 
@@ -87,18 +87,18 @@ mod tests {
 
     #[test]
     fn first_example() {
-        let hailstones = hailstones(&input(DAY, InputType::Example(0)));
+        let hailstones = hailstones(&input(DAY, Input::Example(0)));
         let number_of_intersections = number_of_intersections_in_test_area(7.0..=27.0, &hailstones);
         assert_eq!(number_of_intersections, 2);
     }
 
     #[test]
     fn first_input() {
-        test_on_input(DAY, Puzzle::First, InputType::PuzzleInput, 17776);
+        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 17776);
     }
 
     // #[test]
     // fn second_example() {
-    //     test_on_input(DAY, Puzzle::Second, InputType::Example(1), 281);
+    //     test_on_input(DAY, Puzzle::Second, Input::Example(1), 281);
     // }
 }

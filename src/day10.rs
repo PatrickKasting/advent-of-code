@@ -77,30 +77,30 @@ pub fn second(input: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use crate::{tests::*, InputType, Puzzle};
+    use crate::{tests::*, Input, Puzzle};
 
     const DAY: usize = 10;
 
     #[test]
     fn first_examples() {
-        test_on_input(DAY, Puzzle::First, InputType::Example(0), 4);
-        test_on_input(DAY, Puzzle::First, InputType::Example(1), 8);
+        test_on_input(DAY, Puzzle::First, Input::Example(0), 4);
+        test_on_input(DAY, Puzzle::First, Input::Example(1), 8);
     }
 
     #[test]
     fn first_input() {
-        test_on_input(DAY, Puzzle::First, InputType::PuzzleInput, 6690);
+        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 6690);
     }
 
     #[test]
     fn second_example() {
-        test_on_input(DAY, Puzzle::Second, InputType::Example(2), 4);
-        test_on_input(DAY, Puzzle::Second, InputType::Example(3), 8);
-        test_on_input(DAY, Puzzle::Second, InputType::Example(4), 10);
+        test_on_input(DAY, Puzzle::Second, Input::Example(2), 4);
+        test_on_input(DAY, Puzzle::Second, Input::Example(3), 8);
+        test_on_input(DAY, Puzzle::Second, Input::Example(4), 10);
     }
 
     #[test]
     fn second_input() {
-        test_on_input(DAY, Puzzle::Second, InputType::PuzzleInput, 525);
+        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 525);
     }
 }
