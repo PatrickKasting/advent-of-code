@@ -140,11 +140,21 @@ pub mod tests {
 
     use super::*;
 
+    /// # Panics
+    ///
+    /// Panics if the return value of the solution applied to the input does not equal
+    /// `expected.to_string()`.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn test_on_input(day: Day, puzzle: Puzzle, input: InputType, expected: impl ToString) {
         let actual = solution(day, puzzle)(&super::input(day, input));
         assert_eq!(actual, expected.to_string());
     }
 
+    /// # Panics
+    ///
+    /// Panics if there is a mismatch between the return value of `function` applied to a test case
+    /// from `cases` and the corresponding expected answer from `expected`. Also panics if the
+    /// number of test cases and the number of expected answers differ.
     pub fn test_cases<Case, Answer: Debug + Eq>(
         function: impl FnMut(Case) -> Answer,
         cases: impl IntoIterator<Item = Case>,

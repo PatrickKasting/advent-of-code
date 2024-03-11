@@ -201,7 +201,11 @@ mod tests {
         ];
         let symmetry = expected.map(|[left, right]| [right, left]);
         let reflexivity = (0..bricks.len()).map(|index| [index, index]).collect_vec();
-        let expected = HashSet::from_iter(expected.into_iter().chain(symmetry).chain(reflexivity));
+        let expected = expected
+            .into_iter()
+            .chain(symmetry)
+            .chain(reflexivity)
+            .collect();
         assert_eq!(actual, expected);
     }
 

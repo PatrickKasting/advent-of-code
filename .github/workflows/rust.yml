@@ -18,7 +18,7 @@ jobs:
       - name: Formatting
         run: cargo fmt --verbose --check
       - name: Linting
-        run: cargo clippy --verbose
+        run: cargo clippy --verbose --all-targets --all-features
       - name: Build
         run: cargo build --verbose
       - name: Tests
