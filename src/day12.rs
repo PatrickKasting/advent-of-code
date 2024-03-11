@@ -55,8 +55,7 @@ pub fn first(input: &str) -> String {
     sum_of_number_of_arrangements(input).to_string()
 }
 
-pub fn second(input: &str) -> String {
-    sum_of_number_of_arrangements(input).to_string();
+pub fn second(_input: &str) -> String {
     todo!();
 }
 
@@ -91,10 +90,5 @@ mod tests {
     //         input.lines(),
     //         [1, 16384, 1, 16, 2500, 506250],
     //     );
-    // }
-
-    // #[test]
-    // fn second_input() {
-    //     test_on_input(DAY, Puzzle::Second, Input::Real, 55358);
     // }
 }

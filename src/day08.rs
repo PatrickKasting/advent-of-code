@@ -110,6 +110,12 @@ mod tests {
 
     // #[test]
     // fn second_input() {
-    //     test_on_input(DAY, Puzzle::Second, Input::Real, 17_972_669_116_327_usize);
+    //     // This takes roughly three minutes.
+    //     test_on_input(
+    //         DAY,
+    //         Puzzle::Second,
+    //         InputType::PuzzleInput,
+    //         17_972_669_116_327_usize,
+    //     );
     // }
 }

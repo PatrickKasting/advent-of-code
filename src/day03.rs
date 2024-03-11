@@ -22,6 +22,8 @@ fn is_symbol(char: char) -> bool {
 }
 
 fn for_each_part_number(schematic: &str, mut action: impl FnMut(PartNumber, char, (usize, usize))) {
+    #![allow(clippy::range_plus_one)]
+
     let number_regex = Regex::new(r"\d+").expect("regex should be valid");
     let lines = schematic.lines().collect_vec();
     let [schematic_height, schematic_width] = [lines.len(), lines[0].len()];

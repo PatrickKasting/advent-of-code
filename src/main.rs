@@ -1,6 +1,5 @@
 #![warn(clippy::all)]
 #![warn(clippy::pedantic)]
-#![allow(clippy::range_plus_one)]
 
 mod day01;
 mod day02;
@@ -26,8 +25,9 @@ mod day21;
 mod day22;
 mod day23;
 mod day24;
+mod day25;
 mod grid;
-pub mod matrix;
+mod matrix;
 mod search;
 mod utilities;
 
@@ -113,6 +113,7 @@ const SOLUTIONS: &[(Solution, Solution)] = &[
     (day22::first, day22::second),
     (day23::first, day23::second),
     (day24::first, day24::second),
+    (day25::first, day25::second),
 ];
 
 fn solution(day: Day, puzzle: Puzzle) -> Solution {

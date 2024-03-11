@@ -248,19 +248,4 @@ mod tests {
     // fn first_example() {
     //     test_on_input(DAY, Puzzle::First, InputType::Example(0), 5);
     // }
-
-    // #[test]
-    // fn first_input() {
-    //     test_on_input(DAY, Puzzle::First, InputType::PuzzleInput, 56042);
-    // }
-
-    // #[test]
-    // fn second_example() {
-    //     test_on_input(DAY, Puzzle::Second, InputType::Example(1), 281);
-    // }
-
-    // #[test]
-    // fn second_input() {
-    //     test_on_input(DAY, Puzzle::Second, InputType::PuzzleInput, 55358);
-    // }
 }

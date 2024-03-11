@@ -80,9 +80,4 @@ mod tests {
     //         [16, 50, 1594, 6536, 167_004, 668_697, 16_733_044],
     //     );
     // }
-
-    // #[test]
-    // fn second_input() {
-    //     test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 1180);
-    // }
 }

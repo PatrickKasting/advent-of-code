@@ -53,15 +53,6 @@ fn is_game_possible(game: &Game) -> bool {
     game.iter().copied().all(are_counts_possible)
 }
 
-pub fn first(input: &str) -> String {
-    (1..)
-        .zip(games(input))
-        .filter(|(_, game)| is_game_possible(game))
-        .map(|(game_number, _)| game_number)
-        .sum::<usize>()
-        .to_string()
-}
-
 fn maximum_counts(game: Game) -> Counts {
     let mut maximums = [0; NUMBER_OF_COLORS];
     for count in game {
@@ -74,6 +65,15 @@ fn maximum_counts(game: Game) -> Counts {
 
 fn power(counts: Counts) -> Count {
     counts.into_iter().product()
+}
+
+pub fn first(input: &str) -> String {
+    (1..)
+        .zip(games(input))
+        .filter(|(_, game)| is_game_possible(game))
+        .map(|(game_number, _)| game_number)
+        .sum::<usize>()
+        .to_string()
 }
 
 pub fn second(input: &str) -> String {

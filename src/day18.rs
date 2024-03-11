@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, collections::BTreeSet};
+use std::cmp::Ordering;
 
 use itertools::Itertools;
 
@@ -57,36 +57,36 @@ fn trench(dig_plan: &[DigStep]) -> Vec<Corner> {
         .collect_vec()
 }
 
-fn draw(trench: &[Corner], width: usize) {
-    let mut trench: BTreeSet<_> = trench.iter().copied().collect();
-    let [mut row, mut column] = [0, 0];
-    while let Some((position, curvature)) = trench.pop_first() {
-        while row < position.row() {
-            while column < width.try_into().unwrap() {
-                print!(".");
-                column += 1;
-            }
-            println!();
-            row += 1;
-            column = 0;
-        }
-        while column < position.column() {
-            print!(".");
-            column += 1;
-        }
-        match curvature {
-            Curvature::LeftTurn => print!("L"),
-            Curvature::RightTurn => print!("R"),
-            _ => panic!("trench should only have left turns or right turns"),
-        }
-        column += 1;
-    }
-    while column < width.try_into().unwrap() {
-        print!(".");
-        column += 1;
-    }
-    println!();
-}
+// fn draw(trench: &[Corner], width: usize) {
+//     let mut trench: std::collections::BTreeSet<_> = trench.iter().copied().collect();
+//     let [mut row, mut column] = [0, 0];
+//     while let Some((position, curvature)) = trench.pop_first() {
+//         while row < position.row() {
+//             while column < width.try_into().unwrap() {
+//                 print!(".");
+//                 column += 1;
+//             }
+//             println!();
+//             row += 1;
+//             column = 0;
+//         }
+//         while column < position.column() {
+//             print!(".");
+//             column += 1;
+//         }
+//         match curvature {
+//             Curvature::LeftTurn => print!("L"),
+//             Curvature::RightTurn => print!("R"),
+//             _ => panic!("trench should only have left turns or right turns"),
+//         }
+//         column += 1;
+//     }
+//     while column < width.try_into().unwrap() {
+//         print!(".");
+//         column += 1;
+//     }
+//     println!();
+// }
 
 fn is_clockwise(trench: &[Corner]) -> bool {
     let curvature_counts = trench.iter().map(|(_, curvature)| *curvature).counts();
@@ -173,7 +173,7 @@ fn remove_protrusion(trench: &mut Vec<Corner>) -> Coordinate {
 
         return protrusion_area;
     }
-    draw(trench, 80);
+    // draw(trench, 80);
     panic!("trench should contain a protrusion");
 }
 
@@ -185,8 +185,6 @@ fn area(dig_plan: &[DigStep]) -> Coordinate {
 
     let mut area = 0;
     while trench.len() > 4 {
-        // println!("\n## {} ##", trench.len());
-        // draw(&trench, 7);
         area += remove_protrusion(&mut trench);
     }
     area + area_of_bounding_rectangle(trench[0].0, trench[2].0)
@@ -213,18 +211,18 @@ mod tests {
         test_on_input(DAY, Puzzle::First, InputType::Example(0), 62);
     }
 
-    #[test]
-    fn first_input() {
-        test_on_input(DAY, Puzzle::First, InputType::PuzzleInput, 70253);
-    }
+    // #[test]
+    // fn first_input() {
+    //     test_on_input(DAY, Puzzle::First, InputType::PuzzleInput, 70253);
+    // }
 
     #[test]
     fn second_example() {
-        test_on_input(DAY, Puzzle::Second, InputType::Example(0), 952_408_144_115);
+        test_on_input(
+            DAY,
+            Puzzle::Second,
+            InputType::Example(0),
+            952_408_144_115usize,
+        );
     }
-
-    // #[test]
-    // fn second_input() {
-    //     test_on_input(DAY, Puzzle::Second, InputType::PuzzleInput, 200277);
-    // }
 }

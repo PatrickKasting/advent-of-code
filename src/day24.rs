@@ -101,9 +101,4 @@ mod tests {
     // fn second_example() {
     //     test_on_input(DAY, Puzzle::Second, InputType::Example(1), 281);
     // }
-
-    // #[test]
-    // fn second_input() {
-    //     test_on_input(DAY, Puzzle::Second, InputType::PuzzleInput, 55358);
-    // }
 }

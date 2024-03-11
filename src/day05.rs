@@ -17,6 +17,7 @@ fn seed_numbers(seeds: &str) -> Vec<Number> {
 }
 
 fn singleton_seed_ranges(seeds: &str) -> Vec<Range<Number>> {
+    #![allow(clippy::range_plus_one)]
     seed_numbers(seeds)
         .into_iter()
         .map(|number| number..number + 1)
