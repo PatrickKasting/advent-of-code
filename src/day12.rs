@@ -71,7 +71,7 @@ mod tests {
     fn first_example() {
         let input = input(DAY, InputType::Example(0));
         test_cases(
-            |line| number_of_arrangements(line),
+            number_of_arrangements,
             input.lines(),
             [1, 4, 1, 1, 4, 10],
         );

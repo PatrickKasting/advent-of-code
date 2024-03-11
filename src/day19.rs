@@ -293,7 +293,7 @@ mod tests {
 
     #[test]
     fn first_input() {
-        test_on_input(DAY, Puzzle::First, InputType::PuzzleInput, 332145);
+        test_on_input(DAY, Puzzle::First, InputType::PuzzleInput, 332_145);
     }
 
     #[test]
