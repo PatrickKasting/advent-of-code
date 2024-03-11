@@ -48,6 +48,38 @@ fn for_each_part_number(schematic: &str, mut action: impl FnMut(PartNumber, char
     }
 }
 
+fn part_numbers_next_to_stars(input: &str) -> HashMap<(usize, usize), Vec<usize>> {
+    let mut part_numbers_next_to_stars = HashMap::new();
+    let add_part_number_if_next_to_star = |part_number, symbol, location| {
+        if symbol == '*' {
+            part_numbers_next_to_stars
+                .entry(location)
+                .or_insert_with(Vec::new)
+                .push(part_number);
+        }
+    };
+    for_each_part_number(input, add_part_number_if_next_to_star);
+    part_numbers_next_to_stars
+}
+
+fn gear_ratio(part_numbers: &[usize]) -> usize {
+    debug_assert_eq!(
+        part_numbers.len(),
+        2,
+        "a gear ratio should come from two part numbers"
+    );
+    part_numbers.iter().copied().product()
+}
+
+fn gear_ratios(
+    part_numbers_next_to_stars: &HashMap<(usize, usize), Vec<usize>>,
+) -> impl Iterator<Item = usize> + '_ {
+    part_numbers_next_to_stars
+        .values()
+        .filter(|part_numbers| part_numbers.len() == 2)
+        .map(|part_numbers| gear_ratio(part_numbers))
+}
+
 pub fn first(input: &str) -> String {
     let mut sum: usize = 0;
     for_each_part_number(input, |part_number, _, _| sum += part_number);
@@ -55,21 +87,7 @@ pub fn first(input: &str) -> String {
 }
 
 pub fn second(input: &str) -> String {
-    let mut gears = HashMap::new();
-    let on_part_number = |part_number, symbol, location| {
-        if symbol == '*' {
-            gears
-                .entry(location)
-                .or_insert_with(Vec::new)
-                .push(part_number);
-        }
-    };
-    for_each_part_number(input, on_part_number);
-
-    gears
-        .values()
-        .filter(|gear| gear.len() == 2)
-        .map(|gear| gear.iter().product::<usize>())
+    gear_ratios(&part_numbers_next_to_stars(input))
         .sum::<usize>()
         .to_string()
 }

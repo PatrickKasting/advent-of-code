@@ -53,6 +53,13 @@ fn is_game_possible(game: &Game) -> bool {
     game.iter().copied().all(are_counts_possible)
 }
 
+fn ids_of_possible_games(games: impl Iterator<Item = Game>) -> impl Iterator<Item = usize> {
+    (1..)
+        .zip(games)
+        .filter(|(_, game)| is_game_possible(game))
+        .map(|(game_number, _)| game_number)
+}
+
 fn maximum_counts(game: Game) -> Counts {
     let mut maximums = [0; NUMBER_OF_COLORS];
     for count in game {
@@ -67,19 +74,19 @@ fn power(counts: Counts) -> Count {
     counts.into_iter().product()
 }
 
+fn power_of_minimum_set(game: Game) -> Count {
+    power(maximum_counts(game))
+}
+
 pub fn first(input: &str) -> String {
-    (1..)
-        .zip(games(input))
-        .filter(|(_, game)| is_game_possible(game))
-        .map(|(game_number, _)| game_number)
+    ids_of_possible_games(games(input))
         .sum::<usize>()
         .to_string()
 }
 
 pub fn second(input: &str) -> String {
     games(input)
-        .map(maximum_counts)
-        .map(power)
+        .map(power_of_minimum_set)
         .sum::<Count>()
         .to_string()
 }
