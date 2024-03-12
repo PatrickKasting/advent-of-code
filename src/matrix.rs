@@ -40,8 +40,7 @@ fn reduced_row_echelon_form<const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
         for column in pivot_column..NUM_COLUMNS {
             matrix[pivot_row][column] /= pivot;
         }
-        pivot_row += 1;
-        pivot_column += 1;
+        (pivot_row, pivot_column) = (pivot_row + 1, pivot_column + 1);
     }
     matrix
 }
@@ -58,8 +57,7 @@ fn solution_from_reduced_row_echelon_form<const NUM_ROWS: usize, const NUM_COLUM
             .collect_vec()
     };
 
-    let mut pivot_row = 0;
-    let mut pivot_column = 0;
+    let (mut pivot_row, mut pivot_column) = (0, 0);
     let mut free_parameters = vec![];
     let mut solution = vec![vec![]];
     while pivot_row < NUM_ROWS && pivot_column < NUM_COLUMNS - 1 {
@@ -79,8 +77,7 @@ fn solution_from_reduced_row_echelon_form<const NUM_ROWS: usize, const NUM_COLUM
         } else {
             solution[0].push(matrix[pivot_row][NUM_COLUMNS - 1]);
 
-            pivot_row += 1;
-            pivot_column += 1;
+            (pivot_row, pivot_column) = (pivot_row + 1, pivot_column + 1);
         }
     }
     if pivot_row < NUM_ROWS && is_almost_zero(matrix[pivot_row][NUM_COLUMNS - 1] - 1.0) {
