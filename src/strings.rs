@@ -1,5 +1,7 @@
 use std::{fmt::Debug, str::FromStr};
 
+use regex::Regex;
+
 pub fn parse<S: AsRef<str>, N: FromStr>(str: S) -> N
 where
     <N as FromStr>::Err: Debug,
@@ -12,4 +14,11 @@ pub fn char_at<S: AsRef<str>>(str: S, index: usize) -> char {
         .chars()
         .nth(index)
         .unwrap_or_else(|| panic!("string should be at least {index} characters long"))
+}
+
+pub fn matches<'regex, 'haystack: 'regex>(
+    regex: &'regex Regex,
+    haystack: &'haystack str,
+) -> impl Iterator<Item = &'haystack str> + 'regex {
+    regex.find_iter(haystack).map(|mat| mat.as_str())
 }
