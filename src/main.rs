@@ -5,6 +5,7 @@ mod advent2022;
 mod advent2023;
 mod flow_network;
 mod grid;
+mod math;
 mod matrix;
 mod search;
 mod utilities;
