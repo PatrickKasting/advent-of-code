@@ -3,7 +3,7 @@ use std::ops::RangeInclusive;
 use itertools::Itertools;
 
 use crate::matrix::solution;
-use crate::parsing::parse;
+use crate::strings::parse;
 
 type Coordinate = f64;
 type Position = [Coordinate; 3];

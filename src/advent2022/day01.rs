@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use crate::parsing::parse;
+use crate::strings::parse;
 
 type Calories = usize;
 

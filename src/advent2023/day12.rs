@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use crate::parsing::parse;
+use crate::strings::parse;
 
 fn row_and_group_sizes(line: &str) -> (&[u8], Vec<usize>) {
     let (row, group_sizes) = line

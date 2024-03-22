@@ -1,4 +1,4 @@
-use crate::utilities::char_at;
+use crate::strings::char_at;
 
 type Symbol = i64; // Rock = 0, Paper = 1, Scissors = 2 OR Loss = 0, Draw = 1, Win = 2
 type Game = [Symbol; 2];

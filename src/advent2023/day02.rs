@@ -3,7 +3,7 @@ use std::cmp;
 use itertools::Itertools;
 use regex::Regex;
 
-use crate::parsing::parse;
+use crate::strings::parse;
 
 const NUMBER_OF_COLORS: usize = 3;
 

@@ -1,6 +1,6 @@
 use std::ops::RangeInclusive;
 
-use crate::parsing::parse;
+use crate::strings::parse;
 
 type IdNumber = usize;
 type Sections = RangeInclusive<IdNumber>;

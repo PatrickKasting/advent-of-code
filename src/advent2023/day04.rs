@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::parsing::parse;
+use crate::strings::parse;
 
 type Numbers = HashSet<usize>;
 

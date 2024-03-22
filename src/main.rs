@@ -7,8 +7,8 @@ mod flow_network;
 mod grid;
 mod math;
 mod matrix;
-mod parsing;
 mod search;
+mod strings;
 mod utilities;
 
 use std::{fmt::Debug, fs, ops::RangeInclusive};

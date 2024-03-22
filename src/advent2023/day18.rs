@@ -4,7 +4,7 @@ use itertools::Itertools;
 
 use crate::{
     grid::{Coordinate, Curvature, Direction, Position},
-    parsing::parse,
+    strings::parse,
     utilities::as_isize,
 };
 

@@ -2,7 +2,7 @@ use std::{collections::BTreeMap, ops::Range};
 
 use itertools::Itertools;
 
-use crate::parsing::parse;
+use crate::strings::parse;
 
 type Number = isize;
 type Offset = isize;

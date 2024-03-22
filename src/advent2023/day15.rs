@@ -1,4 +1,4 @@
-use crate::utilities::char_at;
+use crate::strings::char_at;
 
 type Bucket<'label> = Vec<(&'label str, usize)>;
 type HashMap<'label> = Vec<Bucket<'label>>;
