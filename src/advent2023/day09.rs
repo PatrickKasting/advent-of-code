@@ -2,7 +2,7 @@ use std::ops::{Add, Sub};
 
 use itertools::Itertools;
 
-use crate::utilities::number;
+use crate::parsing::parse;
 
 type Number = isize;
 
@@ -13,7 +13,7 @@ struct Extrapolation {
 }
 
 fn history(history: &str) -> Vec<Number> {
-    history.split_ascii_whitespace().map(number).collect_vec()
+    history.split_ascii_whitespace().map(parse).collect_vec()
 }
 
 fn row(preceding_row: &[Number], combination: fn(Number, Number) -> Number) -> Vec<Number> {

@@ -2,7 +2,8 @@ use std::ops::RangeInclusive;
 
 use itertools::Itertools;
 
-use crate::{matrix::solution, utilities::number};
+use crate::matrix::solution;
+use crate::parsing::parse;
 
 type Coordinate = f64;
 type Position = [Coordinate; 3];
@@ -12,7 +13,7 @@ type Hailstone = (Position, Velocity);
 fn coordinates(str: &str) -> [Coordinate; 3] {
     str.split(',')
         .map(str::trim)
-        .map(number)
+        .map(parse)
         .collect_vec()
         .try_into()
         .expect("coordinates should appear in triplets")

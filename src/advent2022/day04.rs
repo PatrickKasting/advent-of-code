@@ -1,6 +1,6 @@
 use std::ops::RangeInclusive;
 
-use crate::utilities::number;
+use crate::parsing::parse;
 
 type IdNumber = usize;
 type Sections = RangeInclusive<IdNumber>;
@@ -44,7 +44,7 @@ fn sections(str: &str) -> RangeInclusive<usize> {
     let (start, end) = str
         .split_once('-')
         .expect("id numbers should be separated by a hyphen");
-    number(start)..=number(end)
+    parse(start)..=parse(end)
 }
 
 #[cfg(test)]

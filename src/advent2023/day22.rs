@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use crate::utilities::number;
+use crate::parsing::parse;
 
 type Coordinate = usize;
 type Position = [Coordinate; 3];
@@ -8,7 +8,7 @@ type Brick = [Position; 2];
 
 fn position(str: &str) -> Position {
     str.split(',')
-        .map(number)
+        .map(parse)
         .collect_vec()
         .try_into()
         .expect("position should have three coordinates")

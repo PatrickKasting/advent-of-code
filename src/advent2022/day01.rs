@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use crate::utilities::number;
+use crate::parsing::parse;
 
 type Calories = usize;
 
@@ -22,7 +22,7 @@ fn elves_in_descending_order(str: &str) -> Vec<Calories> {
 }
 
 fn elf(str: &str) -> Calories {
-    str.lines().map(number::<&str, Calories>).sum()
+    str.lines().map(parse::<&str, Calories>).sum()
 }
 
 #[cfg(test)]

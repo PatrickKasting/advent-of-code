@@ -7,7 +7,7 @@ use std::{
 use itertools::Itertools;
 use regex::Regex;
 
-use crate::utilities::number;
+use crate::parsing::parse;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum Category {
@@ -102,7 +102,7 @@ impl From<&str> for Part {
         let regex = Regex::new(r"\d+").expect("regex should be valid");
         let ratings = regex
             .find_iter(str)
-            .map(|mat| number(mat.as_str()))
+            .map(|mat| parse(mat.as_str()))
             .collect_vec()
             .try_into()
             .expect("part should consist of four ratings");

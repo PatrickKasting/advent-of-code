@@ -2,7 +2,7 @@ use std::{collections::BTreeMap, ops::Range};
 
 use itertools::Itertools;
 
-use crate::utilities::number;
+use crate::parsing::parse;
 
 type Number = isize;
 type Offset = isize;
@@ -12,7 +12,7 @@ fn seed_numbers(seeds: &str) -> Vec<Number> {
     seeds
         .split_ascii_whitespace()
         .skip(1)
-        .map(number)
+        .map(parse)
         .collect_vec()
 }
 
@@ -37,7 +37,7 @@ fn map_numbers(block: &str) -> Vec<[Number; 3]> {
         .skip(1)
         .map(|line| {
             line.split_ascii_whitespace()
-                .map(number)
+                .map(parse)
                 .collect_vec()
                 .try_into()
                 .expect("every line of a map should contain three numbers")

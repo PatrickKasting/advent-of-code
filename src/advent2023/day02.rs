@@ -3,7 +3,7 @@ use std::cmp;
 use itertools::Itertools;
 use regex::Regex;
 
-use crate::utilities::number;
+use crate::parsing::parse;
 
 const NUMBER_OF_COLORS: usize = 3;
 
@@ -19,7 +19,7 @@ fn counts(handful: &str) -> Counts {
 
     let [mut red, mut green, mut blue] = [0, 0, 0];
     for (_, [count, color]) in captures {
-        let count: Count = number(count);
+        let count: Count = parse(count);
         match color {
             "red" => red += count,
             "green" => green += count,

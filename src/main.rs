@@ -7,6 +7,7 @@ mod flow_network;
 mod grid;
 mod math;
 mod matrix;
+mod parsing;
 mod search;
 mod utilities;
 

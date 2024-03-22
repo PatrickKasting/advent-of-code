@@ -4,7 +4,8 @@ use itertools::Itertools;
 
 use crate::{
     grid::{Coordinate, Curvature, Direction, Position},
-    utilities::{as_isize, number},
+    parsing::parse,
+    utilities::as_isize,
 };
 
 type DigStep = (Direction, Coordinate);
@@ -20,7 +21,7 @@ fn dig_plan_step_from_directions_and_distances(line: &str) -> DigStep {
     let (distance, _) = line[2..]
         .split_once(' ')
         .expect("line should contain distance");
-    (direction, number(distance))
+    (direction, parse(distance))
 }
 
 fn dig_plan_step_from_color_codes(line: &str) -> DigStep {

@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use crate::utilities::number;
+use crate::parsing::parse;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum Card {
@@ -53,7 +53,7 @@ fn hand(j: Card, hand: &str) -> Hand {
 
 fn player(j: Card, line: &str) -> (Hand, Bid) {
     let (hand, bid) = line.split_once(' ').expect("a line should include a space");
-    (self::hand(j, hand), number(bid))
+    (self::hand(j, hand), parse(bid))
 }
 
 fn hand_type(mut hand: Hand) -> HandType {
