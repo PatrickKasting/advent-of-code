@@ -27,8 +27,9 @@ pub fn uniform_cost<
         for (successor, step_cost) in successors(state) {
             frontier.push((Reverse(path_cost + step_cost), successor));
         }
+        let inserted = explored.insert(state);
         debug_assert!(
-            explored.insert(state),
+            inserted,
             "set of explored states should never contain states from the frontier"
         );
     }

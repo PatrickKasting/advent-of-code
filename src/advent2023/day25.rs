@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use itertools::Itertools;
 use rand::{rngs::SmallRng, seq::SliceRandom, SeedableRng};
 
-use crate::flow_network::maximum_flow;
+use crate::math::graphs::flow_networks::maximum_flow;
 
 fn network(input: &str) -> (Vec<&str>, Vec<(&str, isize, &str)>) {
     let mut components = HashSet::new();
