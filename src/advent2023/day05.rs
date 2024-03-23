@@ -2,30 +2,22 @@ use std::{collections::BTreeMap, ops::Range};
 
 use itertools::Itertools;
 
-use crate::strings::parse;
+use crate::strings::isizes;
 
 type Number = isize;
 type Offset = isize;
 type Map = BTreeMap<Number, Offset>;
 
-fn seed_numbers(seeds: &str) -> Vec<Number> {
-    seeds
-        .split_ascii_whitespace()
-        .skip(1)
-        .map(parse)
-        .collect_vec()
-}
-
 fn singleton_seed_ranges(seeds: &str) -> Vec<Range<Number>> {
     #![allow(clippy::range_plus_one)]
-    seed_numbers(seeds)
+    isizes(seeds)
         .into_iter()
         .map(|number| number..number + 1)
         .collect_vec()
 }
 
 fn seed_ranges(seeds: &str) -> Vec<Range<Number>> {
-    seed_numbers(seeds)
+    isizes(seeds)
         .chunks(2)
         .map(|pair| pair[0]..pair[0] + pair[1])
         .collect_vec()
@@ -36,9 +28,7 @@ fn map_numbers(block: &str) -> Vec<[Number; 3]> {
         .lines()
         .skip(1)
         .map(|line| {
-            line.split_ascii_whitespace()
-                .map(parse)
-                .collect_vec()
+            isizes(line)
                 .try_into()
                 .expect("every line of a map should contain three numbers")
         })

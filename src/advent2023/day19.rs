@@ -5,9 +5,8 @@ use std::{
 };
 
 use itertools::Itertools;
-use regex::Regex;
 
-use crate::strings::{matches, parse};
+use crate::strings::{parse, usizes};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum Category {
@@ -52,9 +51,7 @@ impl<'condition> From<&'condition str> for Condition<'condition> {
         let colon_index = str
             .find(':')
             .expect("condition should use ':' to separate condition and destination");
-        let limit = str[2..colon_index]
-            .parse()
-            .expect("limit should be numerical");
+        let limit = parse(&str[2..colon_index]);
         let destination = &str[colon_index + 1..];
         Self {
             category,
@@ -99,10 +96,7 @@ impl Part {
 
 impl From<&str> for Part {
     fn from(str: &str) -> Self {
-        let number_regex = Regex::new(r"\d+").expect("regex should be valid");
-        let ratings = matches(&number_regex, str)
-            .map(parse)
-            .collect_vec()
+        let ratings = usizes(str)
             .try_into()
             .expect("part should consist of four ratings");
         Self(ratings)

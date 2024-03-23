@@ -111,16 +111,16 @@ mod tests {
 
     #[test]
     fn first_input() {
-        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 1444896);
+        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 1_444_896);
     }
 
     #[test]
     fn second_example() {
-        test_on_input(DAY, Puzzle::Second, Input::Example(0), 24933642);
+        test_on_input(DAY, Puzzle::Second, Input::Example(0), 24_933_642);
     }
 
     #[test]
     fn second_input() {
-        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 404395);
+        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 404_395);
     }
 }

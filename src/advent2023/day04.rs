@@ -5,7 +5,7 @@ use crate::strings::parse;
 type Numbers = HashSet<usize>;
 
 fn numbers_from_list(list: &str) -> Numbers {
-    list.split_ascii_whitespace().map(parse).collect()
+    list.split_whitespace().map(parse).collect()
 }
 
 fn scratchcard_numbers(scratchcard: &str) -> (Numbers, Numbers) {

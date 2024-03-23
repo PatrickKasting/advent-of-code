@@ -1,6 +1,4 @@
-use regex::Regex;
-
-use crate::strings::{matches, parse};
+use crate::strings::usizes;
 
 type Crate = char;
 type Stack = Vec<Crate>;
@@ -71,13 +69,9 @@ fn stacks(str: &str) -> Stacks {
 }
 
 fn procedure(str: &str) -> impl Iterator<Item = ProcedureStep> + '_ {
-    let number_regex = Regex::new(r"\d+").expect("regex should be valid");
     str.lines().map(move |line| {
-        let mut numbers = matches(&number_regex, line).map(parse);
-        let amount = numbers.next().expect("line should contain amount");
-        let from = numbers.next().expect("line should contain source stack");
-        let to = numbers.next().expect("line should contain target stack");
-        (amount, from, to)
+        let numbers = usizes(line);
+        (numbers[0], numbers[1], numbers[2])
     })
 }
 

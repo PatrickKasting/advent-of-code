@@ -8,7 +8,7 @@ type Tile = char;
 type Cycle = Vec<Position>;
 
 fn connections(tile: Tile) -> &'static [Direction] {
-    const CONNECTIONS: &[(Tile, &[Direction])] = &[
+    const CONNECTION_LIST: &[(Tile, &[Direction])] = &[
         ('|', &[Direction::North, Direction::South]),
         ('-', &[Direction::East, Direction::West]),
         ('L', &[Direction::North, Direction::East]),
@@ -27,8 +27,8 @@ fn connections(tile: Tile) -> &'static [Direction] {
         ),
     ];
 
-    static CONNECTIONS_LOCK: OnceLock<HashMap<char, &'static [Direction]>> = OnceLock::new();
-    CONNECTIONS_LOCK.get_or_init(|| CONNECTIONS.iter().copied().collect())[&tile]
+    static CONNECTIONS: OnceLock<HashMap<char, &'static [Direction]>> = OnceLock::new();
+    CONNECTIONS.get_or_init(|| CONNECTION_LIST.iter().copied().collect())[&tile]
 }
 
 fn out_direction(tile: Tile, in_direction: Direction) -> Option<Direction> {

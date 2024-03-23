@@ -2,7 +2,7 @@ use std::ops::{Add, Sub};
 
 use itertools::Itertools;
 
-use crate::strings::parse;
+use crate::strings::isizes;
 
 type Number = isize;
 
@@ -10,10 +10,6 @@ type Number = isize;
 struct Extrapolation {
     combination: fn(Number, Number) -> Number,
     prediction: fn(Number, Number) -> Number,
-}
-
-fn history(history: &str) -> Vec<Number> {
-    history.split_ascii_whitespace().map(parse).collect_vec()
 }
 
 fn row(preceding_row: &[Number], combination: fn(Number, Number) -> Number) -> Vec<Number> {
@@ -34,7 +30,7 @@ fn extrapolation(history: &[Number], extrapolation: Extrapolation) -> Number {
 }
 
 fn prediction(history: &str, reverse: bool) -> Number {
-    let mut history = self::history(history);
+    let mut history = isizes(history);
     if reverse {
         history.reverse();
     }

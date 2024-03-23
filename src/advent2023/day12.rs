@@ -1,12 +1,10 @@
-use itertools::Itertools;
-
-use crate::strings::parse;
+use crate::strings::usizes;
 
 fn row_and_group_sizes(line: &str) -> (&[u8], Vec<usize>) {
     let (row, group_sizes) = line
         .split_once(' ')
         .expect("a space should separate row and group sizes");
-    let group_sizes = group_sizes.split(',').map(parse).collect_vec();
+    let group_sizes = usizes(group_sizes);
     (row.as_bytes(), group_sizes)
 }
 

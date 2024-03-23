@@ -1,24 +1,17 @@
 use itertools::Itertools;
 
-use crate::strings::parse;
+use crate::strings::usizes;
 
 type Coordinate = usize;
 type Position = [Coordinate; 3];
 type Brick = [Position; 2];
 
-fn position(str: &str) -> Position {
-    str.split(',')
-        .map(parse)
-        .collect_vec()
-        .try_into()
-        .expect("position should have three coordinates")
-}
-
 fn brick(line: &str) -> Brick {
-    let (left, right) = line
-        .split_once('~')
-        .expect("every line should contain a tilde");
-    let mut ends = [left, right].map(position);
+    let coordinates = usizes(line);
+    let mut ends = [
+        [0, 1, 2].map(|index| coordinates[index]),
+        [3, 4, 5].map(|index| coordinates[index]),
+    ];
     ends.sort_unstable();
     ends
 }
