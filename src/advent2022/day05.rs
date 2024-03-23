@@ -32,13 +32,14 @@ fn rearrange(
     procedure: impl Iterator<Item = ProcedureStep>,
 ) {
     for (amount, from, to) in procedure {
+        let [from, to] = [from - 1, to - 1];
         for _ in 0..amount {
-            let package = stacks[from - 1].pop().expect("stack should not be empty");
-            stacks[to - 1].push(package);
+            let package = stacks[from].pop().expect("stack should not be empty");
+            stacks[to].push(package);
         }
         if !one_by_one {
-            let new_packages = stacks[to - 1].len() - amount..;
-            stacks[to - 1][new_packages].reverse();
+            let new_packages = stacks[to].len() - amount..;
+            stacks[to][new_packages].reverse();
         }
     }
 }
