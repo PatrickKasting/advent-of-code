@@ -5,36 +5,32 @@ use std::{
     ops::Add,
 };
 
-pub struct DepthFirst<T: Copy + Eq + Hash> {
-    explored: HashSet<T>,
-}
+pub struct Exploration<T: Copy + Eq + Hash>(HashSet<T>);
 
-impl<T: Copy + Eq + Hash> DepthFirst<T> {
-    pub fn with_explored(explored: impl IntoIterator<Item = T>) -> Self {
-        DepthFirst {
-            explored: explored.into_iter().collect(),
-        }
+impl<State: Copy + Eq + Hash> Exploration<State> {
+    pub fn new(explored: impl IntoIterator<Item = State>) -> Self {
+        Exploration(explored.into_iter().collect())
     }
 
-    pub fn search<S: IntoIterator<Item = T>>(
+    pub fn explore<S: IntoIterator<Item = State>>(
         &mut self,
-        mut successors: impl FnMut(T) -> S,
-        from: T,
+        from: State,
+        mut successors: impl FnMut(State) -> S,
     ) {
         let mut frontier = vec![from];
         while let Some(element) = frontier.pop() {
-            if self.explored.insert(element) {
+            if self.0.insert(element) {
                 frontier.extend(successors(element));
             }
         }
     }
 
-    pub fn explored(self) -> HashSet<T> {
-        self.explored
+    pub fn explored(self) -> HashSet<State> {
+        self.0
     }
 }
 
-pub fn uniform_cost<
+pub fn shortest_path_cost<
     State: Copy + Eq + Hash + Ord,
     Cost: Copy + Ord + Default + Add<Cost, Output = Cost>,
     Successors: IntoIterator<Item = (State, Cost)>,

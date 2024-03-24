@@ -5,7 +5,7 @@ use strum::IntoEnumIterator;
 
 use crate::{
     data_structures::grid::{Direction, Grid, Position, RelativeDirection},
-    search::DepthFirst,
+    search::Exploration,
 };
 
 type Tile = char;
@@ -24,20 +24,20 @@ pub fn area(cycle: &mut [Position]) -> usize {
         cycle.reverse();
     }
 
-    let mut area = DepthFirst::with_explored(cycle.iter().copied());
+    let mut area = Exploration::new(cycle.iter().copied());
     for (&first, &second, &third) in cycle.iter().circular_tuple_windows() {
-        let [towards, away] = [[first, second], [second, third]].map(|pair| {
+        let [toward, away] = [[first, second], [second, third]].map(|pair| {
             Direction::try_from(pair)
                 .expect("direction from position to position should be cardinal")
         });
-        let directions_towards_inside = match RelativeDirection::from([towards, away]) {
+        let directions_toward_inside = match RelativeDirection::from([toward, away]) {
             RelativeDirection::Right => vec![],
             RelativeDirection::Forward => vec![away.right()],
             RelativeDirection::Left => vec![away.right(), away.backward()],
             RelativeDirection::Backward => panic!("section should not bend back on itself"),
         };
-        for direction in directions_towards_inside {
-            area.search(Position::neighbors, second.neighbor(direction));
+        for direction in directions_toward_inside {
+            area.explore(second.neighbor(direction), Position::neighbors);
         }
     }
     area.explored().len() - cycle.len()
@@ -84,16 +84,16 @@ fn longest_cycle(grid: &Grid<Tile>) -> Cycle {
         .expect("at least one loop should exist")
 }
 
-fn cycle(grid: &Grid<Tile>, from: Position, mut towards: Direction) -> Option<Cycle> {
+fn cycle(grid: &Grid<Tile>, from: Position, mut toward: Direction) -> Option<Cycle> {
     let mut cycle = Vec::from([from]);
     loop {
         let &position = cycle.last().expect("cycle should be non-empty");
-        let next_position = position.neighbor(towards);
+        let next_position = position.neighbor(toward);
         let &next_tile = grid.get(next_position)?;
         if next_tile == 'S' {
             return Some(cycle);
         }
-        towards = out_port(next_tile, towards.backward())?;
+        toward = out_port(next_tile, toward.backward())?;
         cycle.push(next_position);
     }
 }
