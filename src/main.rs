@@ -3,12 +3,11 @@
 
 mod advent2022;
 mod advent2023;
-mod grid;
+mod data_structures;
 mod math;
 mod matrix;
 mod search;
 mod strings;
-mod utilities;
 
 use std::{fmt::Debug, fs, ops::RangeInclusive};
 

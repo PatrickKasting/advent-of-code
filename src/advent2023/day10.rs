@@ -1,57 +1,76 @@
 use std::{collections::HashMap, sync::OnceLock};
 
+use itertools::Itertools;
 use strum::IntoEnumIterator;
 
-use crate::grid::{area, Direction, Grid, Position};
+use crate::{
+    data_structures::grid::{Direction, Grid, Position, RelativeDirection},
+    search::DepthFirst,
+};
 
 type Tile = char;
 type Cycle = Vec<Position>;
 
-fn connections(tile: Tile) -> &'static [Direction] {
-    const CONNECTION_LIST: &[(Tile, &[Direction])] = &[
-        ('|', &[Direction::North, Direction::South]),
-        ('-', &[Direction::East, Direction::West]),
-        ('L', &[Direction::North, Direction::East]),
-        ('J', &[Direction::North, Direction::West]),
-        ('7', &[Direction::South, Direction::West]),
-        ('F', &[Direction::East, Direction::South]),
-        ('.', &[]),
-        (
-            'S',
-            &[
-                Direction::North,
-                Direction::East,
-                Direction::South,
-                Direction::West,
-            ],
-        ),
-    ];
-
-    static CONNECTIONS: OnceLock<HashMap<char, &'static [Direction]>> = OnceLock::new();
-    CONNECTIONS.get_or_init(|| CONNECTION_LIST.iter().copied().collect())[&tile]
+pub fn first(input: &str) -> String {
+    (longest_cycle(&Grid::from(input)).len() / 2).to_string()
 }
 
-fn out_direction(tile: Tile, in_direction: Direction) -> Option<Direction> {
-    let connections = connections(tile);
-    let in_direction_index = connections
-        .iter()
-        .position(|&direction| direction == in_direction)?;
-    let out_direction_index = (in_direction_index + 1) % connections.len();
-    Some(connections[out_direction_index])
+pub fn second(input: &str) -> String {
+    area(&mut longest_cycle(&Grid::from(input))).to_string()
 }
 
-fn cycle(grid: &Grid<Tile>, from: Position, mut towards: Direction) -> Option<Cycle> {
-    let mut cycle = Vec::from([from]);
-    loop {
-        let &position = cycle.last().expect("cycle should be non-empty");
-        let next_position = position.neighbor(towards);
-        let &next_tile = grid.get(next_position)?;
-        if next_tile == 'S' {
-            return Some(cycle);
-        }
-        towards = out_direction(next_tile, towards.opposite())?;
-        cycle.push(next_position);
+pub fn area(cycle: &mut [Position]) -> usize {
+    if !is_clockwise(cycle) {
+        cycle.reverse();
     }
+
+    let mut area = DepthFirst::with_explored(cycle.iter().copied());
+    for (&first, &second, &third) in cycle.iter().circular_tuple_windows() {
+        let [towards, away] = [[first, second], [second, third]].map(|pair| {
+            Direction::try_from(pair)
+                .expect("direction from position to position should be cardinal")
+        });
+        let directions_towards_inside = match RelativeDirection::from([towards, away]) {
+            RelativeDirection::Right => vec![],
+            RelativeDirection::Forward => vec![away.next_clockwise()],
+            RelativeDirection::Left => vec![away.next_clockwise(), away.opposite()],
+            RelativeDirection::Backward => panic!("section should not bend back on itself"),
+        };
+        for direction in directions_towards_inside {
+            area.search(Position::neighbors, second.neighbor(direction));
+        }
+    }
+    area.explored().len() - cycle.len()
+}
+
+#[allow(clippy::cast_possible_wrap)]
+fn is_clockwise(cycle: &mut [Position]) -> bool {
+    let turns = cycle
+        .iter()
+        .circular_tuple_windows()
+        .map(relative_direction)
+        .counts();
+    let [left, right] = [RelativeDirection::Left, RelativeDirection::Right]
+        .map(|direction| turns[&direction] as isize);
+    let turn_difference = right - left;
+
+    debug_assert!(!turns.contains_key(&RelativeDirection::Backward));
+    debug_assert_eq!(
+        turn_difference.abs(),
+        4,
+        "difference in left and right turns should be four for a cycle"
+    );
+
+    turn_difference.is_positive()
+}
+
+fn relative_direction(
+    (&first, &second, &third): (&Position, &Position, &Position),
+) -> RelativeDirection {
+    let directions: [Direction; 2] = [[first, second], [second, third]].map(|pair| {
+        Direction::try_from(pair).expect("direction from position to position should be cardinal")
+    });
+    RelativeDirection::from(directions)
 }
 
 fn longest_cycle(grid: &Grid<Tile>) -> Cycle {
@@ -65,14 +84,42 @@ fn longest_cycle(grid: &Grid<Tile>) -> Cycle {
         .expect("at least one loop should exist")
 }
 
-pub fn first(input: &str) -> String {
-    (longest_cycle(&Grid::from(input)).len() / 2).to_string()
+fn cycle(grid: &Grid<Tile>, from: Position, mut towards: Direction) -> Option<Cycle> {
+    let mut cycle = Vec::from([from]);
+    loop {
+        let &position = cycle.last().expect("cycle should be non-empty");
+        let next_position = position.neighbor(towards);
+        let &next_tile = grid.get(next_position)?;
+        if next_tile == 'S' {
+            return Some(cycle);
+        }
+        towards = out_port(next_tile, towards.opposite())?;
+        cycle.push(next_position);
+    }
 }
 
-pub fn second(input: &str) -> String {
-    area(&mut longest_cycle(&Grid::from(input)))
-        .len()
-        .to_string()
+fn out_port(tile: Tile, in_port: Direction) -> Option<Direction> {
+    fn out_ports() -> HashMap<(Tile, Direction), Direction> {
+        [
+            ('|', [Direction::North, Direction::South]),
+            ('-', [Direction::East, Direction::West]),
+            ('L', [Direction::North, Direction::East]),
+            ('J', [Direction::North, Direction::West]),
+            ('7', [Direction::South, Direction::West]),
+            ('F', [Direction::East, Direction::South]),
+        ]
+        .into_iter()
+        .flat_map(|(tile, ports)| {
+            [[0, 1], [1, 0]].map(|[from, to]| ((tile, ports[from]), ports[to]))
+        })
+        .collect()
+    }
+
+    static OUT_PORTS: OnceLock<HashMap<(Tile, Direction), Direction>> = OnceLock::new();
+    OUT_PORTS
+        .get_or_init(out_ports)
+        .get(&(tile, in_port))
+        .copied()
 }
 
 #[cfg(test)]

@@ -1,10 +1,10 @@
 use std::{collections::HashSet, mem};
 
-use crate::grid::{Grid, Position};
+use crate::data_structures::grid::{Coordinate, Grid, Position};
 
 type Map = Grid<char>;
 
-fn position_parity(position: Position) -> isize {
+fn position_parity(position: Position) -> Coordinate {
     (position.row() + position.column()) % 2
 }
 

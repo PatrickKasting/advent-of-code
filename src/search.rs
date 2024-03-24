@@ -5,6 +5,35 @@ use std::{
     ops::Add,
 };
 
+pub struct DepthFirst<T: Copy + Eq + Hash> {
+    explored: HashSet<T>,
+}
+
+impl<T: Copy + Eq + Hash> DepthFirst<T> {
+    pub fn with_explored(explored: impl IntoIterator<Item = T>) -> Self {
+        DepthFirst {
+            explored: explored.into_iter().collect(),
+        }
+    }
+
+    pub fn search<S: IntoIterator<Item = T>>(
+        &mut self,
+        mut successors: impl FnMut(T) -> S,
+        from: T,
+    ) {
+        let mut frontier = vec![from];
+        while let Some(element) = frontier.pop() {
+            if self.explored.insert(element) {
+                frontier.extend(successors(element));
+            }
+        }
+    }
+
+    pub fn explored(self) -> HashSet<T> {
+        self.explored
+    }
+}
+
 pub fn uniform_cost<
     State: Copy + Eq + Hash + Ord,
     Cost: Copy + Ord + Default + Add<Cost, Output = Cost>,

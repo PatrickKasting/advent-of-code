@@ -4,7 +4,7 @@ use itertools::Itertools;
 use strum::IntoEnumIterator;
 
 use crate::{
-    grid::{Direction, Grid, Position},
+    data_structures::grid::{Direction, Grid, Position},
     search::uniform_cost,
 };
 

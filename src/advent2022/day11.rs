@@ -13,22 +13,22 @@ struct Monkey {
 }
 
 pub fn first(input: &str) -> String {
-    monkey_business(3, 20, &mut monkeys(input)).to_string()
+    monkey_business(&mut monkeys(input), 20, 3).to_string()
 }
 
 pub fn second(input: &str) -> String {
-    monkey_business(1, 10000, &mut monkeys(input)).to_string()
+    monkey_business(&mut monkeys(input), 10000, 1).to_string()
 }
 
-fn monkey_business(worry_divisor: Worry, number_of_rounds: usize, monkeys: &mut [Monkey]) -> Worry {
+fn monkey_business(monkeys: &mut [Monkey], number_of_rounds: usize, worry_divisor: Worry) -> Worry {
     let worry_modulo = monkeys.iter().map(|monkey| monkey.divisor).product();
     let mut number_of_inspections = vec![0; monkeys.len()];
     for _ in 0..number_of_rounds {
         round(
-            worry_modulo,
-            worry_divisor,
-            &mut number_of_inspections,
             monkeys,
+            worry_divisor,
+            worry_modulo,
+            &mut number_of_inspections,
         );
     }
     number_of_inspections.sort_unstable_by_key(|inspections| Worry::MAX - inspections);
@@ -36,10 +36,10 @@ fn monkey_business(worry_divisor: Worry, number_of_rounds: usize, monkeys: &mut 
 }
 
 fn round(
-    worry_modulo: Worry,
-    worry_divisor: Worry,
-    number_of_inspections: &mut [usize],
     monkeys: &mut [Monkey],
+    worry_divisor: Worry,
+    worry_modulo: Worry,
+    number_of_inspections: &mut [usize],
 ) {
     for monkey_index in 0..monkeys.len() {
         for item_index in 0..monkeys[monkey_index].items.len() {
@@ -124,6 +124,11 @@ mod tests {
 
     #[test]
     fn second_input() {
-        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 18_170_818_354_usize);
+        test_on_input(
+            DAY,
+            Puzzle::Second,
+            Input::PuzzleInput,
+            18_170_818_354_usize,
+        );
     }
 }

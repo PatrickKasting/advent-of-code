@@ -2,7 +2,7 @@ use std::collections::BTreeSet;
 
 use itertools::Itertools;
 
-use crate::grid::{Direction, Grid, Position};
+use crate::data_structures::grid::{Direction, Grid, Position};
 
 type Beam = (Direction, Position);
 

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use itertools::Itertools;
 use strum::IntoEnumIterator;
 
-use crate::grid::{Direction, Grid, Position};
+use crate::data_structures::grid::{Direction, Grid, Position};
 
 type Platform = Grid<char>;
 
