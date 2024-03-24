@@ -218,6 +218,26 @@ impl<T> Grid<T> {
         })
     }
 
+    pub fn map<U>(&self, mut f: impl FnMut(Position, &T) -> U) -> Grid<U> {
+        let elements = self
+            .iter_row_major()
+            .map(|(position, element)| f(position, element))
+            .collect_vec();
+        Grid {
+            elements,
+            width: self.width(),
+        }
+    }
+
+    pub fn corners_clockwise(&self) -> [Position; 4] {
+        [
+            (Position::new(0, 0)),
+            (Position::new(0, self.width() - 1)),
+            (Position::new(self.height() - 1, self.width() - 1)),
+            (Position::new(self.height() - 1, 0)),
+        ]
+    }
+
     pub fn height(&self) -> usize {
         self.elements.len() / self.width()
     }
@@ -254,6 +274,12 @@ impl<S: AsRef<str>> From<S> for Grid<char> {
 impl<S: AsRef<str>> From<S> for Grid<usize> {
     fn from(grid: S) -> Self {
         Self::from_str(grid.as_ref(), |char| char as usize - '0' as usize)
+    }
+}
+
+impl<S: AsRef<str>> From<S> for Grid<isize> {
+    fn from(grid: S) -> Self {
+        Self::from_str(grid.as_ref(), |char| char as isize - '0' as isize)
     }
 }
 
