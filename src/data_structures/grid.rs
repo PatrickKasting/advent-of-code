@@ -16,7 +16,7 @@ pub enum Direction {
 }
 
 impl Direction {
-    pub fn next_clockwise(self) -> Self {
+    pub fn right(self) -> Self {
         match self {
             Direction::North => Direction::East,
             Direction::West => Direction::North,
@@ -25,12 +25,12 @@ impl Direction {
         }
     }
 
-    pub fn opposite(self) -> Self {
-        self.next_clockwise().next_clockwise()
+    pub fn backward(self) -> Self {
+        self.right().right()
     }
 
-    pub fn next_counterclockwise(self) -> Direction {
-        self.opposite().next_clockwise()
+    pub fn left(self) -> Direction {
+        self.backward().right()
     }
 
     pub fn reflection_north_west_diagonal(self) -> Self {
@@ -90,9 +90,9 @@ impl From<[Direction; 2]> for RelativeDirection {
     fn from([nose, other]: [Direction; 2]) -> Self {
         if other == nose {
             RelativeDirection::Forward
-        } else if other == nose.next_clockwise() {
+        } else if other == nose.right() {
             RelativeDirection::Right
-        } else if other == nose.opposite() {
+        } else if other == nose.backward() {
             RelativeDirection::Backward
         } else {
             RelativeDirection::Left

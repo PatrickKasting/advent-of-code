@@ -33,7 +33,7 @@ fn successor_tiles(
     to: Position,
 ) -> Vec<(Direction, Position)> {
     Direction::iter()
-        .filter(|&direction| direction != from.opposite())
+        .filter(|&direction| direction != from.backward())
         .filter_map(|direction| {
             let neighbor = to.neighbor(direction);
             match map.get(neighbor) {

@@ -32,8 +32,8 @@ pub fn area(cycle: &mut [Position]) -> usize {
         });
         let directions_towards_inside = match RelativeDirection::from([towards, away]) {
             RelativeDirection::Right => vec![],
-            RelativeDirection::Forward => vec![away.next_clockwise()],
-            RelativeDirection::Left => vec![away.next_clockwise(), away.opposite()],
+            RelativeDirection::Forward => vec![away.right()],
+            RelativeDirection::Left => vec![away.right(), away.backward()],
             RelativeDirection::Backward => panic!("section should not bend back on itself"),
         };
         for direction in directions_towards_inside {
@@ -93,7 +93,7 @@ fn cycle(grid: &Grid<Tile>, from: Position, mut towards: Direction) -> Option<Cy
         if next_tile == 'S' {
             return Some(cycle);
         }
-        towards = out_port(next_tile, towards.opposite())?;
+        towards = out_port(next_tile, towards.backward())?;
         cycle.push(next_position);
     }
 }

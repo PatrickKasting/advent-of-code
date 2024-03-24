@@ -16,10 +16,7 @@ fn possible_next_moves(
     (previous_direction, position): Move,
 ) -> impl IntoIterator<Item = (Move, usize)> {
     let next_directions = match previous_direction {
-        Some(previous_direction) => vec![
-            previous_direction.next_clockwise(),
-            previous_direction.next_counterclockwise(),
-        ],
+        Some(previous_direction) => vec![previous_direction.right(), previous_direction.left()],
         None => Direction::iter().collect_vec(),
     };
 
