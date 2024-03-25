@@ -182,12 +182,12 @@ impl<T> Grid<T> {
     }
 
     pub fn get(&self, position: Position) -> Option<&T> {
-        self.within_grid(position)
+        self.is_within_grid(position)
             .then(|| &self.elements[self.index_of_position(position)])
     }
 
     pub fn get_mut(&mut self, position: Position) -> Option<&mut T> {
-        self.within_grid(position).then(|| {
+        self.is_within_grid(position).then(|| {
             let index = self.index_of_position(position);
             &mut self.elements[index]
         })
@@ -265,7 +265,7 @@ impl<T> Grid<T> {
 
     #[allow(clippy::cast_possible_truncation)]
     #[allow(clippy::cast_possible_wrap)]
-    fn within_grid(&self, position: Position) -> bool {
+    pub fn is_within_grid(&self, position: Position) -> bool {
         0 <= position.row()
             && position.row() < self.height() as Coordinate
             && 0 <= position.column()

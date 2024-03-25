@@ -2,6 +2,7 @@ use std::{
     cmp::Reverse,
     collections::{BinaryHeap, HashSet},
     hash::Hash,
+    mem,
     ops::Add,
 };
 
@@ -12,15 +13,15 @@ impl<State: Copy + Eq + Hash> Exploration<State> {
         Exploration(explored.into_iter().collect())
     }
 
-    pub fn explore<S: IntoIterator<Item = State>>(
+    pub fn explore<Successors: IntoIterator<Item = State>>(
         &mut self,
-        from: State,
-        mut successors: impl FnMut(State) -> S,
+        source: State,
+        mut successors: impl FnMut(State) -> Successors,
     ) {
-        let mut frontier = vec![from];
-        while let Some(element) = frontier.pop() {
-            if self.0.insert(element) {
-                frontier.extend(successors(element));
+        let mut frontier = vec![source];
+        while let Some(state) = frontier.pop() {
+            if self.0.insert(state) {
+                frontier.extend(successors(state));
             }
         }
     }
@@ -30,20 +31,44 @@ impl<State: Copy + Eq + Hash> Exploration<State> {
     }
 }
 
-pub fn shortest_path_cost<
+pub fn shortest_path_length<State: Copy + Eq + Hash, Successors: IntoIterator<Item = State>>(
+    source: State,
+    mut successors: impl FnMut(State) -> Successors,
+    mut target: impl FnMut(State) -> bool,
+) -> Option<usize> {
+    let mut explored = HashSet::new();
+    let mut current_ring = vec![];
+    let mut next_ring = vec![source];
+    let mut distance = 0;
+    while !next_ring.is_empty() {
+        mem::swap(&mut current_ring, &mut next_ring);
+        while let Some(state) = current_ring.pop() {
+            if explored.insert(state) {
+                if target(state) {
+                    return Some(distance);
+                }
+                next_ring.extend(successors(state));
+            }
+        }
+        distance += 1;
+    }
+    None
+}
+
+pub fn cheapest_path_cost<
     State: Copy + Eq + Hash + Ord,
     Cost: Copy + Ord + Default + Add<Cost, Output = Cost>,
     Successors: IntoIterator<Item = (State, Cost)>,
 >(
-    initial: State,
+    source: State,
     mut successors: impl FnMut(State) -> Successors,
-    mut stop: impl FnMut(State) -> bool,
+    mut target: impl FnMut(State) -> bool,
 ) -> Option<Cost> {
     let mut explored: HashSet<State> = HashSet::new();
     let mut frontier: BinaryHeap<(Reverse<Cost>, State)> =
-        BinaryHeap::from([(Reverse(Cost::default()), initial)]);
+        BinaryHeap::from([(Reverse(Cost::default()), source)]);
     while let Some((Reverse(path_cost), state)) = frontier.pop() {
-        if stop(state) {
+        if target(state) {
             return Some(path_cost);
         }
         if explored.contains(&state) {

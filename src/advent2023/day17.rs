@@ -5,7 +5,7 @@ use strum::IntoEnumIterator;
 
 use crate::{
     data_structures::grid::{Direction, Grid, Position},
-    search::shortest_path_cost,
+    search::cheapest_path_cost,
 };
 
 type Move = (Option<Direction>, Position);
@@ -22,7 +22,7 @@ fn minimum_heat_loss(map: &Grid<usize>, number_of_steps: RangeInclusive<usize>) 
     let starting_point = (None, Position::new(0, 0));
     let machine_parts_factory = Position::new(map.height() - 1, map.width() - 1);
     let is_machine_parts_factory = |(_, position)| position == machine_parts_factory;
-    shortest_path_cost(
+    cheapest_path_cost(
         starting_point,
         |mov| moves(map, mov, number_of_steps.clone()),
         is_machine_parts_factory,

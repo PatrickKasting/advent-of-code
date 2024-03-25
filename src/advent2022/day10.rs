@@ -35,9 +35,8 @@ fn sum_of_signal_strengths(input: &str) -> SignalStrength {
     let mut sum_of_signal_strengths = 0;
     let mut next_sample_time = 20;
     let sample_maybe = |register, number_of_completed_cycles| {
-        let number_of_completed_cycles_one_based = number_of_completed_cycles + 1;
         #[allow(clippy::cast_possible_wrap)]
-        if number_of_completed_cycles_one_based >= next_sample_time {
+        if number_of_completed_cycles + 1 == next_sample_time {
             sum_of_signal_strengths += register * next_sample_time as isize;
             next_sample_time += 40;
         }
