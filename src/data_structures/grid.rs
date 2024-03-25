@@ -171,17 +171,13 @@ pub struct Grid<T> {
 }
 
 impl<T> Grid<T> {
-    fn from_str(str: &str, element_from_char: impl FnMut(char) -> T) -> Self {
-        let width = str.lines().next().expect("grid should not be empty").len();
-        debug_assert!(
-            str.lines().map(str::len).all(|len| len == width),
-            "every row should have the same width"
-        );
-        let elements = str
-            .lines()
-            .flat_map(|line| line.chars())
-            .map(element_from_char)
-            .collect_vec();
+    pub fn new(height: usize, width: usize, mut element: impl FnMut(Position) -> T) -> Self {
+        let mut elements = vec![];
+        for row in 0..height {
+            for column in 0..width {
+                elements.push(element(Position::new(row, column)));
+            }
+        }
         Self { elements, width }
     }
 
@@ -274,6 +270,20 @@ impl<T> Grid<T> {
             && position.row() < self.height() as Coordinate
             && 0 <= position.column()
             && position.column() < self.width() as Coordinate
+    }
+
+    fn from_str(str: &str, element_from_char: impl FnMut(char) -> T) -> Self {
+        let width = str.lines().next().expect("grid should not be empty").len();
+        debug_assert!(
+            str.lines().map(str::len).all(|len| len == width),
+            "every row should have the same width"
+        );
+        let elements = str
+            .lines()
+            .flat_map(|line| line.chars())
+            .map(element_from_char)
+            .collect_vec();
+        Self { elements, width }
     }
 }
 
