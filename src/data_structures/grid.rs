@@ -10,18 +10,18 @@ use strum::{EnumIter, IntoEnumIterator};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, EnumIter)]
 pub enum Direction {
     North,
-    West,
-    South,
     East,
+    South,
+    West,
 }
 
 impl Direction {
     pub fn right(self) -> Self {
         match self {
-            Direction::North => Direction::East,
-            Direction::West => Direction::North,
-            Direction::South => Direction::West,
-            Direction::East => Direction::South,
+            Self::North => Self::East,
+            Self::East => Self::South,
+            Self::South => Self::West,
+            Self::West => Self::North,
         }
     }
 
@@ -29,25 +29,35 @@ impl Direction {
         self.right().right()
     }
 
-    pub fn left(self) -> Direction {
+    pub fn left(self) -> Self {
         self.backward().right()
     }
 
     pub fn reflection_north_west_diagonal(self) -> Self {
         match self {
-            Direction::North => Direction::West,
-            Direction::West => Direction::North,
-            Direction::South => Direction::East,
-            Direction::East => Direction::South,
+            Self::North => Self::West,
+            Self::East => Self::South,
+            Self::South => Self::East,
+            Self::West => Self::North,
         }
     }
 
     pub fn reflection_north_east_diagonal(self) -> Self {
         match self {
-            Direction::North => Direction::East,
-            Direction::West => Direction::South,
-            Direction::South => Direction::West,
-            Direction::East => Direction::North,
+            Self::North => Self::East,
+            Self::East => Self::North,
+            Self::South => Self::West,
+            Self::West => Self::South,
+        }
+    }
+
+    pub fn from_up_down_left_or_right(char: char) -> Self {
+        match char {
+            'U' => Self::North,
+            'D' => Self::South,
+            'L' => Self::West,
+            'R' => Self::East,
+            _ => panic!("direction should be 'U', 'D', 'L', or 'R'"),
         }
     }
 }
@@ -62,15 +72,15 @@ impl TryFrom<[Position; 2]> for Direction {
 
         if from.row() == to.row() {
             if from.column() < to.column() {
-                Ok(Direction::East)
+                Ok(Self::East)
             } else {
-                Ok(Direction::West)
+                Ok(Self::West)
             }
         } else if from.column() == to.column() {
             if from.row() < to.row() {
-                Ok(Direction::South)
+                Ok(Self::South)
             } else {
-                Ok(Direction::North)
+                Ok(Self::North)
             }
         } else {
             Err("positions should share a row or a column")
@@ -87,15 +97,15 @@ pub enum RelativeDirection {
 }
 
 impl From<[Direction; 2]> for RelativeDirection {
-    fn from([nose, other]: [Direction; 2]) -> Self {
-        if other == nose {
-            RelativeDirection::Forward
-        } else if other == nose.right() {
-            RelativeDirection::Right
-        } else if other == nose.backward() {
-            RelativeDirection::Backward
+    fn from([nose, direction]: [Direction; 2]) -> Self {
+        if direction == nose {
+            Self::Forward
+        } else if direction == nose.right() {
+            Self::Right
+        } else if direction == nose.backward() {
+            Self::Backward
         } else {
-            RelativeDirection::Left
+            Self::Left
         }
     }
 }
@@ -122,10 +132,12 @@ impl Position {
         <Coordinate as TryFrom<C>>::Error: Debug,
     {
         Position {
-            row: row.try_into().expect("row should convert to 'Coordinate'"),
+            row: row
+                .try_into()
+                .expect("row should convert to position Coordinate"),
             column: column
                 .try_into()
-                .expect("column should convert to 'Coordinate'"),
+                .expect("column should convert to position coordinate"),
         }
     }
 
