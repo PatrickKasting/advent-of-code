@@ -287,6 +287,18 @@ impl<T> Grid<T> {
     }
 }
 
+impl<T: Into<char> + Clone> Grid<T> {
+    fn display(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for row in self.elements.chunks(self.width) {
+            for element in row {
+                f.write_char(element.clone().into())?;
+            }
+            f.write_char('\n')?;
+        }
+        Ok(())
+    }
+}
+
 impl<S: AsRef<str>> From<S> for Grid<char> {
     fn from(grid: S) -> Self {
         Self::from_str(grid.as_ref(), identity)
@@ -320,14 +332,14 @@ impl<T> IndexMut<Position> for Grid<T> {
     }
 }
 
+impl Display for Grid<u8> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.display(f)
+    }
+}
+
 impl Display for Grid<char> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for row in self.elements.chunks(self.width) {
-            for &element in row {
-                f.write_char(element)?;
-            }
-            f.write_char('\n')?;
-        }
-        Ok(())
+        self.display(f)
     }
 }
