@@ -110,6 +110,8 @@ fn main() {
 
 #[cfg(test)]
 pub mod tests {
+    use std::fmt::Display;
+
     use itertools::Itertools;
 
     use super::*;
@@ -124,10 +126,14 @@ pub mod tests {
         day: Day,
         puzzle: Puzzle,
         input: Input,
-        expected: impl ToString,
+        expected: impl Display,
     ) {
         let actual = solution(year, day, puzzle)(&super::input(year, day, input));
-        assert_eq!(actual, expected.to_string());
+        assert_eq!(
+            actual,
+            expected.to_string(),
+            "actual answer '{actual}' should equal expected answer '{expected}'"
+        );
     }
 
     /// # Panics
@@ -135,13 +141,17 @@ pub mod tests {
     /// Panics if there is a mismatch between the return value of `function` applied to a test case
     /// from `cases` and the corresponding expected answer from `expected`. Also panics if the
     /// number of test cases and the number of expected answers differ.
-    pub fn test_cases<Case, Answer: Debug + Eq>(
-        function: impl FnMut(Case) -> Answer,
+    pub fn test_cases<Case: Debug + Clone, Answer: Debug + Eq>(
+        mut function: impl FnMut(Case) -> Answer,
         cases: impl IntoIterator<Item = Case>,
         expected: impl IntoIterator<Item = Answer>,
     ) {
-        for (actual, expected) in cases.into_iter().map(function).zip_eq(expected) {
-            assert_eq!(actual, expected);
+        for (case, expected) in cases.into_iter().zip_eq(expected) {
+            let actual = function(case.clone());
+            assert_eq!(
+                actual, expected,
+                "answer '{actual:?}' to case '{case:?}' should match expected '{expected:?}'"
+            );
         }
     }
 }

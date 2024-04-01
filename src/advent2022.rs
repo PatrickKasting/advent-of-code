@@ -63,6 +63,8 @@ pub fn solution(day: usize, puzzle: Puzzle) -> Solution {
 
 #[cfg(test)]
 mod tests {
+    use std::fmt::Display;
+
     use crate::{Day, Input, Puzzle};
 
     pub const YEAR: usize = 2022;
@@ -72,7 +74,7 @@ mod tests {
     /// Panics if the return value of the solution applied to the input does not equal
     /// `expected.to_string()`.
     #[allow(clippy::needless_pass_by_value)]
-    pub fn test_on_input(day: Day, puzzle: Puzzle, input: Input, expected: impl ToString) {
+    pub fn test_on_input(day: Day, puzzle: Puzzle, input: Input, expected: impl Display) {
         crate::tests::test_on_input(YEAR, day, puzzle, input, expected);
     }
 }

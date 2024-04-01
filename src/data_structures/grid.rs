@@ -162,6 +162,10 @@ impl Position {
     pub fn neighbors(self) -> impl Iterator<Item = Self> {
         Direction::iter().map(move |direction| self.neighbor(direction))
     }
+
+    pub fn manhattan_distance(self, other: Position) -> isize {
+        (self.row - other.row).abs() + (self.column - other.column).abs()
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
