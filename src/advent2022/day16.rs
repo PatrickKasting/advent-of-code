@@ -1,4 +1,8 @@
-use std::{cmp, collections::HashMap, sync::OnceLock};
+use std::{
+    cmp,
+    collections::{HashMap, HashSet},
+    sync::OnceLock,
+};
 
 use itertools::Itertools;
 use regex::Regex;
@@ -12,42 +16,71 @@ type Pressure = isize;
 type Time = isize;
 
 pub fn first(input: &str) -> String {
-    let cave = cave(input);
-    let start = "AA";
-    let mut contracted_cave = contracted_cave(&cave, start);
-    maximum_cave_pressure_release(&mut contracted_cave, start, 30).to_string()
+    maximum_release_from_input::<1>(input, "AA", 30).to_string()
 }
 
-pub fn second(_input: &str) -> String {
-    todo!();
+pub fn second(input: &str) -> String {
+    maximum_release_from_input::<2>(input, "AA", 26).to_string()
 }
 
-fn maximum_cave_pressure_release<'input>(
-    cave: &mut ContractedCave<'input>,
-    valve: Valve<'input>,
+fn maximum_release_from_input<const NUM_AGENTS: usize>(
+    input: &str,
+    start: Valve,
     time: Time,
 ) -> Pressure {
-    let (flow, other_valves) = cave.remove(valve).expect("valve should be present in cave");
+    let cave = cave(input);
+    let contracted_cave = contracted_cave(&cave, start);
+    let mut closed_valves = contracted_cave
+        .iter()
+        .filter_map(|(&valve, &(flow, _))| (flow != 0).then_some(valve))
+        .collect();
+    maximum_release(
+        &contracted_cave,
+        &mut closed_valves,
+        [(start, time); NUM_AGENTS],
+    )
+}
+
+fn maximum_release<'input, const NUM_AGENTS: usize>(
+    cave: &ContractedCave<'input>,
+    closed_valves: &mut HashSet<Valve<'input>>,
+    mut agents: [(Valve<'input>, Time); NUM_AGENTS],
+) -> Pressure {
+    agents.sort_unstable_by_key(|(_, time)| -time);
+    let (current_valve, current_time) = agents[0];
+    if current_time <= 0 {
+        return 0;
+    }
+
     let mut maximum_release = 0;
-    for &(distance, other_valve) in &other_valves {
-        let Some((flow, _)) = cave.get(other_valve) else {
-            continue;
-        };
-        let time = time - distance - 1;
-        if time <= 0 {
+
+    for &(distance, valve) in &cave[current_valve].1 {
+        if !closed_valves.contains(valve) {
             continue;
         }
+
+        let time = current_time - distance - 1;
+        let (flow, _) = cave[valve];
         let valve_release = time * flow;
-        let cave_release = maximum_cave_pressure_release(cave, other_valve, time);
-        maximum_release = cmp::max(maximum_release, valve_release + cave_release);
+
+        agents[0] = (valve, time);
+        closed_valves.remove(valve);
+        let maximum_remaining_release = self::maximum_release(cave, closed_valves, agents);
+        closed_valves.insert(valve);
+
+        maximum_release = cmp::max(maximum_release, valve_release + maximum_remaining_release);
     }
-    cave.insert(valve, (flow, other_valves));
+
+    agents[0] = (current_valve, 0);
+    let stop_release = self::maximum_release(cave, closed_valves, agents);
+    maximum_release = cmp::max(maximum_release, stop_release);
+
     maximum_release
 }
 
-fn contracted_cave<'input>(cave: &Cave<'input>, source: Valve<'input>) -> ContractedCave<'input> {
+fn contracted_cave<'input>(cave: &Cave<'input>, start: Valve<'input>) -> ContractedCave<'input> {
     cave.iter()
-        .filter(|(&valve, &(flow, _))| flow != 0 || valve == source)
+        .filter(|(&valve, &(flow, _))| flow != 0 || valve == start)
         .map(|(&source, &(flow, _))| {
             let distances = distances_to_functioning_valves(cave, source);
             (source, (flow, distances))
@@ -88,10 +121,17 @@ fn valve(line: &str) -> (&str, (Pressure, Vec<&str>)) {
 
 #[cfg(test)]
 mod tests {
-    use super::super::tests::test_on_input;
-    use crate::{Input, Puzzle};
+    use super::{super::tests::test_on_input, maximum_release_from_input};
+    use crate::{input, Input, Puzzle};
 
     const DAY: usize = 16;
+
+    #[test]
+    fn farther_agent_should_not_close_last_valve() {
+        let input = input(2022, 16, Input::Example(1));
+        let actual = maximum_release_from_input::<2>(&input, "AA", 10);
+        assert_eq!(actual, 80 + 70 + 50);
+    }
 
     #[test]
     fn first_example() {
@@ -103,13 +143,13 @@ mod tests {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 1584);
     }
 
-    // #[test]
-    // fn second_example() {
-    //     test_on_input(DAY, Puzzle::Second, Input::Example(0), 24_933_642);
-    // }
+    #[test]
+    fn second_example() {
+        test_on_input(DAY, Puzzle::Second, Input::Example(0), 1707);
+    }
 
     // #[test]
     // fn second_input() {
-    //     test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 404_395);
+    //     test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 2052);
     // }
 }
