@@ -26,7 +26,8 @@ fn number_of_steps(heightmap: &Heightmap, from: impl Fn(Position) -> bool, to: P
                 .is_some_and(|&neighbor_height| heightmap[position] <= neighbor_height + 1)
         })
     };
-    shortest_path_length(to, next_squares, from).expect("path from 'E' to 'S' should exist")
+    shortest_path_length(to, |_, _| (), next_squares, from)
+        .expect("path from 'E' to 'S' should exist")
 }
 
 fn heightmap(input: &str) -> (Heightmap, Position, Position) {

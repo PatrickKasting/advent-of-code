@@ -218,7 +218,7 @@ mod tests {
     fn complement_ranges() {
         let universe @ [min, max] = [0, 21];
         let function = |sorted_ranges| super::complement_ranges(sorted_ranges, universe);
-        let cases = [vec![], vec![[7, 9]], vec![[-3, 14], [15, 26]]];
+        let cases = [vec![[-10, 0]], vec![[7, 9]], vec![[-3, 14], [15, 26]]];
         let expected = [vec![universe], vec![[min, 7], [9, max]], vec![[14, 15]]];
         test_cases(function, cases, expected);
     }

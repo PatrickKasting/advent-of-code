@@ -33,6 +33,7 @@ impl<State: Copy + Eq + Hash> Exploration<State> {
 
 pub fn shortest_path_length<State: Copy + Eq + Hash, Successors: IntoIterator<Item = State>>(
     source: State,
+    mut inspect: impl FnMut(State, usize),
     mut successors: impl FnMut(State) -> Successors,
     mut target: impl FnMut(State) -> bool,
 ) -> Option<usize> {
@@ -44,6 +45,7 @@ pub fn shortest_path_length<State: Copy + Eq + Hash, Successors: IntoIterator<It
         mem::swap(&mut current_ring, &mut next_ring);
         while let Some(state) = current_ring.pop() {
             if explored.insert(state) {
+                inspect(state, distance);
                 if target(state) {
                     return Some(distance);
                 }
