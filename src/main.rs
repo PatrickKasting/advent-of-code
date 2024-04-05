@@ -150,7 +150,7 @@ pub mod tests {
             let actual = function(case.clone());
             assert_eq!(
                 actual, expected,
-                "answer '{actual:?}' to case '{case:?}' should match expected '{expected:?}'"
+                "answer to case '{case:?}' should match expected"
             );
         }
     }
