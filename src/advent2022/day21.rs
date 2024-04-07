@@ -1,4 +1,7 @@
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    ops::{Add, Div, Mul, Sub},
+};
 
 use crate::strings::char_at;
 
@@ -27,7 +30,7 @@ enum Operation {
     Sub(Number),
     Mul(Number),
     Div(Number),
-    Inverse,
+    Reciprocal,
 }
 
 type Number = f64;
@@ -61,83 +64,87 @@ fn correct_operations(monkeys: &mut HashMap<&str, Expression>) {
     monkeys.insert("humn", Expression::Unknown);
 }
 
-fn reduce(monkeys: &HashMap<&str, Expression>, name: &str) -> Reduction {
+fn reduce<'input>(monkeys: &HashMap<&'input str, Expression>, name: &'input str) -> Reduction {
     match monkeys[name] {
-        Expression::Add(left, right) => match (reduce(monkeys, left), reduce(monkeys, right)) {
-            (Reduction::Number(left), Reduction::Number(right)) => Reduction::Number(left + right),
-            (Reduction::Number(known), Reduction::Rearrangements(mut rearrangements))
-            | (Reduction::Rearrangements(mut rearrangements), Reduction::Number(known)) => {
-                rearrangements.push(Operation::Sub(known));
-                Reduction::Rearrangements(rearrangements)
-            }
-            (Reduction::Rearrangements(_), Reduction::Rearrangements(_)) => {
-                panic!("equation should contain at most one unknown");
-            }
-        },
-        Expression::Sub(left, right) => match (reduce(monkeys, left), reduce(monkeys, right)) {
-            (Reduction::Number(left), Reduction::Number(right)) => Reduction::Number(left - right),
-            (Reduction::Number(known), Reduction::Rearrangements(mut rearrangements)) => {
-                rearrangements.push(Operation::Mul(-1.0));
-                rearrangements.push(Operation::Sub(known));
-                Reduction::Rearrangements(rearrangements)
-            }
-            (Reduction::Rearrangements(mut rearrangements), Reduction::Number(known)) => {
-                rearrangements.push(Operation::Add(known));
-                Reduction::Rearrangements(rearrangements)
-            }
-            (Reduction::Rearrangements(_), Reduction::Rearrangements(_)) => {
-                panic!("equation should contain at most one unknown");
-            }
-        },
-        Expression::Mul(left, right) => match (reduce(monkeys, left), reduce(monkeys, right)) {
-            (Reduction::Number(left), Reduction::Number(right)) => Reduction::Number(left * right),
-            (Reduction::Number(known), Reduction::Rearrangements(mut rearrangements))
-            | (Reduction::Rearrangements(mut rearrangements), Reduction::Number(known)) => {
-                rearrangements.push(Operation::Div(known));
-                Reduction::Rearrangements(rearrangements)
-            }
-            (Reduction::Rearrangements(_), Reduction::Rearrangements(_)) => {
-                panic!("equation should contain at most one unknown");
-            }
-        },
-        Expression::Div(left, right) => match (reduce(monkeys, left), reduce(monkeys, right)) {
-            (Reduction::Number(left), Reduction::Number(right)) => Reduction::Number(left / right),
-            (Reduction::Number(known), Reduction::Rearrangements(mut rearrangements)) => {
-                rearrangements.push(Operation::Inverse);
-                rearrangements.push(Operation::Div(known));
-                Reduction::Rearrangements(rearrangements)
-            }
-            (Reduction::Rearrangements(mut rearrangements), Reduction::Number(known)) => {
-                rearrangements.push(Operation::Mul(known));
-                Reduction::Rearrangements(rearrangements)
-            }
-            (Reduction::Rearrangements(_), Reduction::Rearrangements(_)) => {
-                panic!("equation should contain at most one unknown");
-            }
-        },
-        Expression::Equal(left, right) => match (reduce(monkeys, left), reduce(monkeys, right)) {
-            (Reduction::Number(_), Reduction::Number(_)) => {
-                panic!("exactly one side of the equation should contain an unknown")
-            }
-            (Reduction::Number(mut known), Reduction::Rearrangements(mut rearrangements))
-            | (Reduction::Rearrangements(mut rearrangements), Reduction::Number(mut known)) => {
-                while let Some(operation) = rearrangements.pop() {
-                    match operation {
-                        Operation::Add(number) => known += number,
-                        Operation::Sub(number) => known -= number,
-                        Operation::Mul(number) => known *= number,
-                        Operation::Div(number) => known /= number,
-                        Operation::Inverse => known = 1.0 / known,
-                    }
-                }
-                Reduction::Number(known)
-            }
-            (Reduction::Rearrangements(_), Reduction::Rearrangements(_)) => {
-                panic!("equation should contain at most one unknown");
-            }
-        },
+        Expression::Equal(left, right) => solve(monkeys, left, right),
+        Expression::Add(left, right) => {
+            let both_known = <f64 as Add>::add;
+            let one_known = |known| vec![Operation::Sub(known)];
+            reduce_binary_operator(monkeys, left, right, both_known, one_known, one_known)
+        }
+        Expression::Sub(left, right) => {
+            let both_known = <f64 as Sub>::sub;
+            let left_known = |known| vec![Operation::Sub(known), Operation::Mul(-1.0)];
+            let right_known = |known| vec![Operation::Add(known)];
+            reduce_binary_operator(monkeys, left, right, both_known, left_known, right_known)
+        }
+        Expression::Mul(left, right) => {
+            let both_known = <f64 as Mul>::mul;
+            let one_known = |known| vec![Operation::Div(known)];
+            reduce_binary_operator(monkeys, left, right, both_known, one_known, one_known)
+        }
+        Expression::Div(left, right) => {
+            let both_known = <f64 as Div>::div;
+            let left_known = |known| vec![Operation::Div(known), Operation::Reciprocal];
+            let right_known = |known| vec![Operation::Mul(known)];
+            reduce_binary_operator(monkeys, left, right, both_known, left_known, right_known)
+        }
         Expression::Constant(constant) => Reduction::Number(constant),
         Expression::Unknown => Reduction::Rearrangements(vec![]),
+    }
+}
+
+fn solve<'input>(
+    monkeys: &HashMap<&'input str, Expression<'input>>,
+    left: &'input str,
+    right: &'input str,
+) -> Reduction {
+    match (reduce(monkeys, left), reduce(monkeys, right)) {
+        (Reduction::Number(_), Reduction::Number(_)) => {
+            panic!("exactly one side of the equation should contain an unknown")
+        }
+        (Reduction::Number(mut known), Reduction::Rearrangements(mut rearrangements))
+        | (Reduction::Rearrangements(mut rearrangements), Reduction::Number(mut known)) => {
+            while let Some(operation) = rearrangements.pop() {
+                match operation {
+                    Operation::Add(number) => known += number,
+                    Operation::Sub(number) => known -= number,
+                    Operation::Mul(number) => known *= number,
+                    Operation::Div(number) => known /= number,
+                    Operation::Reciprocal => known = known.recip(),
+                }
+            }
+            Reduction::Number(known)
+        }
+        (Reduction::Rearrangements(_), Reduction::Rearrangements(_)) => {
+            panic!("exactly one side of the equation should contain an unknown");
+        }
+    }
+}
+
+fn reduce_binary_operator<'input>(
+    monkeys: &HashMap<&'input str, Expression<'input>>,
+    left: &'input str,
+    right: &'input str,
+    both_known: impl FnOnce(Number, Number) -> Number,
+    left_known: impl FnOnce(Number) -> Vec<Operation>,
+    right_known: impl FnOnce(Number) -> Vec<Operation>,
+) -> Reduction {
+    match (reduce(monkeys, left), reduce(monkeys, right)) {
+        (Reduction::Number(left), Reduction::Number(right)) => {
+            Reduction::Number(both_known(left, right))
+        }
+        (Reduction::Number(known), Reduction::Rearrangements(mut rearrangements)) => {
+            rearrangements.extend(left_known(known).into_iter().rev());
+            Reduction::Rearrangements(rearrangements)
+        }
+        (Reduction::Rearrangements(mut rearrangements), Reduction::Number(known)) => {
+            rearrangements.extend(right_known(known).into_iter().rev());
+            Reduction::Rearrangements(rearrangements)
+        }
+        (Reduction::Rearrangements(_), Reduction::Rearrangements(_)) => {
+            panic!("equation should contain at most one unknown");
+        }
     }
 }
 
