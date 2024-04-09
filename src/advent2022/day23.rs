@@ -16,23 +16,33 @@ const INITIAL_DIRECTIONS: [Direction; 4] = [
 
 pub fn first(input: &str) -> String {
     let mut elves = elves(input);
-    simulation(&mut elves, 10);
+    simulation(&mut elves, Some(10));
     number_of_free_tiles(&elves).to_string()
 }
 
-pub fn second(_input: &str) -> String {
-    todo!();
+pub fn second(input: &str) -> String {
+    let mut elves = elves(input);
+    let number_of_rounds_before_steady_state =
+        simulation(&mut elves, None).expect("steady state should be reached");
+    number_of_rounds_before_steady_state.to_string()
 }
 
-fn simulation(elves: &mut HashSet<Position>, number_of_rounds: usize) {
+fn simulation(
+    elves: &mut HashSet<Position>,
+    maximum_number_of_rounds: Option<usize>,
+) -> Option<usize> {
     let mut directions = INITIAL_DIRECTIONS;
-    for _ in 0..number_of_rounds {
-        round(elves, directions);
+    for number_of_rounds in 1..=maximum_number_of_rounds.unwrap_or(usize::MAX) {
+        let is_steady_state = round(elves, directions);
+        if is_steady_state {
+            return Some(number_of_rounds);
+        }
         directions.rotate_left(1);
     }
+    None
 }
 
-fn round(elves: &mut HashSet<Position>, directions: [Direction; 4]) {
+fn round(elves: &mut HashSet<Position>, directions: [Direction; 4]) -> bool {
     let proposals: HashMap<Position, Position> = elves
         .iter()
         .filter_map(|&elf| proposal(elves, elf, directions).map(|proposal| (elf, proposal)))
@@ -41,11 +51,14 @@ fn round(elves: &mut HashSet<Position>, directions: [Direction; 4]) {
     let accepted = proposals
         .into_iter()
         .filter(|(_, proposal)| proposal_counts[proposal] == 1);
+    let mut is_steady_state = true;
     for (old, new) in accepted {
         elves.remove(&old);
         let inserted = elves.insert(new);
         debug_assert!(inserted, "elf should not be moved to occupied tile");
+        is_steady_state = false;
     }
+    is_steady_state
 }
 
 fn proposal(
@@ -124,22 +137,24 @@ mod tests {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 4241);
     }
 
-    // #[test]
-    // fn second_example() {
-    //     test_on_input(DAY, Puzzle::Second, Input::Example(0), 20);
-    // }
+    #[test]
+    fn second_example() {
+        test_on_input(DAY, Puzzle::Second, Input::Example(0), 20);
+    }
 
-    // #[test]
-    // fn second_input() {
-    //     test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 404_395);
-    // }
+    #[test]
+    fn second_input() {
+        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 1079);
+    }
 
     #[test]
     fn ten_rounds_large_example() {
         let input = input(YEAR, DAY, Input::Example(0));
         let mut elves = super::elves(&input);
 
-        simulation(&mut elves, 10);
+        let steady_state = simulation(&mut elves, Some(10));
+        assert_eq!(steady_state, None);
+
         let expected = "\
             .......#......\n\
             ...........#..\n\
@@ -166,7 +181,9 @@ mod tests {
         let input = input(YEAR, DAY, Input::Example(1));
         let mut elves = elves(&input);
 
-        simulation(&mut elves, 3);
+        let steady_state = simulation(&mut elves, Some(3));
+        assert_eq!(steady_state, None);
+
         let expected = [(0, 2), (1, 4), (2, 0), (3, 4), (5, 2)]
             .map(|(row, column)| Position::new(row, column));
         let expected = HashSet::from(expected);
@@ -178,7 +195,9 @@ mod tests {
         let input = input(YEAR, DAY, Input::Example(1));
         let mut elves = elves(&input);
 
-        round(&mut elves, INITIAL_DIRECTIONS);
+        let is_steady_state = round(&mut elves, INITIAL_DIRECTIONS);
+        assert!(!is_steady_state);
+
         let expected = [(0, 2), (0, 3), (2, 2), (4, 2), (3, 3)]
             .map(|(row, column)| Position::new(row, column));
         let expected = HashSet::from(expected);
