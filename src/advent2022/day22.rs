@@ -72,10 +72,10 @@ fn forward(
             Some('.') => potential_next_position,
             Some('#') => return position,
             Some(' ') | None => {
-                let Some(warp_position) = warp(board, position, direction) else {
+                let Some(wrap_position) = wrap(board, position, direction) else {
                     return position;
                 };
-                warp_position
+                wrap_position
             }
             _ => panic!("tile on the board should be '.', '#', or ' '"),
         }
@@ -83,21 +83,21 @@ fn forward(
     position
 }
 
-fn warp(board: &Grid<char>, position: Position, direction: Direction) -> Option<Position> {
+fn wrap(board: &Grid<char>, position: Position, direction: Direction) -> Option<Position> {
     let [row, column] = [position.row(), position.column()];
-    let mut warp_position = match direction {
+    let mut wrap_position = match direction {
         Direction::North => Position::new(board.height() - 1, column),
         Direction::East => Position::new(row, 0),
         Direction::South => Position::new(0, column),
         Direction::West => Position::new(row, board.width() - 1),
     };
-    while board[warp_position] == ' ' {
-        warp_position = warp_position.neighbor(direction);
+    while board[wrap_position] == ' ' {
+        wrap_position = wrap_position.neighbor(direction);
     }
-    if board[warp_position] == '#' {
+    if board[wrap_position] == '#' {
         None
     } else {
-        Some(warp_position)
+        Some(wrap_position)
     }
 }
 
