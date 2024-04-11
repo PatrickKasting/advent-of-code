@@ -6,20 +6,30 @@ use crate::data_structures::grid::{Direction, Position};
 
 type Blizzard = (Position, Direction);
 type Blizzards = Vec<Blizzard>;
+type Minutes = usize;
 
 pub fn first(input: &str) -> String {
     let (dimensions @ [height, width], mut blizzards) = valley(input);
-    fastest_path(
-        dimensions,
-        &mut blizzards,
-        Position::new(0, 1),
-        Position::new(height - 1, width - 2),
-    )
-    .to_string()
+    let [start, end] = [Position::new(0, 1), Position::new(height - 1, width - 2)];
+    fastest_journey(dimensions, &mut blizzards, &[start, end]).to_string()
 }
 
-pub fn second(_input: &str) -> String {
-    todo!();
+pub fn second(input: &str) -> String {
+    let (dimensions @ [height, width], mut blizzards) = valley(input);
+    let [start, end] = [Position::new(0, 1), Position::new(height - 1, width - 2)];
+    let journey = [start, end, start, end];
+    fastest_journey(dimensions, &mut blizzards, &journey).to_string()
+}
+
+fn fastest_journey(
+    valley_dimensions: [usize; 2],
+    blizzards: &mut Blizzards,
+    journey: &[Position],
+) -> Minutes {
+    journey
+        .windows(2)
+        .map(|pair| fastest_path(valley_dimensions, blizzards, pair[0], pair[1]))
+        .sum()
 }
 
 fn fastest_path(
@@ -27,35 +37,33 @@ fn fastest_path(
     blizzards: &mut Blizzards,
     start: Position,
     end: Position,
-) -> usize {
-    let mut minutes = vec![HashSet::from([start])];
+) -> Minutes {
+    let mut positions = HashSet::from([start]);
+    let mut time = 0;
     loop {
+        time += 1;
         move_blizzards(valley_dimensions, blizzards);
-        minutes.push(HashSet::new());
-        for minute in (0..minutes.len() - 1).rev() {
-            let mut next_minute = vec![];
-            for position in &minutes[minute] {
-                for neighbor in position.neighbors() {
-                    if neighbor == end {
-                        return minutes.len() - 1;
-                    }
-                    let is_on_boundary = is_outside_valley(valley_dimensions, neighbor);
-                    let is_blizzard = blizzards
-                        .binary_search_by_key(&neighbor, |&(position, _)| position)
-                        .is_ok();
-                    if !is_on_boundary && !is_blizzard {
-                        next_minute.push(neighbor);
-                    }
+        let mut valid_neighbors = vec![];
+        for position in &positions {
+            for neighbor in position.neighbors() {
+                if neighbor == end {
+                    return time;
+                }
+                let is_on_boundary = is_outside_valley(valley_dimensions, neighbor);
+                let is_in_blizzard = blizzards
+                    .binary_search_by_key(&neighbor, |&(position, _)| position)
+                    .is_ok();
+                if !is_on_boundary && !is_in_blizzard {
+                    valid_neighbors.push(neighbor);
                 }
             }
-            minutes[minute + 1].extend(next_minute);
-
-            minutes[minute].retain(|&position| {
-                blizzards
-                    .binary_search_by_key(&position, |&(position, _)| position)
-                    .is_err()
-            });
         }
+        positions.retain(|position| {
+            blizzards
+                .binary_search_by_key(position, |&(position, _)| position)
+                .is_err()
+        });
+        positions.extend(valid_neighbors);
     }
 }
 
@@ -113,8 +121,10 @@ fn valley(input: &str) -> ([usize; 2], Blizzards) {
             })
         })
         .collect_vec();
-    let is_sorted = blizzards.windows(2).all(|pair| pair[0] <= pair[1]);
-    debug_assert!(is_sorted, "blizzards should always be sorted");
+    debug_assert!(
+        blizzards.windows(2).all(|pair| pair[0] <= pair[1]),
+        "blizzards should always be sorted"
+    );
     (dimensions, blizzards)
 }
 
@@ -139,15 +149,15 @@ mod tests {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 240);
     }
 
-    // #[test]
-    // fn second_example() {
-    //     test_on_input(DAY, Puzzle::Second, Input::Example(1), 54);
-    // }
+    #[test]
+    fn second_example() {
+        test_on_input(DAY, Puzzle::Second, Input::Example(1), 54);
+    }
 
-    // #[test]
-    // fn second_input() {
-    //     test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 404_395);
-    // }
+    #[test]
+    fn second_input() {
+        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 717);
+    }
 
     #[test]
     fn two_irrelevant_blizzards() {
