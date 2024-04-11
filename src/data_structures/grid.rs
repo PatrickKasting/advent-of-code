@@ -303,6 +303,13 @@ impl<T: Into<char> + Clone> Grid<T> {
     }
 }
 
+impl<S: AsRef<str>> From<S> for Grid<u8> {
+    fn from(grid: S) -> Self {
+        let to_byte = |char: char| -> u8 { char.try_into().expect("char should be ascii") };
+        Self::from_str(grid.as_ref(), to_byte)
+    }
+}
+
 impl<S: AsRef<str>> From<S> for Grid<char> {
     fn from(grid: S) -> Self {
         Self::from_str(grid.as_ref(), identity)
