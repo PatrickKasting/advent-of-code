@@ -194,13 +194,13 @@
 pub fn first(_input: &str) -> String {
     // let dig_plan = dig_plan(dig_plan_step_from_directions_and_distances, input);
     // area(&dig_plan).to_string()
-    todo!()
+    unimplemented!()
 }
 
 pub fn second(_input: &str) -> String {
     // let dig_plan = dig_plan(dig_plan_step_from_color_codes, input);
     // area(&dig_plan).to_string()
-    todo!()
+    unimplemented!()
 }
 
 // #[cfg(test)]
@@ -222,6 +222,6 @@ pub fn second(_input: &str) -> String {
 
 //     #[test]
 //     fn second_example() {
-//         test_on_input(DAY, Puzzle::Second, Input::Example(0), 952_408_144_115usize);
+//         test_on_input(DAY, Puzzle::Second, Input::Example(0), 952_408_144_115_usize);
 //     }
 // }

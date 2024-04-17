@@ -54,7 +54,10 @@ fn is_clockwise(cycle: &mut [Position]) -> bool {
         .map(|direction| turns[&direction] as isize);
     let turn_difference = right - left;
 
-    debug_assert!(!turns.contains_key(&RelativeDirection::Backward));
+    debug_assert!(
+        !turns.contains_key(&RelativeDirection::Backward),
+        "cycle should not have 180-degree turns"
+    );
     debug_assert_eq!(
         turn_difference.abs(),
         4,

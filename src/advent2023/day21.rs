@@ -48,7 +48,7 @@ pub fn first(input: &str) -> String {
 }
 
 pub fn second(_input: &str) -> String {
-    todo!()
+    unimplemented!()
 }
 
 #[cfg(test)]

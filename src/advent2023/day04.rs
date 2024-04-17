@@ -29,7 +29,7 @@ fn scratchcard_score(scratchcard: &str) -> usize {
         number_of_matches => {
             let number_of_matches = u32::try_from(number_of_matches)
                 .expect("number of matches should be less than 'u32::MAX'");
-            2usize.pow(number_of_matches - 1)
+            2_usize.pow(number_of_matches - 1)
         }
     }
 }
@@ -39,7 +39,7 @@ fn total_score_of_original_scratchcards(input: &str) -> usize {
 }
 
 fn final_number_of_scratchcards(input: &str) -> usize {
-    let mut number_of_copies = vec![1usize; input.lines().count()];
+    let mut number_of_copies = vec![1_usize; input.lines().count()];
     for (index, scratchcard) in input.lines().enumerate() {
         let number_of_copies_of_current_scratchcard = number_of_copies[index];
         let range_of_scratchcards_won = index + 1..index + 1 + number_of_matches(scratchcard);

@@ -20,7 +20,7 @@ pub fn first(input: &str) -> String {
 }
 
 pub fn second(_input: &str) -> String {
-    todo!()
+    unimplemented!()
 }
 
 fn final_password(final_position: Position, final_direction: Direction) -> usize {

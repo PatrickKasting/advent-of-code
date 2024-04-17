@@ -113,7 +113,7 @@ fn cave(input: &str) -> Cave {
 
 fn valve(line: &str) -> (&str, (Pressure, Vec<&str>)) {
     static REGEX: OnceLock<Regex> = OnceLock::new();
-    let regex = REGEX.get_or_init(|| Regex::new(r"[A-Z]{2}").expect("regex should be valid"));
+    let regex = REGEX.get_or_init(|| Regex::new("[A-Z]{2}").expect("regex should be valid"));
     let mut valves = regex.find_iter(line).map(|mat| mat.as_str()).collect_vec();
     let valve = valves.remove(0);
     (valve, (isizes(line)[0], valves))

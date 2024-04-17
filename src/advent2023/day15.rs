@@ -36,7 +36,7 @@ fn operations(sequence: &str) -> impl Iterator<Item = (&str, Operation)> {
 fn hash(str: &str) -> usize {
     str.as_bytes()
         .iter()
-        .fold(0u8, |hash, &char| hash.wrapping_add(char).wrapping_mul(17)) as usize
+        .fold(0_u8, |hash, &char| hash.wrapping_add(char).wrapping_mul(17)) as usize
 }
 
 fn position(bucket: &Bucket, label: &str) -> Option<usize> {
