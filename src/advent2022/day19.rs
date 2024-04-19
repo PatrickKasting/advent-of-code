@@ -295,8 +295,13 @@ mod tests {
     #[test]
     fn div_ceil() {
         let function = |(left, right)| super::div_ceil(left, right);
-        let cases = [(5, 2), (6, 3), (1, 17), (0, 4), (7, 4)];
-        let expected = [3, 2, 1, 0, 2];
-        test_cases(function, cases, expected);
+        let cases = [
+            ((5, 2), 3),
+            ((6, 3), 2),
+            ((1, 17), 1),
+            ((0, 4), 0),
+            ((7, 4), 2),
+        ];
+        test_cases(function, cases);
     }
 }

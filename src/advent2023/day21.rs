@@ -53,8 +53,10 @@ pub fn second(_input: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    use itertools::Itertools;
+
     use super::super::tests::{test_on_input, YEAR};
-    use crate::{input, Input, Puzzle};
+    use crate::{input, tests::test_cases, Input, Puzzle};
 
     use super::*;
 
@@ -74,11 +76,13 @@ mod tests {
 
     // #[test]
     // fn second_example() {
-    //     let map = Map::from(&input(DAY, Input::Example(0)));
+    //     let map = Map::from(&input(YEAR, DAY, Input::Example(0)));
+    //     let cases = [6, 10, 50, 100, 500, 1000, 5000]
+    //         .into_iter()
+    //         .zip_eq([16, 50, 1594, 6536, 167_004, 668_697, 16_733_044]);
     //     test_cases(
     //         |number_of_steps| number_of_reachable_garden_plots(&map, number_of_steps),
-    //         [6, 10, 50, 100, 500, 1000, 5000],
-    //         [16, 50, 1594, 6536, 167_004, 668_697, 16_733_044],
+    //         cases,
     //     );
     // }
 }

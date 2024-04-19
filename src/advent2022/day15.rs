@@ -218,24 +218,26 @@ mod tests {
     fn complement_ranges() {
         let universe @ [min, max] = [0, 21];
         let function = |sorted_ranges| super::complement_ranges(sorted_ranges, universe);
-        let cases = [vec![[-10, 0]], vec![[7, 9]], vec![[-3, 14], [15, 26]]];
-        let expected = [vec![universe], vec![[min, 7], [9, max]], vec![[14, 15]]];
-        test_cases(function, cases, expected);
+        let cases = [
+            (vec![[-10, 0]], vec![universe]),
+            (vec![[7, 9]], vec![[min, 7], [9, max]]),
+            (vec![[-3, 14], [15, 26]], vec![[14, 15]]),
+        ];
+        test_cases(function, cases);
     }
 
     #[test]
     fn impossible_beacon_range() {
         let function = |row| super::impossible_range(Sensor::new(7, 8), 9, row);
-        let cases = [-3, -2, 3, 7, 10, 14, 17];
-        let expected = [
-            None,
-            Some([8, 9]),
-            Some([3, 14]),
-            Some([-1, 18]),
-            Some([2, 15]),
-            Some([6, 11]),
-            None,
+        let cases = [
+            (-3, None),
+            (-2, Some([8, 9])),
+            (3, Some([3, 14])),
+            (7, Some([-1, 18])),
+            (10, Some([2, 15])),
+            (14, Some([6, 11])),
+            (17, None),
         ];
-        test_cases(function, cases, expected);
+        test_cases(function, cases);
     }
 }

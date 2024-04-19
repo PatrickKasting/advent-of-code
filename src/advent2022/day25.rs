@@ -59,6 +59,8 @@ fn digit(char: char) -> Decimal {
 
 #[cfg(test)]
 mod tests {
+    use itertools::Itertools;
+
     use super::{super::tests::test_on_input, *};
     use crate::{tests::test_cases, Input, Puzzle};
 
@@ -91,22 +93,32 @@ mod tests {
 
     #[test]
     fn large_decimal_to_snafu() {
-        test_cases(snafu, LARGE_DECIMAL, LARGE_SNAFU.map(String::from));
+        test_cases(
+            snafu,
+            LARGE_DECIMAL
+                .into_iter()
+                .zip_eq(LARGE_SNAFU.map(String::from)),
+        );
     }
 
     #[test]
     fn large_snafu_to_decimal() {
-        test_cases(decimal, LARGE_SNAFU, LARGE_DECIMAL);
+        test_cases(decimal, LARGE_SNAFU.into_iter().zip_eq(LARGE_DECIMAL));
     }
 
     #[test]
     fn small_decimal_to_snafu() {
-        test_cases(snafu, SMALL_DECIMAL, SMALL_SNAFU.map(String::from));
+        test_cases(
+            snafu,
+            SMALL_DECIMAL
+                .into_iter()
+                .zip_eq(SMALL_SNAFU.map(String::from)),
+        );
     }
 
     #[test]
     fn small_snafu_to_decimal() {
-        test_cases(decimal, SMALL_SNAFU, SMALL_DECIMAL);
+        test_cases(decimal, SMALL_SNAFU.into_iter().zip_eq(SMALL_DECIMAL));
     }
 
     const SMALL_DECIMAL: [Decimal; 11] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];

@@ -168,17 +168,11 @@ mod tests {
     fn opposite_side() {
         let function = |(position, direction)| super::opposite_side([6, 7], position, direction);
         let cases = [
-            (Position::new(0, 5), Direction::North),
-            (Position::new(3, 7), Direction::East),
-            (Position::new(5, 3), Direction::South),
-            (Position::new(4, 0), Direction::West),
+            ((Position::new(0, 5), Direction::North), Position::new(4, 5)),
+            ((Position::new(3, 7), Direction::East), Position::new(3, 1)),
+            ((Position::new(5, 3), Direction::South), Position::new(1, 3)),
+            ((Position::new(4, 0), Direction::West), Position::new(4, 5)),
         ];
-        let expected = [
-            Position::new(4, 5),
-            Position::new(3, 1),
-            Position::new(1, 3),
-            Position::new(4, 5),
-        ];
-        test_cases(function, cases, expected);
+        test_cases(function, cases);
     }
 }

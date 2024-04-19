@@ -177,15 +177,13 @@ pub mod tests {
 
     /// # Panics
     ///
-    /// Panics if there is a mismatch between the return value of `function` applied to a test case
-    /// from `cases` and the corresponding expected answer from `expected`. Also panics if the
-    /// number of test cases and the number of expected answers differ.
-    pub fn test_cases<Case: Debug + Clone, Answer: Debug + Eq>(
-        mut function: impl FnMut(Case) -> Answer,
-        cases: impl IntoIterator<Item = Case>,
-        expected: impl IntoIterator<Item = Answer>,
+    /// Panics if there is a mismatch between the return value of `function` and the expected
+    /// answer.
+    pub fn test_cases<Input: Debug + Clone, Answer: Debug + Eq>(
+        mut function: impl FnMut(Input) -> Answer,
+        cases: impl IntoIterator<Item = (Input, Answer)>,
     ) {
-        for (case, expected) in cases.into_iter().zip_eq(expected) {
+        for (case, expected) in cases {
             let actual = function(case.clone());
             assert_eq!(
                 actual, expected,

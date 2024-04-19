@@ -210,10 +210,19 @@ mod tests {
         let elves = elves(&input);
 
         let function = |elf| proposal(&elves, elf, INITIAL_DIRECTIONS);
-        let cases = [(1, 2), (1, 3), (2, 2), (4, 2), (4, 3)]
-            .map(|(row, column)| Position::new(row, column));
-        let expected = [(0, 2), (0, 3), (3, 2), (3, 2), (3, 3)]
-            .map(|(row, column)| Some(Position::new(row, column)));
-        test_cases(function, cases, expected);
+        let cases = [
+            ((1, 2), (0, 2)),
+            ((1, 3), (0, 3)),
+            ((2, 2), (3, 2)),
+            ((4, 2), (3, 2)),
+            ((4, 3), (3, 3)),
+        ]
+        .map(|(input, expected)| {
+            (
+                Position::new(input.0, input.1),
+                Some(Position::new(expected.0, expected.1)),
+            )
+        });
+        test_cases(function, cases);
     }
 }

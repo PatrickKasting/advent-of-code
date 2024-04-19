@@ -59,6 +59,8 @@ pub fn second(_input: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    use itertools::Itertools;
+
     use super::super::tests::{test_on_input, YEAR};
     use crate::{input, tests::*, Input, Puzzle};
 
@@ -69,7 +71,10 @@ mod tests {
     #[test]
     fn first_example() {
         let input = input(YEAR, DAY, Input::Example(0));
-        test_cases(number_of_arrangements, input.lines(), [1, 4, 1, 1, 4, 10]);
+        test_cases(
+            number_of_arrangements,
+            input.lines().zip_eq([1, 4, 1, 1, 4, 10]),
+        );
     }
 
     #[test]
@@ -79,11 +84,10 @@ mod tests {
 
     // #[test]
     // fn second_example() {
-    //     let input = input(DAY, Input::Example(0));
+    //     let input = input(YEAR, DAY, Input::Example(0));
     //     test_cases(
     //         |line| number_of_arrangements(line),
-    //         input.lines(),
-    //         [1, 16384, 1, 16, 2500, 506250],
+    //         input.lines().zip_eq([1, 16384, 1, 16, 2500, 506250]),
     //     );
     // }
 }
