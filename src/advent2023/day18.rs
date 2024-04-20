@@ -11,13 +11,7 @@
 // type DigStep = (Direction, Coordinate);
 
 // fn dig_plan_step_from_directions_and_distances(line: &str) -> DigStep {
-//     let direction = match &line[0..1] {
-//         "U" => Direction::North,
-//         "L" => Direction::West,
-//         "D" => Direction::South,
-//         "R" => Direction::East,
-//         _ => panic!("direction should be 'U', 'L', 'D', or 'R'"),
-//     };
+//     let direction = Direction::from_up_down_left_or_right(line);
 //     let (distance, _) = line[2..]
 //         .split_once(' ')
 //         .expect("line should contain distance");

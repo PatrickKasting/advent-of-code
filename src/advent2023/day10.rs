@@ -26,15 +26,15 @@ pub fn area(cycle: &mut [Position]) -> usize {
 
     let mut area = Exploration::new(cycle.iter().copied());
     for (&first, &second, &third) in cycle.iter().circular_tuple_windows() {
-        let [toward, away] = [[first, second], [second, third]].map(|pair| {
-            Direction::try_from(pair)
+        let [toward, away] = [[first, second], [second, third]].map(|[from, to]| {
+            from.direction_to(to)
                 .expect("direction from position to position should be cardinal")
         });
-        let directions_toward_inside = match RelativeDirection::from([toward, away]) {
+        let directions_toward_inside = match toward.relative_direction_to(away) {
             RelativeDirection::Right => vec![],
             RelativeDirection::Forward => vec![away.right()],
             RelativeDirection::Left => vec![away.right(), away.backward()],
-            RelativeDirection::Backward => panic!("section should not bend back on itself"),
+            RelativeDirection::Backward => panic!("cycle should not bend back on itself"),
         };
         for direction in directions_toward_inside {
             area.explore(second.neighbor(direction), Position::neighbors);
@@ -56,7 +56,7 @@ fn is_clockwise(cycle: &mut [Position]) -> bool {
 
     debug_assert!(
         !turns.contains_key(&RelativeDirection::Backward),
-        "cycle should not have 180-degree turns"
+        "cycle should not bend back on itself"
     );
     debug_assert_eq!(
         turn_difference.abs(),
@@ -70,10 +70,11 @@ fn is_clockwise(cycle: &mut [Position]) -> bool {
 fn relative_direction(
     (&first, &second, &third): (&Position, &Position, &Position),
 ) -> RelativeDirection {
-    let directions: [Direction; 2] = [[first, second], [second, third]].map(|pair| {
-        Direction::try_from(pair).expect("direction from position to position should be cardinal")
+    let [towards, away] = [[first, second], [second, third]].map(|[from, to]| {
+        from.direction_to(to)
+            .expect("direction from position to position should be cardinal")
     });
-    RelativeDirection::from(directions)
+    towards.relative_direction_to(away)
 }
 
 fn longest_cycle(grid: &Grid<Tile>) -> Cycle {

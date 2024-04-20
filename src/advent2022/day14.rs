@@ -104,7 +104,8 @@ fn add_path(cave: &mut Cave, path: &[Position], sand_source: Position) {
         *element = b'#';
     }
     for joint in path {
-        let direction = Direction::try_from([position, joint])
+        let direction = position
+            .direction_to(joint)
             .expect("direction to next path joint should be cardinal");
         while position != joint {
             position = position.neighbor(direction);

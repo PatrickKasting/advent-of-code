@@ -151,8 +151,6 @@ fn main() {
 pub mod tests {
     use std::fmt::Display;
 
-    use itertools::Itertools;
-
     use super::*;
 
     /// # Panics

@@ -33,6 +33,18 @@ impl Direction {
         self.backward().right()
     }
 
+    pub fn relative_direction_to(self, other: Self) -> RelativeDirection {
+        if other == self {
+            RelativeDirection::Forward
+        } else if other == self.right() {
+            RelativeDirection::Right
+        } else if other == self.backward() {
+            RelativeDirection::Backward
+        } else {
+            RelativeDirection::Left
+        }
+    }
+
     pub fn reflection_north_west_diagonal(self) -> Self {
         match self {
             Self::North => Self::West,
@@ -62,52 +74,12 @@ impl Direction {
     }
 }
 
-impl TryFrom<[Position; 2]> for Direction {
-    type Error = &'static str;
-
-    fn try_from([from, to]: [Position; 2]) -> Result<Self, Self::Error> {
-        if from == to {
-            return Err("positions should not be identical");
-        }
-
-        if from.row() == to.row() {
-            if from.column() < to.column() {
-                Ok(Self::East)
-            } else {
-                Ok(Self::West)
-            }
-        } else if from.column() == to.column() {
-            if from.row() < to.row() {
-                Ok(Self::South)
-            } else {
-                Ok(Self::North)
-            }
-        } else {
-            Err("positions should share a row or a column")
-        }
-    }
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, EnumIter)]
 pub enum RelativeDirection {
     Forward,
     Left,
     Backward,
     Right,
-}
-
-impl From<[Direction; 2]> for RelativeDirection {
-    fn from([nose, direction]: [Direction; 2]) -> Self {
-        if direction == nose {
-            Self::Forward
-        } else if direction == nose.right() {
-            Self::Right
-        } else if direction == nose.backward() {
-            Self::Backward
-        } else {
-            Self::Left
-        }
-    }
 }
 
 pub type Coordinate = isize;
@@ -161,6 +133,28 @@ impl Position {
 
     pub fn neighbors(self) -> impl Iterator<Item = Self> {
         Direction::iter().map(move |direction| self.neighbor(direction))
+    }
+
+    pub fn direction_to(self, other: Position) -> Option<Direction> {
+        if self == other {
+            return None;
+        }
+
+        if self.row() == other.row() {
+            if self.column() < other.column() {
+                Some(Direction::East)
+            } else {
+                Some(Direction::West)
+            }
+        } else if self.column() == other.column() {
+            if self.row() < other.row() {
+                Some(Direction::South)
+            } else {
+                Some(Direction::North)
+            }
+        } else {
+            None
+        }
     }
 
     pub fn manhattan_distance(self, other: Position) -> isize {

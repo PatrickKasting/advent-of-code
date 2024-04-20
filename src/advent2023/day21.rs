@@ -53,10 +53,8 @@ pub fn second(_input: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use itertools::Itertools;
-
     use super::super::tests::{test_on_input, YEAR};
-    use crate::{input, tests::test_cases, Input, Puzzle};
+    use crate::{input, Input, Puzzle};
 
     use super::*;
 

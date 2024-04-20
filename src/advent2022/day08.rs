@@ -35,7 +35,8 @@ fn visibility_from_edge(
     from_corner: Position,
     to_corner: Position,
 ) {
-    let edge_direction = Direction::try_from([from_corner, to_corner])
+    let edge_direction = from_corner
+        .direction_to(to_corner)
         .expect("positions should be on the same edge");
     let mut position = from_corner;
     while position != to_corner {
