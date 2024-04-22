@@ -5,7 +5,7 @@ use rand::{rngs::SmallRng, seq::SliceRandom, SeedableRng};
 
 use crate::math::graphs::flow_networks::maximum_flow;
 
-fn network(input: &str) -> (Vec<&str>, Vec<(&str, isize, &str)>) {
+fn network(input: &str) -> (Vec<&str>, Vec<(&str, usize, &str)>) {
     let mut components = HashSet::new();
     let mut connections = vec![];
     for line in input.lines() {
@@ -24,8 +24,8 @@ fn network(input: &str) -> (Vec<&str>, Vec<(&str, isize, &str)>) {
 
 fn separate_groups<'input>(
     components: &mut [&'input str],
-    connections: &[(&'input str, isize, &'input str)],
-    number_of_wires_to_cut: isize,
+    connections: &[(&'input str, usize, &'input str)],
+    number_of_wires_to_cut: usize,
 ) -> (HashSet<&'input str>, HashSet<&'input str>) {
     let mut rng = SmallRng::from_seed([0; 32]);
     loop {

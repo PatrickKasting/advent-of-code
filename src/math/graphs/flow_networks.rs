@@ -9,7 +9,7 @@ use std::{
 struct FlowNetwork<N> {
     arcs: HashMap<N, HashSet<N>>,
     reverse_arcs: HashMap<N, HashSet<N>>,
-    flows: HashMap<(N, N), (isize, isize)>,
+    flows: HashMap<(N, N), (Number, Number)>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -18,14 +18,15 @@ enum FlowDirection {
     Backward,
 }
 
-type Predecessors<N> = HashMap<N, (N, FlowDirection, isize)>;
+type Predecessors<N> = HashMap<N, (N, FlowDirection, Number)>;
+type Number = usize;
 
 pub fn maximum_flow<N: Debug + Copy + Eq + Hash>(
     nodes: impl IntoIterator<Item = N>,
-    arcs: impl IntoIterator<Item = (N, isize, N)>,
+    arcs: impl IntoIterator<Item = (N, Number, N)>,
     source: N,
     sink: N,
-) -> (isize, (HashSet<N>, HashSet<N>)) {
+) -> (Number, (HashSet<N>, HashSet<N>)) {
     debug_assert_ne!(source, sink, "source and sink should differ");
     let mut flow_network = flow_network(nodes, arcs);
     let mut flow = 0;
@@ -45,14 +46,14 @@ pub fn maximum_flow<N: Debug + Copy + Eq + Hash>(
 
 fn flow_network<N: Debug + Copy + Eq + Hash>(
     nodes: impl IntoIterator<Item = N>,
-    arcs: impl IntoIterator<Item = (N, isize, N)>,
+    arcs: impl IntoIterator<Item = (N, Number, N)>,
 ) -> FlowNetwork<N> {
     let mut forward_arcs: HashMap<N, HashSet<N>> = nodes
         .into_iter()
         .map(|node| (node, HashSet::new()))
         .collect();
     let mut reverse_arcs: HashMap<N, HashSet<N>> = forward_arcs.clone();
-    let mut flows: HashMap<(N, N), (isize, isize)> = HashMap::new();
+    let mut flows = HashMap::new();
     for (from, capacity, to) in arcs {
         debug_assert!(
             forward_arcs.contains_key(&to),
@@ -120,8 +121,8 @@ fn additional_flow<N: Debug + Copy + Eq + Hash>(
     predecessors: &Predecessors<N>,
     source: N,
     sink: N,
-) -> isize {
-    let mut additional_flow = isize::MAX;
+) -> Number {
+    let mut additional_flow = Number::MAX;
     let mut current = sink;
     while current != source {
         let (predecessor, _, flow) = predecessors[&current];
@@ -132,16 +133,16 @@ fn additional_flow<N: Debug + Copy + Eq + Hash>(
 }
 
 fn increase_flow<N: Debug + Copy + Eq + Hash>(
-    flows: &mut HashMap<(N, N), (isize, isize)>,
+    flows: &mut HashMap<(N, N), (Number, Number)>,
     predecessors: &Predecessors<N>,
-    additional_flow: isize,
+    additional_flow: Number,
     source: N,
     sink: N,
 ) {
     let mut current = sink;
     while current != source {
         let (predecessor, direction, _) = predecessors[&current];
-        let (arc, next_flow): (_, Box<dyn Fn(isize, isize) -> isize>) = match direction {
+        let (arc, next_flow): (_, Box<dyn Fn(Number, Number) -> Number>) = match direction {
             FlowDirection::Forward => ((predecessor, current), Box::new(|lhs, rhs| lhs + rhs)),
             FlowDirection::Backward => ((current, predecessor), Box::new(|lhs, rhs| lhs - rhs)),
         };
@@ -149,10 +150,7 @@ fn increase_flow<N: Debug + Copy + Eq + Hash>(
             .get_mut(&arc)
             .expect("forward arc should be in the flow data structures");
         *flow = next_flow(*flow, additional_flow);
-
-        debug_assert!(0 <= *flow, "flow should not be negative");
         debug_assert!(*flow <= *capacity, "flow should not exceed capacity");
-
         current = predecessor;
     }
 }
