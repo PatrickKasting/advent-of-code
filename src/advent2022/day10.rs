@@ -1,4 +1,6 @@
-use crate::data_structures::grid::{Coordinate, Grid, Position};
+use easy_cast::{Cast, Conv};
+
+use crate::data_structures::grid::{Grid, Position};
 
 type SignalStrength = isize;
 type Register = isize;
@@ -19,9 +21,8 @@ fn image(input: &str) -> Image {
             number_of_completed_cycles / image.width(),
             number_of_completed_cycles % image.width(),
         ];
-        #[allow(clippy::cast_possible_wrap)]
-        if (column as Register - register).abs() <= 1 {
-            image[Position::new(row as Coordinate, column as Coordinate)] = '#';
+        if (Register::conv(column) - register).abs() <= 1 {
+            image[Position::new(row.cast(), column.cast())] = '#';
         }
     };
     execute(input, draw_maybe);
@@ -31,10 +32,9 @@ fn image(input: &str) -> Image {
 fn sum_of_signal_strengths(input: &str) -> SignalStrength {
     let mut sum_of_signal_strengths = 0;
     let mut next_sample_time = 20;
-    #[allow(clippy::cast_possible_wrap)]
     let sample_maybe = |register, number_of_completed_cycles| {
         if number_of_completed_cycles + 1 == next_sample_time {
-            sum_of_signal_strengths += register * next_sample_time as Register;
+            sum_of_signal_strengths += register * Register::conv(next_sample_time);
             next_sample_time += 40;
         }
     };

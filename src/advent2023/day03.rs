@@ -41,7 +41,6 @@ fn for_each_part_number(
     let lines = schematic.lines().collect_vec();
     let [schematic_height, schematic_width] = [lines.len(), lines[0].len()];
     for (line_index, &line) in lines.iter().enumerate() {
-        #[allow(clippy::range_plus_one)]
         for mat in number_regex.find_iter(line) {
             let horizontal_range = range_extended_by_one(0..schematic_width, mat.range());
             let vertical_range =

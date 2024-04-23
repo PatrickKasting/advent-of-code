@@ -1,5 +1,6 @@
 use std::{cmp, collections::HashSet, fmt::Debug};
 
+use easy_cast::Conv;
 use itertools::Itertools;
 
 use crate::{data_structures::grid::Position, strings::isizes};
@@ -93,7 +94,6 @@ fn number_of_impossible_positions_from_input(input: &str, row: Coordinate) -> us
     number_of_impossible_positions(&beacons, &impossible_ranges, row)
 }
 
-#[allow(clippy::cast_sign_loss)]
 fn number_of_impossible_positions(
     beacons: &HashSet<Beacon>,
     impossible_ranges: &[Range],
@@ -107,7 +107,7 @@ fn number_of_impossible_positions(
         .iter()
         .map(|&[start, end]| end - start)
         .sum();
-    impossible_positions as usize - beacons
+    usize::conv(impossible_positions) - beacons
 }
 
 fn beacon_within_ranges(beacon: Beacon, ranges: &[Range], row: Coordinate) -> bool {

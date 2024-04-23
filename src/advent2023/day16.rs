@@ -1,8 +1,9 @@
 use std::collections::BTreeSet;
 
+use easy_cast::Cast;
 use itertools::Itertools;
 
-use crate::data_structures::grid::{Coordinate, Direction, Grid, Position};
+use crate::data_structures::grid::{Direction, Grid, Position};
 
 type Beam = (Direction, Position);
 
@@ -37,16 +38,15 @@ fn number_of_energized_tiles(grid: &Grid<char>, initial_beam: Beam) -> usize {
 }
 
 fn beams_from_edges(grid: &Grid<char>) -> Vec<Beam> {
-    #[allow(clippy::cast_possible_wrap)]
     let [grid_height, grid_width] =
-        [Grid::height, Grid::width].map(|dimension| dimension(grid) as Coordinate);
+        [Grid::height, Grid::width].map(|dimension| dimension(grid).cast());
     let mut beams = Vec::new();
     for row_index in 0..grid_height {
         let from_left = (Direction::East, Position::new(row_index, 0));
         let from_right = (Direction::West, Position::new(row_index, grid_width - 1));
         beams.extend([from_left, from_right]);
     }
-    for column_index in 0..grid_width as Coordinate {
+    for column_index in 0..grid_width.cast() {
         let from_top = (Direction::South, Position::new(0, column_index));
         let from_bottom = (
             Direction::North,

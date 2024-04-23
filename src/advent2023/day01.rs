@@ -1,5 +1,6 @@
 use std::cmp;
 
+use easy_cast::Cast;
 use itertools::Itertools;
 
 type CalibrationValue = usize;
@@ -33,7 +34,7 @@ fn calibration_value(line: &str, consider_numerals: bool) -> CalibrationValue {
 fn first_and_last_digit(line: &str) -> [(usize, CalibrationValue); 2] {
     [str::find, str::rfind].map(|finder| {
         let index = finder(line, char::is_numeric).expect("line should contain a digit");
-        (index, (line.as_bytes()[index] - b'0') as CalibrationValue)
+        (index, (line.as_bytes()[index] - b'0').cast())
     })
 }
 

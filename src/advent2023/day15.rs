@@ -1,3 +1,5 @@
+use easy_cast::Cast;
+
 type HashMap<'label> = Vec<Bucket<'label>>;
 type Bucket<'label> = Vec<(&'label str, FocalLength)>;
 type FocalLength = usize;
@@ -52,7 +54,8 @@ fn hash_map<'label>(steps: impl IntoIterator<Item = (&'label str, Operation)>) -
 fn hash(str: &str) -> Hash {
     str.as_bytes()
         .iter()
-        .fold(0_u8, |hash, &char| hash.wrapping_add(char).wrapping_mul(17)) as Hash
+        .fold(0_u8, |hash, &char| hash.wrapping_add(char).wrapping_mul(17))
+        .cast()
 }
 
 fn position(bucket: &Bucket, label: &str) -> Option<usize> {

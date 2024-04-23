@@ -1,5 +1,6 @@
 use std::{char, str};
 
+use easy_cast::{Cast, Conv};
 use itertools::Itertools;
 
 use crate::data_structures::grid::{Coordinate, Direction, Grid, Position};
@@ -92,12 +93,11 @@ fn wrap_plane(
     direction: Direction,
 ) -> (Position, Direction) {
     let [row, column] = [position.row(), position.column()];
-    #[allow(clippy::cast_possible_wrap)]
     let mut wrap_position = match direction {
-        Direction::North => Position::new(board.height() as Coordinate - 1, column),
+        Direction::North => Position::new(Coordinate::conv(board.height()) - 1, column),
         Direction::East => Position::new(row, 0),
         Direction::South => Position::new(0, column),
-        Direction::West => Position::new(row, board.width() as Coordinate - 1),
+        Direction::West => Position::new(row, Coordinate::conv(board.width()) - 1),
     };
     while board[wrap_position] == ' ' {
         wrap_position = wrap_position.neighbor(direction);
@@ -211,8 +211,7 @@ fn cube_wrap_position(
 }
 
 fn face_size(board: &Board) -> Coordinate {
-    #[allow(clippy::cast_possible_wrap)]
-    let mut board_sides = [board.height() as Coordinate, board.width() as Coordinate];
+    let mut board_sides: [Coordinate; 2] = [board.height().cast(), board.width().cast()];
     board_sides.sort_unstable();
     if board_sides[0] * 5 == board_sides[1] * 2 {
         board_sides[0] / 2

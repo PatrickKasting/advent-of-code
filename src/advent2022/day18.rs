@@ -1,5 +1,6 @@
 use std::{cmp, collections::HashSet};
 
+use easy_cast::Cast;
 use itertools::Itertools;
 
 use crate::{search::Exploration, strings::isizes};
@@ -75,8 +76,7 @@ fn area(cubes: &HashSet<Position>) -> Coordinate {
         .flat_map(neighbors)
         .filter(|neighbor| !cubes.contains(neighbor))
         .count()
-        .try_into()
-        .expect("area should be less than 'Coordinate::MAX'")
+        .cast()
 }
 
 fn neighbors([x, y, z]: Position) -> impl Iterator<Item = Position> {

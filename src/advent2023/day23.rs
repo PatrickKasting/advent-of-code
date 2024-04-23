@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
+use easy_cast::Conv;
 use itertools::Itertools;
 use strum::IntoEnumIterator;
 
@@ -13,11 +14,10 @@ fn start() -> Position {
     Position::new(0, 1)
 }
 
-#[allow(clippy::cast_possible_wrap)]
 fn goal(map: &Map) -> Position {
     Position::new(
-        map.height() as Coordinate - 1,
-        map.width() as Coordinate - 2,
+        Coordinate::conv(map.height()) - 1,
+        Coordinate::conv(map.width()) - 2,
     )
 }
 

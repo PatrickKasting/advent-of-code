@@ -1,5 +1,6 @@
 use std::{collections::HashMap, sync::OnceLock};
 
+use easy_cast::Conv;
 use itertools::Itertools;
 use strum::IntoEnumIterator;
 
@@ -49,9 +50,8 @@ fn is_clockwise(cycle: &mut [Position]) -> bool {
         .circular_tuple_windows()
         .map(relative_direction)
         .counts();
-    #[allow(clippy::cast_possible_wrap)]
     let [left, right] = [RelativeDirection::Left, RelativeDirection::Right]
-        .map(|direction| turns[&direction] as isize);
+        .map(|direction| isize::conv(turns[&direction]));
     let turn_difference = right - left;
 
     debug_assert!(

@@ -24,8 +24,8 @@ fn sum_of_priorities(sets: impl IntoIterator<Item = impl IntoIterator<Item = Set
 
 fn priority(item: Item) -> Priority {
     match item {
-        'a'..='z' => item as u32 - 'a' as u32 + 1,
-        'A'..='Z' => item as u32 - 'A' as u32 + 27,
+        'a'..='z' => item as Priority - 'a' as Priority + 1,
+        'A'..='Z' => item as Priority - 'A' as Priority + 27,
         _ => panic!("item should be represented by a letter"),
     }
 }

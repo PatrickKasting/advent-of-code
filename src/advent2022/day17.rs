@@ -1,5 +1,7 @@
 use std::{cmp, iter::Peekable};
 
+use easy_cast::{Cast, Conv};
+
 type Chamber = Vec<[bool; CHAMBER_WIDTH_INCLUDING_WALLS]>;
 type Position = [Coordinate; 2];
 type Coordinate = usize;
@@ -176,16 +178,14 @@ fn surface(chamber: &Chamber, tower_height: Coordinate) -> Surface {
     let right = |[row, column]: Direction| [-column, row];
     let backward = |[row, column]: Direction| [-row, -column];
     let add = |left: [isize; 2], right: [isize; 2]| [left[0] + right[0], left[1] + right[1]];
-    #[allow(clippy::cast_sign_loss)]
-    let convert = |[row, column]: [isize; 2]| [row as Coordinate, column as Coordinate];
+    let convert = |[row, column]: [isize; 2]| [usize::conv(row), column.cast()];
 
     let mut row = tower_height;
     while !chamber[row][1] {
         row -= 1;
     }
 
-    #[allow(clippy::cast_possible_wrap)]
-    let mut position = [row as isize, 1];
+    let mut position = [row.cast(), 1];
     let mut direction = [0, 1];
     let mut surface = vec![];
     loop {

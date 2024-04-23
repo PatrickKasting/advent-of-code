@@ -1,3 +1,4 @@
+use easy_cast::Cast;
 use itertools::Itertools;
 
 use crate::data_structures::grid::Grid;
@@ -22,18 +23,14 @@ fn sum_of_distances(input: &str, expansion_factor: usize) -> Distance {
     let galaxies = image
         .iter_row_major()
         .filter_map(|(position, &element)| is_galaxy(element).then_some(position));
-    #[allow(clippy::cast_sign_loss)]
     let distances = galaxies.combinations(2).map(|pair| {
         let vertical_distance = one_dimensional_distance(
-            [pair[0].row() as Coordinate, pair[1].row() as Coordinate],
+            [pair[0].row().cast(), pair[1].row().cast()],
             &empty_rows,
             expansion_factor,
         );
         let horizontal_distance = one_dimensional_distance(
-            [
-                pair[0].column() as Coordinate,
-                pair[1].column() as Coordinate,
-            ],
+            [pair[0].column().cast(), pair[1].column().cast()],
             &empty_columns,
             expansion_factor,
         );
@@ -49,7 +46,7 @@ fn indices_of_empty<'image>(
         .enumerate()
         .filter_map(|(line_index, mut line)| {
             line.all(|&element| !is_galaxy(element))
-                .then_some(line_index as Coordinate)
+                .then_some(line_index.cast())
         })
         .collect_vec()
 }

@@ -1,5 +1,6 @@
 use std::ops::RangeInclusive;
 
+use easy_cast::Conv;
 use itertools::Itertools;
 use strum::IntoEnumIterator;
 
@@ -22,10 +23,9 @@ pub fn second(input: &str) -> String {
 
 fn minimum_heat_loss(map: &Map, number_of_steps: RangeInclusive<usize>) -> HeatLoss {
     let starting_point = (None, Position::new(0, 0));
-    #[allow(clippy::cast_possible_wrap)]
     let machine_parts_factory = Position::new(
-        map.height() as Coordinate - 1,
-        map.width() as Coordinate - 1,
+        Coordinate::conv(map.height()) - 1,
+        Coordinate::conv(map.width()) - 1,
     );
     let is_machine_parts_factory = |(_, position)| position == machine_parts_factory;
     cheapest_path_cost(

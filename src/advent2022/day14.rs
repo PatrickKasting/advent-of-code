@@ -1,3 +1,4 @@
+use easy_cast::Cast;
 use itertools::Itertools;
 
 use crate::{
@@ -10,8 +11,7 @@ type Path = Vec<Position>;
 
 pub fn first(input: &str) -> String {
     let (mut cave, sand_source) = cave(input);
-    #[allow(clippy::cast_possible_wrap)]
-    let cave_height = cave.height() as Coordinate;
+    let cave_height: isize = cave.height().cast();
     let stop = |rest_position: Position| rest_position.row() == cave_height - 2;
     produce_sand(&mut cave, sand_source, stop);
     (number_of_units_of_sand(&cave) - 1).to_string()
@@ -67,8 +67,7 @@ fn cave(input: &str) -> (Cave, Position) {
             b'.'
         }
     };
-    #[allow(clippy::cast_sign_loss)]
-    let mut cave = Grid::new(height as usize, width as usize, empty_cave_element);
+    let mut cave = Grid::new(height.cast(), width.cast(), empty_cave_element);
     for path in paths {
         add_path(&mut cave, &path, sand_source);
     }

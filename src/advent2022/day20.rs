@@ -1,3 +1,4 @@
+use easy_cast::{Cast, Conv};
 use itertools::Itertools;
 
 use crate::strings::isizes;
@@ -43,10 +44,8 @@ fn mixed_file(file: &[Number], rounds: usize) -> File {
                 .position(|&label| label == count)
                 .expect("all integer labels up to amount of numbers should be present");
             let label = labels.remove(origin);
-            #[allow(clippy::cast_possible_wrap)]
-            let destination =
-                (origin as Number + number).rem_euclid(labels.len() as Number) as usize;
-            labels.insert(destination, label);
+            let destination = (Number::conv(origin) + number).rem_euclid(labels.len().cast());
+            labels.insert(destination.cast(), label);
         }
     }
     labels.into_iter().map(|label| file[label]).collect_vec()

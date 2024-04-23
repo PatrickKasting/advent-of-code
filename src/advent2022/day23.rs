@@ -3,9 +3,10 @@ use std::{
     iter,
 };
 
+use easy_cast::Cast;
 use itertools::Itertools;
 
-use crate::data_structures::grid::{Coordinate, Direction, Position};
+use crate::data_structures::grid::{Direction, Position};
 
 const INITIAL_DIRECTIONS: [Direction; 4] = [
     Direction::North,
@@ -91,7 +92,6 @@ fn number_of_free_tiles(elves: &HashSet<Position>) -> usize {
     height * width - number_of_elves
 }
 
-#[allow(clippy::cast_sign_loss)]
 fn bounding_rectangle(elves: &HashSet<Position>) -> [usize; 2] {
     [Position::row, Position::column].map(|coordinate| {
         let (min, max) = elves
@@ -100,18 +100,17 @@ fn bounding_rectangle(elves: &HashSet<Position>) -> [usize; 2] {
             .minmax()
             .into_option()
             .expect("at least one elf should be present");
-        (max - min + 1) as usize
+        (max - min + 1).cast()
     })
 }
 
-#[allow(clippy::cast_possible_wrap)]
 fn elves(input: &str) -> HashSet<Position> {
     input
         .lines()
         .enumerate()
         .flat_map(|(row, line)| iter::repeat(row).zip(line.chars().enumerate()))
         .filter(|&(_, (_, char))| char == '#')
-        .map(|(row, (column, _))| Position::new(row as Coordinate, column as Coordinate))
+        .map(|(row, (column, _))| Position::new(row.cast(), column.cast()))
         .collect()
 }
 
