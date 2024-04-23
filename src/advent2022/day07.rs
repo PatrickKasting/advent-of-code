@@ -2,8 +2,6 @@ use std::{collections::HashMap, iter};
 
 use itertools::Itertools;
 
-use crate::strings::parse;
-
 type Size = usize;
 
 struct Directory<'input> {
@@ -59,7 +57,8 @@ fn root(input: &str) -> Directory {
                 let (size, _) = line
                     .split_once(' ')
                     .expect("size and name should be separated by a space");
-                current_directory.file_size_sum += parse::<&str, Size>(size);
+                current_directory.file_size_sum +=
+                    size.parse::<Size>().expect("file size should be numerical");
             }
         }
     }

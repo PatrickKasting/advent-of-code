@@ -1,10 +1,7 @@
-use crate::{
-    data_structures::grid::{Coordinate, Grid, Position},
-    strings::parse,
-};
+use crate::data_structures::grid::{Coordinate, Grid, Position};
 
+type SignalStrength = isize;
 type Register = isize;
-type SignalStrength = Register;
 type Image = Grid<char>;
 
 pub fn first(input: &str) -> String {
@@ -49,9 +46,12 @@ fn execute(input: &str, mut on_cycle: impl FnMut(Register, usize)) {
     let mut register = 1;
     let mut number_of_completed_cycles = 0;
     for line in input.lines() {
-        let (next_register, execution_time) = match &line[0..4] {
+        let (next_register, execution_time): (Register, _) = match &line[0..4] {
             "noop" => (register, 1),
-            "addx" => (register + parse::<_, Register>(&line[5..]), 2),
+            "addx" => {
+                let operand: Register = line[5..].parse().expect("operand should be numerical");
+                (register + operand, 2)
+            }
             _ => panic!("instruction shoul be 'noop' or 'addx'"),
         };
         for _ in 0..execution_time {

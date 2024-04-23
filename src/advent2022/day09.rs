@@ -1,9 +1,6 @@
 use std::collections::HashSet;
 
-use crate::{
-    data_structures::grid::{Direction, Position},
-    strings::{char_at, parse},
-};
+use crate::data_structures::grid::{Direction, Position};
 
 type Motion = (Direction, usize);
 
@@ -54,8 +51,10 @@ fn knot_position(knot: Position, puller: Position) -> Position {
 
 fn motions(input: &str) -> impl Iterator<Item = Motion> + '_ {
     input.lines().map(|line| {
-        let direction = Direction::from_up_down_left_or_right(char_at(line, 0));
-        let number_of_steps = parse(&line[2..]);
+        let direction = Direction::from_up_down_left_or_right(line.as_bytes()[0] as char);
+        let number_of_steps = line[2..]
+            .parse()
+            .expect("number of steps should be numerical");
         (direction, number_of_steps)
     })
 }

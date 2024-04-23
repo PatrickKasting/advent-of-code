@@ -1,5 +1,3 @@
-use crate::strings::parse;
-
 type HashMap<'label> = Vec<Bucket<'label>>;
 type Bucket<'label> = Vec<(&'label str, FocalLength)>;
 type FocalLength = usize;
@@ -75,7 +73,9 @@ fn operation(step: &str) -> (&str, Operation) {
     let operation = match &operation[..1] {
         "-" => Operation::Removal,
         "=" => {
-            let focal_length = parse(&operation[1..]);
+            let focal_length = operation[1..]
+                .parse()
+                .expect("focal length should be numerical");
             Operation::Insertion(focal_length)
         }
         _ => panic!("operation should be '-' or '='"),

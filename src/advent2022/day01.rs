@@ -1,7 +1,5 @@
 use itertools::Itertools;
 
-use crate::strings::parse;
-
 type Calories = usize;
 
 pub fn first(input: &str) -> String {
@@ -22,7 +20,12 @@ fn elves_in_descending_order(str: &str) -> Vec<Calories> {
 }
 
 fn elf(str: &str) -> Calories {
-    str.lines().map(parse::<&str, Calories>).sum()
+    str.lines()
+        .map(|line| {
+            line.parse::<Calories>()
+                .expect("line should contain a single number")
+        })
+        .sum()
 }
 
 #[cfg(test)]

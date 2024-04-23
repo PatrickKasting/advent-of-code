@@ -3,53 +3,20 @@ use std::{collections::HashMap, ops::Range};
 use itertools::Itertools;
 use regex::Regex;
 
-use crate::{strings::char_at, strings::parse};
-
 type GearRatio = usize;
 type PartNumber = usize;
 type Coordinate = usize;
 
-fn range_extended_by_one(bounds: Range<usize>, mut range: Range<usize>) -> Range<usize> {
-    if range.start != bounds.start {
-        range.start -= 1;
-    }
-    if range.end != bounds.end {
-        range.end += 1;
-    }
-    range
+pub fn first(input: &str) -> String {
+    let mut sum: PartNumber = 0;
+    for_each_part_number(input, |part_number, _, _| sum += part_number);
+    sum.to_string()
 }
 
-fn is_symbol(char: char) -> bool {
-    char != '.' && char.is_ascii_punctuation()
-}
-
-fn for_each_part_number(
-    schematic: &str,
-    mut action: impl FnMut(PartNumber, char, (Coordinate, Coordinate)),
-) {
-    let number_regex = Regex::new(r"\d+").expect("regex should be valid");
-    let lines = schematic.lines().collect_vec();
-    let [schematic_height, schematic_width] = [lines.len(), lines[0].len()];
-    for (line_index, &line) in lines.iter().enumerate() {
-        #[allow(clippy::range_plus_one)]
-        let vertical_range = range_extended_by_one(0..schematic_height, line_index..line_index + 1);
-        for mat in number_regex.find_iter(line) {
-            let horizontal_range = range_extended_by_one(0..schematic_width, mat.range());
-            for line_index in vertical_range.clone() {
-                let adjacent_range = &lines[line_index][horizontal_range.clone()];
-                if let Some(symbol_position_within_range) = adjacent_range.find(is_symbol) {
-                    let part_number = parse(mat.as_str());
-                    let symbol = char_at(adjacent_range, symbol_position_within_range);
-                    let location = (
-                        line_index,
-                        symbol_position_within_range + horizontal_range.start,
-                    );
-                    action(part_number, symbol, location);
-                    break;
-                }
-            }
-        }
-    }
+pub fn second(input: &str) -> String {
+    gear_ratios(&part_numbers_next_to_stars(input))
+        .sum::<GearRatio>()
+        .to_string()
 }
 
 fn part_numbers_next_to_stars(input: &str) -> HashMap<(Coordinate, Coordinate), Vec<PartNumber>> {
@@ -66,13 +33,51 @@ fn part_numbers_next_to_stars(input: &str) -> HashMap<(Coordinate, Coordinate), 
     part_numbers_next_to_stars
 }
 
-fn gear_ratio(part_numbers: &[PartNumber]) -> GearRatio {
-    debug_assert_eq!(
-        part_numbers.len(),
-        2,
-        "a gear ratio should come from two part numbers"
-    );
-    part_numbers.iter().copied().product()
+fn for_each_part_number(
+    schematic: &str,
+    mut action: impl FnMut(PartNumber, char, (Coordinate, Coordinate)),
+) {
+    let number_regex = Regex::new(r"\d+").expect("regex should be valid");
+    let lines = schematic.lines().collect_vec();
+    let [schematic_height, schematic_width] = [lines.len(), lines[0].len()];
+    for (line_index, &line) in lines.iter().enumerate() {
+        #[allow(clippy::range_plus_one)]
+        for mat in number_regex.find_iter(line) {
+            let horizontal_range = range_extended_by_one(0..schematic_width, mat.range());
+            let vertical_range =
+                range_extended_by_one(0..schematic_height, line_index..line_index + 1);
+            for line_index in vertical_range {
+                let line = &lines[line_index][horizontal_range.clone()];
+                if let Some(symbol_position_within_range) = line.find(is_symbol) {
+                    let part_number = mat
+                        .as_str()
+                        .parse()
+                        .expect("part number should be numerical");
+                    let symbol = line.as_bytes()[symbol_position_within_range] as char;
+                    let location = (
+                        line_index,
+                        symbol_position_within_range + horizontal_range.start,
+                    );
+                    action(part_number, symbol, location);
+                    break;
+                }
+            }
+        }
+    }
+}
+
+fn range_extended_by_one(bounds: Range<usize>, mut range: Range<usize>) -> Range<usize> {
+    if range.start != bounds.start {
+        range.start -= 1;
+    }
+    if range.end != bounds.end {
+        range.end += 1;
+    }
+    range
+}
+
+fn is_symbol(char: char) -> bool {
+    char != '.' && char.is_ascii_punctuation()
 }
 
 fn gear_ratios(
@@ -84,16 +89,13 @@ fn gear_ratios(
         .map(|part_numbers| gear_ratio(part_numbers))
 }
 
-pub fn first(input: &str) -> String {
-    let mut sum: PartNumber = 0;
-    for_each_part_number(input, |part_number, _, _| sum += part_number);
-    sum.to_string()
-}
-
-pub fn second(input: &str) -> String {
-    gear_ratios(&part_numbers_next_to_stars(input))
-        .sum::<GearRatio>()
-        .to_string()
+fn gear_ratio(part_numbers: &[PartNumber]) -> GearRatio {
+    debug_assert_eq!(
+        part_numbers.len(),
+        2,
+        "a gear ratio should come from two part numbers"
+    );
+    part_numbers.iter().copied().product()
 }
 
 #[cfg(test)]

@@ -1,28 +1,19 @@
 use std::collections::HashSet;
 
-use crate::strings::parse;
-
 type Score = usize;
 type Numbers = HashSet<Number>;
 type Number = usize;
 
-fn numbers_from_list(list: &str) -> Numbers {
-    list.split_whitespace().map(parse).collect()
+pub fn first(input: &str) -> String {
+    total_score_of_original_scratchcards(input).to_string()
 }
 
-fn scratchcard_numbers(scratchcard: &str) -> (Numbers, Numbers) {
-    let (_, numbers) = scratchcard
-        .split_once(':')
-        .expect("every line should contain a colon");
-    let (winning, yours) = numbers
-        .split_once('|')
-        .expect("every line should contain a bar");
-    (numbers_from_list(winning), numbers_from_list(yours))
+pub fn second(input: &str) -> String {
+    final_number_of_scratchcards(input).to_string()
 }
 
-fn number_of_matches(scratchcard: &str) -> usize {
-    let (winning, yours) = scratchcard_numbers(scratchcard);
-    winning.intersection(&yours).count()
+fn total_score_of_original_scratchcards(input: &str) -> Score {
+    input.lines().map(scratchcard_score).sum()
 }
 
 fn scratchcard_score(scratchcard: &str) -> Score {
@@ -36,8 +27,24 @@ fn scratchcard_score(scratchcard: &str) -> Score {
     }
 }
 
-fn total_score_of_original_scratchcards(input: &str) -> Score {
-    input.lines().map(scratchcard_score).sum()
+fn number_of_matches(scratchcard: &str) -> usize {
+    let (winning, yours) = scratchcard_numbers(scratchcard);
+    winning.intersection(&yours).count()
+}
+
+fn scratchcard_numbers(scratchcard: &str) -> (Numbers, Numbers) {
+    let (_, numbers) = scratchcard
+        .split_once(':')
+        .expect("every line should contain a colon");
+    let (winning, yours) = numbers
+        .split_once('|')
+        .expect("every line should contain a bar");
+    (numbers_from_list(winning), numbers_from_list(yours))
+}
+
+fn numbers_from_list(list: &str) -> Numbers {
+    let number = |str: &str| str.parse().expect("number should be numerical");
+    list.split_whitespace().map(number).collect()
 }
 
 fn final_number_of_scratchcards(input: &str) -> usize {
@@ -50,14 +57,6 @@ fn final_number_of_scratchcards(input: &str) -> usize {
         }
     }
     number_of_copies.into_iter().sum()
-}
-
-pub fn first(input: &str) -> String {
-    total_score_of_original_scratchcards(input).to_string()
-}
-
-pub fn second(input: &str) -> String {
-    final_number_of_scratchcards(input).to_string()
 }
 
 #[cfg(test)]

@@ -1,8 +1,6 @@
-use crate::strings::char_at;
-
-type Symbol = i64; // Rock = 0, Paper = 1, Scissors = 2 OR Loss = 0, Draw = 1, Win = 2
-type Game = [Symbol; 2];
 type Score = i64;
+type Game = [Symbol; 2];
+type Symbol = i64; // Rock = 0, Paper = 1, Scissors = 2 OR Loss = 0, Draw = 1, Win = 2
 
 pub fn first(input: &str) -> String {
     total_score(games(input), score_known_shape).to_string()
@@ -29,8 +27,8 @@ fn score_known_shape([opponent, me]: [Symbol; 2]) -> Score {
 fn games(input: &str) -> impl Iterator<Item = Game> + '_ {
     input.lines().map(|line| {
         [
-            char_at(line, 0) as i64 - 'A' as i64,
-            char_at(line, 2) as i64 - 'X' as i64,
+            Symbol::from(line.as_bytes()[0] - b'A'),
+            Symbol::from(line.as_bytes()[2] - b'X'),
         ]
     })
 }

@@ -3,8 +3,6 @@ use std::{
     ops::{Add, Div, Mul, Sub},
 };
 
-use crate::strings::char_at;
-
 type Monkey<'input> = (&'input str, Expression<'input>);
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
@@ -161,11 +159,11 @@ fn expression(str: &str) -> Expression {
     if let Ok(constant) = str.parse() {
         Expression::Constant(constant)
     } else {
-        let operator = match char_at(str, 5) {
-            '+' => Expression::Add,
-            '-' => Expression::Sub,
-            '*' => Expression::Mul,
-            '/' => Expression::Div,
+        let operator = match &str[5..6] {
+            "+" => Expression::Add,
+            "-" => Expression::Sub,
+            "*" => Expression::Mul,
+            "/" => Expression::Div,
             _ => panic!("operator should be '+', '-', '*', ot '/'"),
         };
         operator(&str[0..4], &str[7..11])

@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use crate::strings::{parse, usizes};
+use crate::strings::usizes;
 
 type Worry = usize;
 type Operation = Box<dyn Fn(Worry) -> Worry>;
@@ -95,7 +95,7 @@ fn value(str: &str) -> Box<dyn Fn(Worry) -> Worry> {
     if str == "old" {
         Box::new(|old| old)
     } else {
-        let constant = parse(str);
+        let constant = str.parse().expect("value should be numerical");
         Box::new(move |_| constant)
     }
 }
