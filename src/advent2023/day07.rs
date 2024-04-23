@@ -76,7 +76,7 @@ fn hand_type(mut hand: Hand) -> HandType {
     group_sizes
 }
 
-fn total_winnings(j: Card, input: &str) -> usize {
+fn total_winnings(j: Card, input: &str) -> Bid {
     let mut strengths_and_bids = input
         .lines()
         .map(|line| player(j, line))

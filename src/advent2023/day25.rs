@@ -5,7 +5,43 @@ use rand::{rngs::SmallRng, seq::SliceRandom, SeedableRng};
 
 use crate::math::graphs::flow_networks::maximum_flow;
 
-fn network(input: &str) -> (Vec<&str>, Vec<(&str, usize, &str)>) {
+type One = usize;
+
+pub fn first(input: &str) -> String {
+    let (components, connections) = network(input);
+    let groups = separate_groups(&components, &connections, 3);
+    (groups.0.len() * groups.1.len()).to_string()
+}
+
+pub fn second(_input: &str) -> String {
+    unimplemented!();
+}
+
+fn separate_groups<'input>(
+    components: &[&'input str],
+    connections: &[(&'input str, One, &'input str)],
+    number_of_wires_to_cut: usize,
+) -> (HashSet<&'input str>, HashSet<&'input str>) {
+    let mut rng = SmallRng::from_seed([0; 32]);
+    loop {
+        let mut terminals = components.choose_multiple(&mut rng, 2);
+        let (maximum_flow, cut) = maximum_flow(
+            components.iter().copied(),
+            connections.iter().copied(),
+            terminals
+                .next()
+                .expect("two components should be randomly chosen"),
+            terminals
+                .next()
+                .expect("two components should be randomly chosen"),
+        );
+        if maximum_flow == number_of_wires_to_cut {
+            return cut;
+        }
+    }
+}
+
+fn network(input: &str) -> (Vec<&str>, Vec<(&str, One, &str)>) {
     let mut components = HashSet::new();
     let mut connections = vec![];
     for line in input.lines() {
@@ -20,37 +56,6 @@ fn network(input: &str) -> (Vec<&str>, Vec<(&str, usize, &str)>) {
         }
     }
     (components.into_iter().collect_vec(), connections)
-}
-
-fn separate_groups<'input>(
-    components: &mut [&'input str],
-    connections: &[(&'input str, usize, &'input str)],
-    number_of_wires_to_cut: usize,
-) -> (HashSet<&'input str>, HashSet<&'input str>) {
-    let mut rng = SmallRng::from_seed([0; 32]);
-    loop {
-        components.shuffle(&mut rng);
-        let (source, sink) = (components[0], components[1]);
-        let (maximum_flow, cut) = maximum_flow(
-            components.iter().copied(),
-            connections.iter().copied(),
-            source,
-            sink,
-        );
-        if maximum_flow == number_of_wires_to_cut {
-            return cut;
-        }
-    }
-}
-
-pub fn first(input: &str) -> String {
-    let (mut components, connections) = network(input);
-    let groups = separate_groups(&mut components, &connections, 3);
-    (groups.0.len() * groups.1.len()).to_string()
-}
-
-pub fn second(_input: &str) -> String {
-    unimplemented!();
 }
 
 #[cfg(test)]

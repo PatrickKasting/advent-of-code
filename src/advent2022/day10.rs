@@ -1,5 +1,5 @@
 use crate::{
-    data_structures::grid::{Grid, Position},
+    data_structures::grid::{Coordinate, Grid, Position},
     strings::parse,
 };
 
@@ -17,14 +17,14 @@ pub fn second(input: &str) -> String {
 
 fn image(input: &str) -> Image {
     let mut image = Image::new(6, 40, |_| '.');
-    let draw_maybe = |register: Register, number_of_completed_cycles| {
+    let draw_maybe = |register: Register, number_of_completed_cycles: usize| {
         let [row, column] = [
             number_of_completed_cycles / image.width(),
             number_of_completed_cycles % image.width(),
         ];
         #[allow(clippy::cast_possible_wrap)]
-        if (column as isize - register).abs() <= 1 {
-            image[Position::new(row, column)] = '#';
+        if (column as Register - register).abs() <= 1 {
+            image[Position::new(row as Coordinate, column as Coordinate)] = '#';
         }
     };
     execute(input, draw_maybe);
@@ -34,10 +34,10 @@ fn image(input: &str) -> Image {
 fn sum_of_signal_strengths(input: &str) -> SignalStrength {
     let mut sum_of_signal_strengths = 0;
     let mut next_sample_time = 20;
+    #[allow(clippy::cast_possible_wrap)]
     let sample_maybe = |register, number_of_completed_cycles| {
-        #[allow(clippy::cast_possible_wrap)]
         if number_of_completed_cycles + 1 == next_sample_time {
-            sum_of_signal_strengths += register * next_sample_time as isize;
+            sum_of_signal_strengths += register * next_sample_time as Register;
             next_sample_time += 40;
         }
     };

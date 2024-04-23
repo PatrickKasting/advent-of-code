@@ -30,7 +30,7 @@ fn decrypt(file: &mut File, decryption_key: Number, rounds_of_mixing: usize) -> 
     mixed_file(file, rounds_of_mixing)
 }
 
-fn apply_decryption_key(file: &mut [isize], key: Number) {
+fn apply_decryption_key(file: &mut [Number], key: Number) {
     file.iter_mut().for_each(|number| *number *= key);
 }
 
@@ -44,7 +44,8 @@ fn mixed_file(file: &[Number], rounds: usize) -> File {
                 .expect("all integer labels up to amount of numbers should be present");
             let label = labels.remove(origin);
             #[allow(clippy::cast_possible_wrap)]
-            let destination = (origin as isize + number).rem_euclid(labels.len() as isize) as usize;
+            let destination =
+                (origin as Number + number).rem_euclid(labels.len() as Number) as usize;
             labels.insert(destination, label);
         }
     }

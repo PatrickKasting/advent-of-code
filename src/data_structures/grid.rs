@@ -97,31 +97,19 @@ impl Debug for Position {
 }
 
 impl Position {
-    pub fn new<R, C>(row: R, column: C) -> Self
-    where
-        Coordinate: TryFrom<R> + TryFrom<C>,
-        <Coordinate as TryFrom<R>>::Error: Debug,
-        <Coordinate as TryFrom<C>>::Error: Debug,
-    {
-        Position {
-            row: row
-                .try_into()
-                .expect("row should convert to position Coordinate"),
-            column: column
-                .try_into()
-                .expect("column should convert to position coordinate"),
-        }
+    pub const fn new(row: Coordinate, column: Coordinate) -> Self {
+        Position { row, column }
     }
 
-    pub fn row(self) -> Coordinate {
+    pub const fn row(self) -> Coordinate {
         self.row
     }
 
-    pub fn column(self) -> Coordinate {
+    pub const fn column(self) -> Coordinate {
         self.column
     }
 
-    pub fn neighbor(mut self, direction: Direction) -> Position {
+    pub const fn neighbor(mut self, direction: Direction) -> Position {
         match direction {
             Direction::North => self.row -= 1,
             Direction::East => self.column += 1,
@@ -157,7 +145,7 @@ impl Position {
         }
     }
 
-    pub fn manhattan_distance(self, other: Position) -> isize {
+    pub const fn manhattan_distance(self, other: Position) -> Coordinate {
         (self.row - other.row).abs() + (self.column - other.column).abs()
     }
 }
@@ -173,7 +161,11 @@ impl<T> Grid<T> {
         let mut elements = vec![];
         for row in 0..height {
             for column in 0..width {
-                elements.push(element(Position::new(row, column)));
+                #[allow(clippy::cast_possible_wrap)]
+                elements.push(element(Position::new(
+                    row as Coordinate,
+                    column as Coordinate,
+                )));
             }
         }
         Self { elements, width }
@@ -191,20 +183,28 @@ impl<T> Grid<T> {
         })
     }
 
+    #[allow(clippy::cast_possible_wrap)]
     pub fn iter_row_major(&self) -> impl Iterator<Item = (Position, &T)> {
         self.rows().enumerate().flat_map(|(row_index, row)| {
             row.enumerate().map(move |(column_index, element)| {
-                (Position::new(row_index, column_index), element)
+                (
+                    Position::new(row_index as Coordinate, column_index as Coordinate),
+                    element,
+                )
             })
         })
     }
 
+    #[allow(clippy::cast_possible_wrap)]
     pub fn iter_column_major(&self) -> impl Iterator<Item = (Position, &T)> {
         self.columns()
             .enumerate()
             .flat_map(|(column_index, column)| {
                 column.enumerate().map(move |(row_index, element)| {
-                    (Position::new(row_index, column_index), element)
+                    (
+                        Position::new(row_index as Coordinate, column_index as Coordinate),
+                        element,
+                    )
                 })
             })
     }
@@ -235,12 +235,16 @@ impl<T> Grid<T> {
         }
     }
 
+    #[allow(clippy::cast_possible_wrap)]
     pub fn corners_clockwise(&self) -> [Position; 4] {
         [
             (Position::new(0, 0)),
-            (Position::new(0, self.width() - 1)),
-            (Position::new(self.height() - 1, self.width() - 1)),
-            (Position::new(self.height() - 1, 0)),
+            (Position::new(0, self.width() as Coordinate - 1)),
+            (Position::new(
+                self.height() as Coordinate - 1,
+                self.width() as Coordinate - 1,
+            )),
+            (Position::new(self.height() as Coordinate - 1, 0)),
         ]
     }
 
@@ -261,7 +265,6 @@ impl<T> Grid<T> {
         row * self.width() + column
     }
 
-    #[allow(clippy::cast_possible_truncation)]
     #[allow(clippy::cast_possible_wrap)]
     pub fn is_within_grid(&self, position: Position) -> bool {
         0 <= position.row()

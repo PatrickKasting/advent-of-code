@@ -36,7 +36,7 @@ fn possible_positions<'data>(
     sensors: &'data [Sensor],
     distances: &'data [Coordinate],
     coordinate_max: Coordinate,
-) -> impl Iterator<Item = (isize, Range)> + Debug + 'data {
+) -> impl Iterator<Item = (Coordinate, Range)> + Debug + 'data {
     (0..=coordinate_max).flat_map(move |row| {
         let impossible_ranges = impossible_ranges(sensors, distances, row);
         complement_ranges(impossible_ranges, [0, coordinate_max + 1])
@@ -85,7 +85,7 @@ fn tuning_frequency(beacon: Position) -> isize {
     beacon.column() * 4_000_000 + beacon.row()
 }
 
-fn number_of_impossible_positions_from_input(input: &str, row: isize) -> usize {
+fn number_of_impossible_positions_from_input(input: &str, row: Coordinate) -> usize {
     let (sensors, beacons) = sensors_and_closest_beacons(input);
     let distances = distances_to_closest_beacons(&sensors, &beacons);
     let impossible_ranges = impossible_ranges(&sensors, &distances, row);
@@ -93,25 +93,24 @@ fn number_of_impossible_positions_from_input(input: &str, row: isize) -> usize {
     number_of_impossible_positions(&beacons, &impossible_ranges, row)
 }
 
+#[allow(clippy::cast_sign_loss)]
 fn number_of_impossible_positions(
     beacons: &HashSet<Beacon>,
     impossible_ranges: &[Range],
-    row: isize,
+    row: Coordinate,
 ) -> usize {
     let beacons = beacons
         .iter()
         .filter(|&&beacon| beacon_within_ranges(beacon, impossible_ranges, row))
         .count();
-    let impossible_positions: usize = impossible_ranges
+    let impossible_positions: isize = impossible_ranges
         .iter()
         .map(|&[start, end]| end - start)
-        .sum::<isize>()
-        .try_into()
-        .expect("number of immpossible positions should not be negative");
-    impossible_positions - beacons
+        .sum();
+    impossible_positions as usize - beacons
 }
 
-fn beacon_within_ranges(beacon: Beacon, ranges: &[Range], row: isize) -> bool {
+fn beacon_within_ranges(beacon: Beacon, ranges: &[Range], row: Coordinate) -> bool {
     let correct_row = beacon.row() == row;
     let within_range = ranges
         .iter()
@@ -119,7 +118,7 @@ fn beacon_within_ranges(beacon: Beacon, ranges: &[Range], row: isize) -> bool {
     correct_row && within_range
 }
 
-fn impossible_ranges(sensors: &[Sensor], distances: &[Coordinate], row: isize) -> Vec<Range> {
+fn impossible_ranges(sensors: &[Sensor], distances: &[Coordinate], row: Coordinate) -> Vec<Range> {
     let mut overlapping_impossible_ranges = sensors
         .iter()
         .zip_eq(distances)
@@ -148,7 +147,7 @@ fn merged_range(sorted_ranges: &[Range]) -> (&[Range], Range) {
     (&[], [start, end])
 }
 
-fn impossible_range(sensor: Sensor, distance: Coordinate, row: isize) -> Option<Range> {
+fn impossible_range(sensor: Sensor, distance: Coordinate, row: Coordinate) -> Option<Range> {
     let perimeter_row_farthest_distance = distance - (sensor.row() - row).abs();
     (!perimeter_row_farthest_distance.is_negative()).then(|| {
         [

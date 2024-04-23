@@ -18,7 +18,7 @@ pub fn second(input: &str) -> String {
     exterior_area(&cubes).to_string()
 }
 
-fn exterior_area(cubes: &HashSet<[isize; 3]>) -> Coordinate {
+fn exterior_area(cubes: &HashSet<Position>) -> Coordinate {
     let bounding_box = bounding_box(cubes);
     let bounding_box_area = bounding_box_area(bounding_box);
     let exterior_volume = exterior_volume(cubes, bounding_box);
@@ -26,7 +26,7 @@ fn exterior_area(cubes: &HashSet<[isize; 3]>) -> Coordinate {
     exterior_volume_area - bounding_box_area
 }
 
-fn bounding_box(cubes: &HashSet<[isize; 3]>) -> [Position; 2] {
+fn bounding_box(cubes: &HashSet<Position>) -> [Position; 2] {
     let [[mut min_x, mut min_y, mut min_z], [mut max_x, mut max_y, mut max_z]] =
         [[Coordinate::MAX; 3], [Coordinate::MIN; 3]];
     for &[x, y, z] in cubes {
@@ -52,9 +52,9 @@ fn bounding_box_area([min, max]: BoundingBox) -> Coordinate {
 }
 
 fn exterior_volume(
-    cubes: &HashSet<[isize; 3]>,
+    cubes: &HashSet<Position>,
     [[min_x, min_y, min_z], [max_x, max_y, max_z]]: BoundingBox,
-) -> HashSet<[isize; 3]> {
+) -> HashSet<Position> {
     let mut exploration = Exploration::new([]);
     let successors = |position| {
         neighbors(position).filter(|&neighbor @ [x, y, z]| {

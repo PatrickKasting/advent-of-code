@@ -5,7 +5,9 @@ use regex::Regex;
 
 use crate::{strings::char_at, strings::parse};
 
+type GearRatio = usize;
 type PartNumber = usize;
+type Coordinate = usize;
 
 fn range_extended_by_one(bounds: Range<usize>, mut range: Range<usize>) -> Range<usize> {
     if range.start != bounds.start {
@@ -21,13 +23,15 @@ fn is_symbol(char: char) -> bool {
     char != '.' && char.is_ascii_punctuation()
 }
 
-fn for_each_part_number(schematic: &str, mut action: impl FnMut(PartNumber, char, (usize, usize))) {
-    #![allow(clippy::range_plus_one)]
-
+fn for_each_part_number(
+    schematic: &str,
+    mut action: impl FnMut(PartNumber, char, (Coordinate, Coordinate)),
+) {
     let number_regex = Regex::new(r"\d+").expect("regex should be valid");
     let lines = schematic.lines().collect_vec();
     let [schematic_height, schematic_width] = [lines.len(), lines[0].len()];
     for (line_index, &line) in lines.iter().enumerate() {
+        #[allow(clippy::range_plus_one)]
         let vertical_range = range_extended_by_one(0..schematic_height, line_index..line_index + 1);
         for mat in number_regex.find_iter(line) {
             let horizontal_range = range_extended_by_one(0..schematic_width, mat.range());
@@ -48,7 +52,7 @@ fn for_each_part_number(schematic: &str, mut action: impl FnMut(PartNumber, char
     }
 }
 
-fn part_numbers_next_to_stars(input: &str) -> HashMap<(usize, usize), Vec<usize>> {
+fn part_numbers_next_to_stars(input: &str) -> HashMap<(Coordinate, Coordinate), Vec<PartNumber>> {
     let mut part_numbers_next_to_stars = HashMap::new();
     let add_part_number_if_next_to_star = |part_number, symbol, location| {
         if symbol == '*' {
@@ -62,7 +66,7 @@ fn part_numbers_next_to_stars(input: &str) -> HashMap<(usize, usize), Vec<usize>
     part_numbers_next_to_stars
 }
 
-fn gear_ratio(part_numbers: &[usize]) -> usize {
+fn gear_ratio(part_numbers: &[PartNumber]) -> GearRatio {
     debug_assert_eq!(
         part_numbers.len(),
         2,
@@ -72,8 +76,8 @@ fn gear_ratio(part_numbers: &[usize]) -> usize {
 }
 
 fn gear_ratios(
-    part_numbers_next_to_stars: &HashMap<(usize, usize), Vec<usize>>,
-) -> impl Iterator<Item = usize> + '_ {
+    part_numbers_next_to_stars: &HashMap<(Coordinate, Coordinate), Vec<PartNumber>>,
+) -> impl Iterator<Item = GearRatio> + '_ {
     part_numbers_next_to_stars
         .values()
         .filter(|part_numbers| part_numbers.len() == 2)
@@ -81,14 +85,14 @@ fn gear_ratios(
 }
 
 pub fn first(input: &str) -> String {
-    let mut sum: usize = 0;
+    let mut sum: PartNumber = 0;
     for_each_part_number(input, |part_number, _, _| sum += part_number);
     sum.to_string()
 }
 
 pub fn second(input: &str) -> String {
     gear_ratios(&part_numbers_next_to_stars(input))
-        .sum::<usize>()
+        .sum::<GearRatio>()
         .to_string()
 }
 

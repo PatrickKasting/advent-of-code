@@ -3,17 +3,22 @@ use std::collections::{HashMap, HashSet};
 use itertools::Itertools;
 use strum::IntoEnumIterator;
 
-use crate::data_structures::grid::{Direction, Grid, Position};
+use crate::data_structures::grid::{Coordinate, Direction, Grid, Position};
 
+type Graph = HashMap<Position, Vec<(Distance, Position)>>;
+type Distance = usize;
 type Map = Grid<char>;
-type Graph = HashMap<Position, Vec<(usize, Position)>>;
 
 fn start() -> Position {
     Position::new(0, 1)
 }
 
+#[allow(clippy::cast_possible_wrap)]
 fn goal(map: &Map) -> Position {
-    Position::new(map.height() - 1, map.width() - 2)
+    Position::new(
+        map.height() as Coordinate - 1,
+        map.width() as Coordinate - 2,
+    )
 }
 
 fn slope_direction(char: char) -> Direction {
@@ -28,7 +33,7 @@ fn slope_direction(char: char) -> Direction {
 
 fn successor_tiles(
     ignore_slopes: bool,
-    map: &Grid<char>,
+    map: &Map,
     from: Direction,
     to: Position,
 ) -> Vec<(Direction, Position)> {
@@ -50,10 +55,10 @@ fn successor_tiles(
 
 fn path_to_next_junction(
     ignore_slopes: bool,
-    map: &Grid<char>,
+    map: &Map,
     mut position: Position,
     mut direction: Direction,
-) -> (usize, Position, impl Iterator<Item = Direction>) {
+) -> (Distance, Position, impl Iterator<Item = Direction>) {
     position = position.neighbor(direction);
     let mut distance = 1;
     loop {
@@ -70,7 +75,7 @@ fn path_to_next_junction(
     }
 }
 
-fn graph(ignore_slopes: bool, map: &Grid<char>) -> Graph {
+fn graph(ignore_slopes: bool, map: &Map) -> Graph {
     let mut graph = HashMap::new();
     let mut explored = HashSet::from([(start(), Direction::South)]);
     let mut frontier = vec![(start(), Direction::South)];
@@ -95,7 +100,7 @@ fn maximum_distance(
     explored: &mut HashSet<Position>,
     from: Position,
     to: Position,
-) -> Option<usize> {
+) -> Option<Distance> {
     // add 'from' to 'explored' or return if already present
     if !explored.insert(from) {
         return None;
@@ -115,7 +120,7 @@ fn maximum_distance(
     maximum_distance
 }
 
-fn longest_hike(input: &str, ignore_slopes: bool) -> usize {
+fn longest_hike(input: &str, ignore_slopes: bool) -> Distance {
     let map = Map::from(input);
     let graph = graph(ignore_slopes, &map);
     maximum_distance(&graph, &mut HashSet::new(), start(), goal(&map))

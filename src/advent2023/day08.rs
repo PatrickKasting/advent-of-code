@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use itertools::Itertools;
 
+type Time = usize;
 type Node<'input> = &'input str;
 type Connection<'input> = (Node<'input>, (Node<'input>, Node<'input>));
 type Network<'input> = HashMap<Node<'input>, (Node<'input>, Node<'input>)>;
@@ -42,7 +43,7 @@ fn destination_and_time<'input>(
     directions: &str,
     skipped_directions: usize,
     mut node: Node<'input>,
-) -> (Node<'input>, usize) {
+) -> (Node<'input>, Time) {
     let directions = directions.chars().cycle().skip(skipped_directions);
     for (time, direction) in (1..).zip(directions) {
         node = step(network, node, direction);
@@ -53,7 +54,7 @@ fn destination_and_time<'input>(
     panic!("directions should repeat indefinitely")
 }
 
-fn time_to_all_ghosts_at_destinations(network: &Network, directions: &str) -> usize {
+fn time_to_all_ghosts_at_destinations(network: &Network, directions: &str) -> Time {
     let mut ghosts = network
         .keys()
         .filter(|node| is_starting(node))

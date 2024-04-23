@@ -1,70 +1,22 @@
-use crate::strings::{char_at, parse};
+use crate::strings::parse;
 
-type Bucket<'label> = Vec<(&'label str, usize)>;
 type HashMap<'label> = Vec<Bucket<'label>>;
+type Bucket<'label> = Vec<(&'label str, FocalLength)>;
+type FocalLength = usize;
+type Hash = usize;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum Operation {
+    Insertion(FocalLength),
     Removal,
-    Insertion(usize),
 }
 
-fn steps(sequence: &str) -> impl Iterator<Item = &str> {
-    sequence.trim().split(',')
+pub fn first(input: &str) -> String {
+    steps(input).map(hash).sum::<usize>().to_string()
 }
 
-fn operation(step: &str) -> (&str, Operation) {
-    let operation_index = step
-        .find(|char: char| char.is_ascii_punctuation())
-        .expect("operation should contain '-' or '='");
-    let (label, operation) = (&step[0..operation_index], &step[operation_index..]);
-    let operation = match char_at(operation, 0) {
-        '-' => Operation::Removal,
-        '=' => {
-            let focal_length = parse(&operation[1..]);
-            Operation::Insertion(focal_length)
-        }
-        _ => panic!("operation should be '-' or '='"),
-    };
-    (label, operation)
-}
-
-fn operations(sequence: &str) -> impl Iterator<Item = (&str, Operation)> {
-    steps(sequence).map(operation)
-}
-
-fn hash(str: &str) -> usize {
-    str.as_bytes()
-        .iter()
-        .fold(0_u8, |hash, &char| hash.wrapping_add(char).wrapping_mul(17)) as usize
-}
-
-fn position(bucket: &Bucket, label: &str) -> Option<usize> {
-    bucket
-        .iter()
-        .position(|(label_in_map, _)| *label_in_map == label)
-}
-
-fn hash_map<'label>(steps: impl IntoIterator<Item = (&'label str, Operation)>) -> HashMap<'label> {
-    let mut hash_map: HashMap = vec![Vec::new(); 256];
-    for (label, operation) in steps {
-        let bucket = &mut hash_map[hash(label)];
-        match operation {
-            Operation::Removal => {
-                if let Some(position) = position(bucket, label) {
-                    bucket.remove(position);
-                }
-            }
-            Operation::Insertion(focal_length) => {
-                if let Some(position) = position(bucket, label) {
-                    bucket[position].1 = focal_length;
-                } else {
-                    bucket.push((label, focal_length));
-                }
-            }
-        }
-    }
-    hash_map
+pub fn second(input: &str) -> String {
+    sum_of_focusing_powers(&hash_map(operations(input))).to_string()
 }
 
 fn sum_of_focusing_powers(hash_map: &HashMap) -> usize {
@@ -77,12 +29,62 @@ fn sum_of_focusing_powers(hash_map: &HashMap) -> usize {
     sum
 }
 
-pub fn first(input: &str) -> String {
-    steps(input).map(hash).sum::<usize>().to_string()
+fn hash_map<'label>(steps: impl IntoIterator<Item = (&'label str, Operation)>) -> HashMap<'label> {
+    let mut hash_map: HashMap = vec![Bucket::new(); 256];
+    for (label, operation) in steps {
+        let bucket = &mut hash_map[hash(label)];
+        match operation {
+            Operation::Insertion(focal_length) => {
+                if let Some(position) = position(bucket, label) {
+                    bucket[position].1 = focal_length;
+                } else {
+                    bucket.push((label, focal_length));
+                }
+            }
+            Operation::Removal => {
+                if let Some(position) = position(bucket, label) {
+                    bucket.remove(position);
+                }
+            }
+        }
+    }
+    hash_map
 }
 
-pub fn second(input: &str) -> String {
-    sum_of_focusing_powers(&hash_map(operations(input))).to_string()
+fn hash(str: &str) -> Hash {
+    str.as_bytes()
+        .iter()
+        .fold(0_u8, |hash, &char| hash.wrapping_add(char).wrapping_mul(17)) as Hash
+}
+
+fn position(bucket: &Bucket, label: &str) -> Option<usize> {
+    bucket
+        .iter()
+        .position(|(label_in_map, _)| *label_in_map == label)
+}
+
+fn operations(sequence: &str) -> impl Iterator<Item = (&str, Operation)> {
+    steps(sequence).map(operation)
+}
+
+fn operation(step: &str) -> (&str, Operation) {
+    let operation_index = step
+        .find(['-', '='])
+        .expect("operation should contain '-' or '='");
+    let (label, operation) = (&step[0..operation_index], &step[operation_index..]);
+    let operation = match &operation[..1] {
+        "-" => Operation::Removal,
+        "=" => {
+            let focal_length = parse(&operation[1..]);
+            Operation::Insertion(focal_length)
+        }
+        _ => panic!("operation should be '-' or '='"),
+    };
+    (label, operation)
+}
+
+fn steps(sequence: &str) -> impl Iterator<Item = &str> {
+    sequence.trim().split(',')
 }
 
 #[cfg(test)]

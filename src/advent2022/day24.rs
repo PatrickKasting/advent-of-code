@@ -2,10 +2,10 @@ use std::collections::HashSet;
 
 use itertools::Itertools;
 
-use crate::data_structures::grid::{Direction, Position};
+use crate::data_structures::grid::{Coordinate, Direction, Position};
 
-type Blizzard = (Position, Direction);
 type Blizzards = Vec<Blizzard>;
+type Blizzard = (Position, Direction);
 type Minutes = usize;
 
 pub fn first(input: &str) -> String {
@@ -22,7 +22,7 @@ pub fn second(input: &str) -> String {
 }
 
 fn fastest_journey(
-    valley_dimensions: [usize; 2],
+    valley_dimensions: [Coordinate; 2],
     blizzards: &mut Blizzards,
     journey: &[Position],
 ) -> Minutes {
@@ -33,7 +33,7 @@ fn fastest_journey(
 }
 
 fn fastest_path(
-    valley_dimensions: [usize; 2],
+    valley_dimensions: [Coordinate; 2],
     blizzards: &mut Blizzards,
     start: Position,
     end: Position,
@@ -67,7 +67,7 @@ fn fastest_path(
     }
 }
 
-fn move_blizzards(valley_dimensions: [usize; 2], blizzards: &mut Blizzards) {
+fn move_blizzards(valley_dimensions: [Coordinate; 2], blizzards: &mut Blizzards) {
     for (position, direction) in blizzards.iter_mut() {
         *position = position.neighbor(*direction);
         if is_outside_valley(valley_dimensions, *position) {
@@ -78,16 +78,16 @@ fn move_blizzards(valley_dimensions: [usize; 2], blizzards: &mut Blizzards) {
 }
 
 #[allow(clippy::cast_possible_wrap)]
-fn is_outside_valley(valley_dimensions: [usize; 2], position: Position) -> bool {
+fn is_outside_valley(valley_dimensions: [Coordinate; 2], position: Position) -> bool {
     let [height, width] = valley_dimensions;
     position.row() <= 0
-        || position.row() >= height as isize - 1
+        || position.row() >= height as Coordinate - 1
         || position.column() == 0
-        || position.column() == width as isize - 1
+        || position.column() == width as Coordinate - 1
 }
 
 fn opposite_side(
-    valley_dimensions: [usize; 2],
+    valley_dimensions: [Coordinate; 2],
     position: Position,
     direction: Direction,
 ) -> Position {
@@ -101,9 +101,10 @@ fn opposite_side(
     }
 }
 
-fn valley(input: &str) -> ([usize; 2], Blizzards) {
+fn valley(input: &str) -> ([Coordinate; 2], Blizzards) {
     let lines = input.lines().collect_vec();
-    let dimensions = [lines.len(), lines[0].len()];
+    #[allow(clippy::cast_possible_wrap)]
+    let dimensions = [lines.len() as Coordinate, lines[0].len() as Coordinate];
     let blizzards = lines
         .into_iter()
         .enumerate()
@@ -116,7 +117,8 @@ fn valley(input: &str) -> ([usize; 2], Blizzards) {
                     '<' => Some(Direction::West),
                     _ => None,
                 }?;
-                let position = Position::new(row, column);
+                #[allow(clippy::cast_possible_wrap)]
+                let position = Position::new(row as Coordinate, column as Coordinate);
                 Some((position, blizzard_direction))
             })
         })

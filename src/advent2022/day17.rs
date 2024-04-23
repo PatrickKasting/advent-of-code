@@ -76,9 +76,9 @@ fn tower_height(jets: &str, mut number_of_rocks: usize) -> Coordinate {
 fn drop_rock(
     jets: &mut impl Iterator<Item = (usize, Jet)>,
     chamber: &mut Chamber,
-    tower_height: usize,
+    tower_height: Coordinate,
     rock: Rock,
-) -> usize {
+) -> Coordinate {
     let initial_position @ [top, _] = initial_position(tower_height, rock);
     ensure_needed_height(chamber, top);
     let landing_position @ [top, _] = landing_position(jets, &*chamber, rock, initial_position);
@@ -140,12 +140,12 @@ fn stop_rock(chamber: &mut Chamber, rock: Rock, [row, column]: Position) {
     }
 }
 
-type State = (usize, Surface);
+type State = (Coordinate, Surface);
 
 fn state(
     jets: &mut Peekable<impl Iterator<Item = (usize, Jet)>>,
     chamber: &Chamber,
-    tower_height: usize,
+    tower_height: Coordinate,
 ) -> State {
     let &(jet_index, _) = jets.peek().expect("jets should repeat indefinitely");
     let surface = surface(chamber, tower_height);
@@ -171,13 +171,12 @@ fn cycle_length_and_tower_height_cycle_start(
     None
 }
 
-#[allow(clippy::cast_possible_wrap)]
-#[allow(clippy::cast_sign_loss)]
 fn surface(chamber: &Chamber, tower_height: Coordinate) -> Surface {
     let left = |[row, column]: Direction| [column, -row];
     let right = |[row, column]: Direction| [-column, row];
     let backward = |[row, column]: Direction| [-row, -column];
     let add = |left: [isize; 2], right: [isize; 2]| [left[0] + right[0], left[1] + right[1]];
+    #[allow(clippy::cast_sign_loss)]
     let convert = |[row, column]: [isize; 2]| [row as Coordinate, column as Coordinate];
 
     let mut row = tower_height;
@@ -185,6 +184,7 @@ fn surface(chamber: &Chamber, tower_height: Coordinate) -> Surface {
         row -= 1;
     }
 
+    #[allow(clippy::cast_possible_wrap)]
     let mut position = [row as isize, 1];
     let mut direction = [0, 1];
     let mut surface = vec![];

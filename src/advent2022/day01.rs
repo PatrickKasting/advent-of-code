@@ -17,7 +17,7 @@ pub fn second(input: &str) -> String {
 
 fn elves_in_descending_order(str: &str) -> Vec<Calories> {
     let mut elves = str.split("\n\n").map(elf).collect_vec();
-    elves.sort_unstable_by_key(|&elf| usize::MAX - elf);
+    elves.sort_unstable_by_key(|&elf| Calories::MAX - elf);
     elves
 }
 

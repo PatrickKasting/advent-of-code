@@ -61,7 +61,7 @@ fn visibility_along_line(
     }
 }
 
-fn max_scenic_score(grid: &Grid<isize>) -> ScenicScore {
+fn max_scenic_score(grid: &Grid<Height>) -> ScenicScore {
     grid.iter_row_major()
         .map(|(position, _)| scenic_score(grid, position))
         .max()

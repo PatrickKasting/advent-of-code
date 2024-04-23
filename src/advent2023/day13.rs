@@ -2,17 +2,70 @@ use std::collections::BTreeSet;
 
 use itertools::Itertools;
 
-type Pattern = Vec<Vec<u8>>;
+type Summary = usize;
+type Pattern = Vec<Vec<Tile>>;
+type Symmetry = usize;
+type Tile = u8;
 
-fn pattern(pattern: &str) -> Vec<Vec<u8>> {
-    pattern
-        .lines()
-        .map(str::as_bytes)
-        .map(Vec::from)
-        .collect_vec()
+pub fn first(input: &str) -> String {
+    sum_of_pattern_summaries(input, pattern_summary).to_string()
 }
 
-fn symmetries<T: Eq>(sequence: &[T]) -> BTreeSet<usize> {
+pub fn second(input: &str) -> String {
+    sum_of_pattern_summaries(input, correct_pattern_summary).to_string()
+}
+
+fn sum_of_pattern_summaries(
+    input: &str,
+    mut pattern_summary: impl FnMut(&mut Pattern) -> Summary,
+) -> Summary {
+    input
+        .split("\n\n")
+        .map(pattern)
+        .map(|mut pattern| pattern_summary(&mut pattern))
+        .sum()
+}
+
+fn pattern_summary(pattern: &mut Pattern) -> Summary {
+    let [horizontal_reflection, vertical_reflection] = reflections(pattern).map(|reflections| {
+        reflections
+            .into_iter()
+            .at_most_one()
+            .expect("at most one reflection in each direction should exist")
+    });
+    summary_from_reflections(horizontal_reflection, vertical_reflection)
+        .expect("pattern should have a horizontal reflection or a vertical reflection")
+}
+
+fn correct_pattern_summary(pattern: &mut Pattern) -> Summary {
+    let original_reflections = reflections(pattern);
+    for row_index in 0..pattern.len() {
+        for column_index in 0..pattern[row_index].len() {
+            pattern[row_index][column_index] = opposite(pattern[row_index][column_index]);
+            let new_reflections = reflections(pattern);
+            let [horizontal_reflection, vertical_reflection] = [0, 1].map(|index| {
+                new_reflections[index]
+                    .difference(&original_reflections[index])
+                    .exactly_one()
+                    .ok()
+                    .copied()
+            });
+            if let Some(summary) =
+                summary_from_reflections(horizontal_reflection, vertical_reflection)
+            {
+                return summary;
+            }
+            pattern[row_index][column_index] = opposite(pattern[row_index][column_index]);
+        }
+    }
+    panic!("pattern should be corrected by exactly one change");
+}
+
+fn reflections(pattern: &Pattern) -> [BTreeSet<Symmetry>; 2] {
+    [symmetries(pattern), nested_symmetries(pattern)]
+}
+
+fn symmetries<T: Eq>(sequence: &[T]) -> BTreeSet<Symmetry> {
     let mut symmetries = BTreeSet::new();
     for possible_symmetry in 1..sequence.len() {
         let (left, right) = sequence.split_at(possible_symmetry);
@@ -28,7 +81,7 @@ fn symmetries<T: Eq>(sequence: &[T]) -> BTreeSet<usize> {
     symmetries
 }
 
-fn nested_symmetries<T: Eq>(sequence: &[Vec<T>]) -> BTreeSet<usize> {
+fn nested_symmetries<T: Eq>(sequence: &[Vec<T>]) -> BTreeSet<Symmetry> {
     sequence
         .iter()
         .map(|nested_sequence| symmetries(nested_sequence))
@@ -36,85 +89,39 @@ fn nested_symmetries<T: Eq>(sequence: &[Vec<T>]) -> BTreeSet<usize> {
             possible_symmetries
                 .intersection(&nested_sequence_symmetries)
                 .copied()
-                .collect::<BTreeSet<usize>>()
+                .collect::<BTreeSet<Symmetry>>()
         })
-        .expect("elements should not be empty")
+        .expect("sequence should not be empty")
 }
 
-fn folds(pattern: &Pattern) -> (BTreeSet<usize>, BTreeSet<usize>) {
-    (symmetries(pattern), nested_symmetries(pattern))
-}
-
-fn summary_from_folds(
-    horizontal_fold: Option<usize>,
-    vertical_fold: Option<usize>,
-) -> Option<usize> {
-    match (horizontal_fold, vertical_fold) {
+fn summary_from_reflections(
+    horizontal_reflection: Option<Symmetry>,
+    vertical_reflection: Option<Symmetry>,
+) -> Option<Summary> {
+    match (horizontal_reflection, vertical_reflection) {
         (None, None) => None,
-        (Some(horizontal_fold), None) => Some(100 * horizontal_fold),
-        (None, Some(vertical_fold)) => Some(vertical_fold),
-        _ => panic!("pattern should never have both a horizontal fold and a vertical fold"),
+        (Some(horizontal_reflection), None) => Some(100 * horizontal_reflection),
+        (None, Some(vertical_reflection)) => Some(vertical_reflection),
+        _ => {
+            panic!("two reflections should not exist in one pattern");
+        }
     }
 }
 
-fn pattern_summary(pattern: &mut Pattern) -> usize {
-    let (mut horizontal_folds, mut vertical_folds) = folds(pattern);
-    summary_from_folds(horizontal_folds.pop_first(), vertical_folds.pop_first())
-        .expect("pattern should have a horizontal fold or a vertical fold")
-}
-
-fn opposite_type(kind: u8) -> u8 {
-    if kind == b'#' {
+fn opposite(tile: Tile) -> Tile {
+    if tile == b'#' {
         b'.'
     } else {
         b'#'
     }
 }
 
-fn correct_pattern_summary(pattern: &mut Pattern) -> usize {
-    let original_folds = folds(pattern);
-    for row_index in 0..pattern.len() {
-        for column_index in 0..pattern[row_index].len() {
-            pattern[row_index][column_index] = opposite_type(pattern[row_index][column_index]);
-            let folds = folds(pattern);
-            let horizontal_fold = folds
-                .0
-                .difference(&original_folds.0)
-                .exactly_one()
-                .ok()
-                .copied();
-            let vertical_fold = folds
-                .1
-                .difference(&original_folds.1)
-                .exactly_one()
-                .ok()
-                .copied();
-            if let Some(summary) = summary_from_folds(horizontal_fold, vertical_fold) {
-                return summary;
-            }
-            pattern[row_index][column_index] = opposite_type(pattern[row_index][column_index]);
-        }
-    }
-    panic!("pattern should be corrected by exactly one change");
-}
-
-fn sum_of_pattern_summaries(
-    input: &str,
-    mut pattern_summary: impl FnMut(&mut Pattern) -> usize,
-) -> usize {
-    input
-        .split("\n\n")
-        .map(pattern)
-        .map(|mut pattern| pattern_summary(&mut pattern))
-        .sum()
-}
-
-pub fn first(input: &str) -> String {
-    sum_of_pattern_summaries(input, pattern_summary).to_string()
-}
-
-pub fn second(input: &str) -> String {
-    sum_of_pattern_summaries(input, correct_pattern_summary).to_string()
+fn pattern(pattern: &str) -> Vec<Vec<Tile>> {
+    pattern
+        .lines()
+        .map(str::as_bytes)
+        .map(Vec::from)
+        .collect_vec()
 }
 
 #[cfg(test)]

@@ -1,7 +1,7 @@
 use itertools::Itertools;
 
 use crate::{
-    data_structures::grid::{Direction, Grid, Position},
+    data_structures::grid::{Coordinate, Direction, Grid, Position},
     strings::isizes,
 };
 
@@ -10,9 +10,8 @@ type Path = Vec<Position>;
 
 pub fn first(input: &str) -> String {
     let (mut cave, sand_source) = cave(input);
-    let cave_height: isize = (cave.height())
-        .try_into()
-        .expect("cave height should be less than 'isize::MAX'");
+    #[allow(clippy::cast_possible_wrap)]
+    let cave_height = cave.height() as Coordinate;
     let stop = |rest_position: Position| rest_position.row() == cave_height - 2;
     produce_sand(&mut cave, sand_source, stop);
     (number_of_units_of_sand(&cave) - 1).to_string()
@@ -62,31 +61,27 @@ fn cave(input: &str) -> (Cave, Position) {
     let paths = input.lines().map(path).collect_vec();
     let (height, width, sand_source) = needed_cave_dimensions(&paths);
     let empty_cave_element = |position: Position| {
-        let height: isize = height
-            .try_into()
-            .expect("cave height should be less than 'isize::MAX'");
         if position.row() == height - 1 {
             b'#'
         } else {
             b'.'
         }
     };
-    let mut cave = Grid::new(height, width, empty_cave_element);
+    #[allow(clippy::cast_sign_loss)]
+    let mut cave = Grid::new(height as usize, width as usize, empty_cave_element);
     for path in paths {
         add_path(&mut cave, &path, sand_source);
     }
     (cave, sand_source)
 }
 
-fn needed_cave_dimensions(paths: &[Path]) -> (usize, usize, Position) {
-    let lowest: usize = paths
+fn needed_cave_dimensions(paths: &[Path]) -> (Coordinate, Coordinate, Position) {
+    let lowest = paths
         .iter()
         .flat_map(|path| path.iter())
         .map(|position| position.row())
         .max()
-        .expect("paths should contain at least one position")
-        .try_into()
-        .expect("lowest rock should be less than 'isize::MAX'");
+        .expect("paths should contain at least one position");
     let height = lowest + 2 + 1;
     let width = (height - 1) * 2 + 1;
     let sand_source = Position::new(0, width / 2);

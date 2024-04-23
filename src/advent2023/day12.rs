@@ -45,12 +45,12 @@ fn number_of_arrangements(line: &str) -> usize {
     arrangements(row, &group_sizes)
 }
 
-fn sum_of_number_of_arrangements(input: &str) -> usize {
-    input.lines().map(number_of_arrangements).sum()
-}
-
 pub fn first(input: &str) -> String {
-    sum_of_number_of_arrangements(input).to_string()
+    input
+        .lines()
+        .map(number_of_arrangements)
+        .sum::<usize>()
+        .to_string()
 }
 
 pub fn second(_input: &str) -> String {

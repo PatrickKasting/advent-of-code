@@ -2,9 +2,9 @@ use itertools::Itertools;
 
 use crate::strings::usizes;
 
-type Coordinate = usize;
-type Position = [Coordinate; 3];
 type Brick = [Position; 2];
+type Position = [Coordinate; 3];
+type Coordinate = usize;
 
 fn brick(line: &str) -> Brick {
     let coordinates = usizes(line);
@@ -31,7 +31,7 @@ fn bricks(input: &str) -> Vec<Brick> {
 }
 
 fn settled_bricks(bricks: impl IntoIterator<Item = Brick>) -> (Vec<Brick>, usize) {
-    let mut settled_bricks: Vec<[[usize; 3]; 2]> = vec![];
+    let mut settled_bricks = vec![];
     let mut number_of_fallen_bricks = 0;
     for mut brick in bricks {
         let mut distance = brick[0][2] - 1;

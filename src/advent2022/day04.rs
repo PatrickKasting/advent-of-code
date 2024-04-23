@@ -40,7 +40,7 @@ fn pair(line: &str) -> Pair {
     [sections(left), sections(right)]
 }
 
-fn sections(str: &str) -> RangeInclusive<usize> {
+fn sections(str: &str) -> Sections {
     let ids = usizes(str);
     ids[0]..=ids[1]
 }

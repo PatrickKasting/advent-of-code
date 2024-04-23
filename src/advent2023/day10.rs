@@ -43,13 +43,13 @@ pub fn area(cycle: &mut [Position]) -> usize {
     area.explored().len() - cycle.len()
 }
 
-#[allow(clippy::cast_possible_wrap)]
 fn is_clockwise(cycle: &mut [Position]) -> bool {
     let turns = cycle
         .iter()
         .circular_tuple_windows()
         .map(relative_direction)
         .counts();
+    #[allow(clippy::cast_possible_wrap)]
     let [left, right] = [RelativeDirection::Left, RelativeDirection::Right]
         .map(|direction| turns[&direction] as isize);
     let turn_difference = right - left;

@@ -7,13 +7,14 @@ use std::{
 use itertools::Itertools;
 use regex::Regex;
 
-use crate::{search::shortest_path_length, strings::isizes};
+use crate::{search::shortest_path_length, strings::usizes};
 
 type ContractedCave<'input> = HashMap<Valve<'input>, (Pressure, Vec<(Time, Valve<'input>)>)>;
 type Cave<'input> = HashMap<Valve<'input>, (Pressure, Vec<Valve<'input>>)>;
 type Valve<'input> = &'input str;
-type Pressure = isize;
-type Time = isize;
+type Pressure = usize;
+type Time = usize;
+type Distance = usize;
 
 pub fn first(input: &str) -> String {
     maximum_release_from_input::<1>(input, "AA", 30).to_string()
@@ -46,20 +47,21 @@ fn maximum_release<'input, const NUM_AGENTS: usize>(
     closed_valves: &mut HashSet<Valve<'input>>,
     mut agents: [(Valve<'input>, Time); NUM_AGENTS],
 ) -> Pressure {
-    agents.sort_unstable_by_key(|(_, time)| -time);
+    agents.sort_unstable_by_key(|&(_, time)| Time::MAX - time);
     let (current_valve, current_time) = agents[0];
-    if current_time <= 0 {
+    if current_time == 0 {
         return 0;
     }
 
     let mut maximum_release = 0;
-
     for &(distance, valve) in &cave[current_valve].1 {
         if !closed_valves.contains(valve) {
             continue;
         }
 
-        let time = current_time - distance - 1;
+        let Some(time) = current_time.checked_sub(distance + 1) else {
+            continue;
+        };
         let (flow, _) = cave[valve];
         let valve_release = time * flow;
 
@@ -91,14 +93,11 @@ fn contracted_cave<'input>(cave: &Cave<'input>, start: Valve<'input>) -> Contrac
 fn distances_to_functioning_valves<'input>(
     cave: &Cave<'input>,
     source: Valve<'input>,
-) -> Vec<(isize, Valve<'input>)> {
+) -> Vec<(Distance, Valve<'input>)> {
     let mut other_valves = Vec::new();
     let add_valve_maybe = |valve, distance: usize| {
         let (flow, _) = cave[valve];
         if flow != 0 && valve != source {
-            let distance = distance
-                .try_into()
-                .expect("distance should be less than 'isize::MAX'");
             other_valves.push((distance, valve));
         }
     };
@@ -116,7 +115,7 @@ fn valve(line: &str) -> (&str, (Pressure, Vec<&str>)) {
     let regex = REGEX.get_or_init(|| Regex::new("[A-Z]{2}").expect("regex should be valid"));
     let mut valves = regex.find_iter(line).map(|mat| mat.as_str()).collect_vec();
     let valve = valves.remove(0);
-    (valve, (isizes(line)[0], valves))
+    (valve, (usizes(line)[0], valves))
 }
 
 #[cfg(test)]

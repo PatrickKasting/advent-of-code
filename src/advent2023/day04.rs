@@ -2,7 +2,9 @@ use std::collections::HashSet;
 
 use crate::strings::parse;
 
-type Numbers = HashSet<usize>;
+type Score = usize;
+type Numbers = HashSet<Number>;
+type Number = usize;
 
 fn numbers_from_list(list: &str) -> Numbers {
     list.split_whitespace().map(parse).collect()
@@ -23,7 +25,7 @@ fn number_of_matches(scratchcard: &str) -> usize {
     winning.intersection(&yours).count()
 }
 
-fn scratchcard_score(scratchcard: &str) -> usize {
+fn scratchcard_score(scratchcard: &str) -> Score {
     match number_of_matches(scratchcard) {
         0 => 0,
         number_of_matches => {
@@ -34,7 +36,7 @@ fn scratchcard_score(scratchcard: &str) -> usize {
     }
 }
 
-fn total_score_of_original_scratchcards(input: &str) -> usize {
+fn total_score_of_original_scratchcards(input: &str) -> Score {
     input.lines().map(scratchcard_score).sum()
 }
 
@@ -47,7 +49,7 @@ fn final_number_of_scratchcards(input: &str) -> usize {
             *number_of_copies += number_of_copies_of_current_scratchcard;
         }
     }
-    number_of_copies.into_iter().sum::<usize>()
+    number_of_copies.into_iter().sum()
 }
 
 pub fn first(input: &str) -> String {
