@@ -3,11 +3,12 @@ use std::{cmp, collections::HashSet, fmt::Debug};
 use easy_cast::Conv;
 use itertools::Itertools;
 
-use crate::{data_structures::grid::Position, strings::isizes};
+use crate::strings::isizes;
 
 type Sensor = Position;
 type Beacon = Position;
 type Range = [Coordinate; 2];
+type Position = [Coordinate; 2];
 type Coordinate = isize;
 
 pub fn first(input: &str) -> String {
@@ -30,7 +31,7 @@ fn distress_beacon_from_input(input: &str, coordinate_max: Coordinate) -> Positi
         column_start + 1 == column_end,
         "exactly one column should be a possible column for the beacon",
     );
-    Position::new(row, column_start)
+    [row, column_start]
 }
 
 fn possible_positions<'data>(
@@ -82,8 +83,8 @@ fn complement_ranges(sorted_ranges: Vec<Range>, [min, max]: [Coordinate; 2]) -> 
     complement_ranges
 }
 
-fn tuning_frequency(beacon: Position) -> isize {
-    beacon.column() * 4_000_000 + beacon.row()
+fn tuning_frequency([row, column]: Position) -> isize {
+    column * 4_000_000 + row
 }
 
 fn number_of_impossible_positions_from_input(input: &str, row: Coordinate) -> usize {
@@ -110,11 +111,15 @@ fn number_of_impossible_positions(
     usize::conv(impossible_positions) - beacons
 }
 
-fn beacon_within_ranges(beacon: Beacon, ranges: &[Range], row: Coordinate) -> bool {
-    let correct_row = beacon.row() == row;
+fn beacon_within_ranges(
+    [beacon_row, beacon_column]: Beacon,
+    ranges: &[Range],
+    row: Coordinate,
+) -> bool {
+    let correct_row = beacon_row == row;
     let within_range = ranges
         .iter()
-        .any(|&[start, end]| start <= beacon.column() && beacon.column() < end);
+        .any(|&[start, end]| start <= beacon_column && beacon_column < end);
     correct_row && within_range
 }
 
@@ -147,12 +152,16 @@ fn merged_range(sorted_ranges: &[Range]) -> (&[Range], Range) {
     (&[], [start, end])
 }
 
-fn impossible_range(sensor: Sensor, distance: Coordinate, row: Coordinate) -> Option<Range> {
-    let perimeter_row_farthest_distance = distance - (sensor.row() - row).abs();
+fn impossible_range(
+    [sensor_row, sensor_column]: Sensor,
+    distance: Coordinate,
+    row: Coordinate,
+) -> Option<Range> {
+    let perimeter_row_farthest_distance = distance - (sensor_row - row).abs();
     (!perimeter_row_farthest_distance.is_negative()).then(|| {
         [
-            sensor.column() - perimeter_row_farthest_distance,
-            sensor.column() + perimeter_row_farthest_distance + 1,
+            sensor_column - perimeter_row_farthest_distance,
+            sensor_column + perimeter_row_farthest_distance + 1,
         ]
     })
 }
@@ -161,8 +170,15 @@ fn distances_to_closest_beacons(sensors: &[Sensor], beacons: &[Beacon]) -> Vec<C
     sensors
         .iter()
         .zip_eq(beacons)
-        .map(|(&sensor, &beacon)| sensor.manhattan_distance(beacon))
+        .map(|(&sensor, &beacon)| manhattan_distance(sensor, beacon))
         .collect_vec()
+}
+
+fn manhattan_distance(left: Position, right: Position) -> Coordinate {
+    left.into_iter()
+        .zip(right)
+        .map(|(left, right)| (left - right).abs())
+        .sum()
 }
 
 fn sensors_and_closest_beacons(input: &str) -> (Vec<Sensor>, Vec<Beacon>) {
@@ -170,8 +186,8 @@ fn sensors_and_closest_beacons(input: &str) -> (Vec<Sensor>, Vec<Beacon>) {
         .lines()
         .map(|line| {
             let coordinates = isizes(line);
-            let sensor = Position::new(coordinates[1], coordinates[0]);
-            let beacon = Position::new(coordinates[3], coordinates[2]);
+            let sensor = [coordinates[1], coordinates[0]];
+            let beacon = [coordinates[3], coordinates[2]];
             (sensor, beacon)
         })
         .unzip()
@@ -227,7 +243,7 @@ mod tests {
 
     #[test]
     fn impossible_beacon_range() {
-        let function = |row| super::impossible_range(Sensor::new(7, 8), 9, row);
+        let function = |row| super::impossible_range([7, 8], 9, row);
         let cases = [
             (-3, None),
             (-2, Some([8, 9])),

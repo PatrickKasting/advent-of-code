@@ -25,12 +25,12 @@ fn sum_of_distances(input: &str, expansion_factor: usize) -> Distance {
         .filter_map(|(position, &element)| is_galaxy(element).then_some(position));
     let distances = galaxies.combinations(2).map(|pair| {
         let vertical_distance = one_dimensional_distance(
-            [pair[0].row().cast(), pair[1].row().cast()],
+            [pair[0][0].cast(), pair[1][0].cast()],
             &empty_rows,
             expansion_factor,
         );
         let horizontal_distance = one_dimensional_distance(
-            [pair[0].column().cast(), pair[1].column().cast()],
+            [pair[0][1].cast(), pair[1][1].cast()],
             &empty_columns,
             expansion_factor,
         );

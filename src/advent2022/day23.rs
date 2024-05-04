@@ -6,14 +6,12 @@ use std::{
 use easy_cast::Cast;
 use itertools::Itertools;
 
-use crate::data_structures::grid::{Direction, Position};
+use crate::{
+    data_structures::grid::{self, Direction, Position},
+    vector::{Addition, RotationInTwoDimensions},
+};
 
-const INITIAL_DIRECTIONS: [Direction; 4] = [
-    Direction::North,
-    Direction::South,
-    Direction::West,
-    Direction::East,
-];
+const INITIAL_DIRECTIONS: [Direction; 4] = [grid::NORTH, grid::SOUTH, grid::WEST, grid::EAST];
 
 pub fn first(input: &str) -> String {
     let mut elves = elves(input);
@@ -68,9 +66,9 @@ fn proposal(
     directions: [Direction; 4],
 ) -> Option<Position> {
     let is_free_in_direction = directions.map(|direction| {
-        let neighbor = elf.neighbor(direction);
+        let neighbor = elf.add(direction);
         let [left_corner, right_corner] =
-            [Direction::left, Direction::right].map(|turn| neighbor.neighbor(turn(direction)));
+            [Direction::left, Direction::right].map(|turn| neighbor.add(turn(direction)));
         let is_free = [neighbor, left_corner, right_corner]
             .into_iter()
             .all(|neighbor| !elves.contains(&neighbor));
@@ -82,7 +80,7 @@ fn proposal(
     } else {
         is_free_in_direction
             .into_iter()
-            .find_map(|(direction, is_free)| is_free.then(|| elf.neighbor(direction)))
+            .find_map(|(direction, is_free)| is_free.then(|| elf.add(direction)))
     }
 }
 
@@ -93,10 +91,10 @@ fn number_of_free_tiles(elves: &HashSet<Position>) -> usize {
 }
 
 fn bounding_rectangle(elves: &HashSet<Position>) -> [usize; 2] {
-    [Position::row, Position::column].map(|coordinate| {
+    [0, 1].map(|coordinate_index| {
         let (min, max) = elves
             .iter()
-            .map(|&elf| coordinate(elf))
+            .map(|&elf| elf[coordinate_index])
             .minmax()
             .into_option()
             .expect("at least one elf should be present");
@@ -110,7 +108,7 @@ fn elves(input: &str) -> HashSet<Position> {
         .enumerate()
         .flat_map(|(row, line)| iter::repeat(row).zip(line.chars().enumerate()))
         .filter(|&(_, (_, char))| char == '#')
-        .map(|(row, (column, _))| Position::new(row.cast(), column.cast()))
+        .map(|(row, (column, _))| [row.cast(), column.cast()])
         .collect()
 }
 
@@ -169,7 +167,7 @@ mod tests {
         ";
         let expected = super::elves(expected)
             .into_iter()
-            .map(|elf| Position::new(elf.row() - 2, elf.column() - 3))
+            .map(|[elf_row, elf_column]| [elf_row - 2, elf_column - 3])
             .collect();
         assert_eq!(elves, expected);
     }
@@ -182,8 +180,7 @@ mod tests {
         let steady_state = simulation(&mut elves, Some(3));
         assert_eq!(steady_state, None);
 
-        let expected = [(0, 2), (1, 4), (2, 0), (3, 4), (5, 2)]
-            .map(|(row, column)| Position::new(row, column));
+        let expected = [[0, 2], [1, 4], [2, 0], [3, 4], [5, 2]];
         let expected = HashSet::from(expected);
         assert_eq!(elves, expected);
     }
@@ -196,8 +193,7 @@ mod tests {
         let is_steady_state = round(&mut elves, INITIAL_DIRECTIONS);
         assert!(!is_steady_state);
 
-        let expected = [(0, 2), (0, 3), (2, 2), (4, 2), (3, 3)]
-            .map(|(row, column)| Position::new(row, column));
+        let expected = [[0, 2], [0, 3], [2, 2], [4, 2], [3, 3]];
         let expected = HashSet::from(expected);
         assert_eq!(elves, expected);
     }
@@ -209,18 +205,12 @@ mod tests {
 
         let function = |elf| proposal(&elves, elf, INITIAL_DIRECTIONS);
         let cases = [
-            ((1, 2), (0, 2)),
-            ((1, 3), (0, 3)),
-            ((2, 2), (3, 2)),
-            ((4, 2), (3, 2)),
-            ((4, 3), (3, 3)),
-        ]
-        .map(|(input, expected)| {
-            (
-                Position::new(input.0, input.1),
-                Some(Position::new(expected.0, expected.1)),
-            )
-        });
+            ([1, 2], Some([0, 2])),
+            ([1, 3], Some([0, 3])),
+            ([2, 2], Some([3, 2])),
+            ([4, 2], Some([3, 2])),
+            ([4, 3], Some([3, 3])),
+        ];
         test_cases(function, cases);
     }
 }

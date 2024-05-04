@@ -3,7 +3,10 @@ use std::{char, str};
 use easy_cast::{Cast, Conv};
 use itertools::Itertools;
 
-use crate::data_structures::grid::{Coordinate, Direction, Grid, Position};
+use crate::{
+    data_structures::grid::{self, Coordinate, Direction, Grid, Position},
+    vector::{Addition, CrossProduct, Negation, RotationInTwoDimensions, ScalarMultiplication},
+};
 
 type Board = Grid<char>;
 
@@ -27,13 +30,13 @@ pub fn second(input: &str) -> String {
 }
 
 fn final_password(final_position: Position, final_direction: Direction) -> isize {
-    let [row, column] =
-        [Position::row, Position::column].map(|coordinate| coordinate(final_position) + 1);
+    let [row, column] = final_position.map(|coordinate| coordinate + 1);
     let direction_as_value = match final_direction {
-        Direction::North => 3,
-        Direction::East => 0,
-        Direction::South => 1,
-        Direction::West => 2,
+        grid::NORTH => 3,
+        grid::EAST => 0,
+        grid::SOUTH => 1,
+        grid::WEST => 2,
+        _ => panic!("direction should be one of four unit vectors"),
     };
     1000 * row + 4 * column + direction_as_value
 }
@@ -47,7 +50,7 @@ fn final_position_and_direction(
         .iter_row_major()
         .find(|&(_, &tile)| tile == '.')
         .expect("at least one open tile should be in the first row");
-    let mut direction = Direction::East;
+    let mut direction = grid::EAST;
     for instruction in path {
         match instruction {
             Instruction::Left => direction = direction.left(),
@@ -70,7 +73,7 @@ fn forward(
     number_of_tiles: usize,
 ) -> (Position, Direction) {
     for _ in 0..number_of_tiles {
-        let neighbor = position.neighbor(direction);
+        let neighbor = position.add(direction);
         (position, direction) = match board.get(neighbor) {
             Some('.') => (neighbor, direction),
             Some('#') => return (position, direction),
@@ -89,38 +92,34 @@ fn forward(
 
 fn wrap_plane(
     board: &Grid<char>,
-    position: Position,
+    [row, column]: Position,
     direction: Direction,
 ) -> (Position, Direction) {
-    let [row, column] = [position.row(), position.column()];
     let mut wrap_position = match direction {
-        Direction::North => Position::new(Coordinate::conv(board.height()) - 1, column),
-        Direction::East => Position::new(row, 0),
-        Direction::South => Position::new(0, column),
-        Direction::West => Position::new(row, Coordinate::conv(board.width()) - 1),
+        grid::NORTH => [Coordinate::conv(board.height()) - 1, column],
+        grid::EAST => [row, 0],
+        grid::SOUTH => [0, column],
+        grid::WEST => [row, Coordinate::conv(board.width()) - 1],
+        _ => panic!("direction should be one of four unit vectors"),
     };
     while board[wrap_position] == ' ' {
-        wrap_position = wrap_position.neighbor(direction);
+        wrap_position = wrap_position.add(direction);
     }
     (wrap_position, direction)
 }
-
-type Vector = [Coordinate; 3];
 
 fn wrap_cube(
     board: &Grid<char>,
     position: Position,
     direction: Direction,
 ) -> (Position, Direction) {
-    let face_size = face_size(board);
+    let face_size = face_size(board).cast();
 
-    let mut plane_face = Position::new(position.row() / face_size, position.column() / face_size);
+    let mut plane_face = position.map(|coordinate| coordinate / face_size);
     let mut plane_direction = direction.right();
     let mut cube_face = [0, 0, -1];
-    let mut cube_direction = unit_vector(plane_direction);
-    while !(cube_face == unit_vector(direction)
-        && cross_product(cube_direction, cube_face) == [0, 0, -1])
-    {
+    let mut cube_direction = [plane_direction[0], plane_direction[1], 0];
+    while !(cube_face[0..2] == direction[0..2] && cube_direction.cross(cube_face) == [0, 0, -1]) {
         (plane_face, plane_direction, cube_face, cube_direction) = next_face(
             board,
             face_size,
@@ -142,76 +141,71 @@ fn next_face(
     face_size: Coordinate,
     plane_face: Position,
     plane_direction: Direction,
-    cube_face: Vector,
-    cube_direction: Vector,
-) -> (Position, Direction, Vector, Vector) {
-    let plane_face_forward = plane_face.neighbor(plane_direction);
-    let plane_face_forward_left = plane_face_forward.neighbor(plane_direction.left());
+    cube_face: [Coordinate; 3],
+    cube_direction: [Coordinate; 3],
+) -> (Position, Direction, [Coordinate; 3], [Coordinate; 3]) {
+    let plane_face_forward = plane_face.add(plane_direction);
+    let plane_face_forward_left = plane_face_forward.add(plane_direction.left());
     if face_exists(board, face_size, plane_face_forward_left) {
         (
             plane_face_forward_left,
             plane_direction.left(),
-            cross_product(cube_direction, cube_face),
-            negation(cube_direction),
+            cube_direction.cross(cube_face),
+            cube_direction.neg(),
         )
     } else if face_exists(board, face_size, plane_face_forward) {
         (
             plane_face_forward,
             plane_direction,
             cube_direction,
-            negation(cube_face),
+            cube_face.neg(),
         )
     } else {
         (
             plane_face,
             plane_direction.right(),
             cube_face,
-            cross_product(cube_face, cube_direction),
+            cube_face.cross(cube_direction),
         )
     }
 }
 
 fn cube_wrap_position(
     face_size: Coordinate,
-    source_position: Position,
+    [source_row, source_column]: Position,
     source_direction: Direction,
     destination_face: Position,
     destination_direction: Direction,
 ) -> Position {
     let source_distance_to_face_border = match source_direction {
-        Direction::North => face_size - source_position.column() % face_size - 1,
-        Direction::East => face_size - source_position.row() % face_size - 1,
-        Direction::South => source_position.column() % face_size,
-        Direction::West => source_position.row() % face_size,
+        grid::NORTH => face_size - source_column % face_size - 1,
+        grid::EAST => face_size - source_row % face_size - 1,
+        grid::SOUTH => source_column % face_size,
+        grid::WEST => source_row % face_size,
+        _ => panic!("direction should be one of four unit vectors"),
     };
 
-    let top_left_position_of_face = [
-        destination_face.row() * face_size,
-        destination_face.column() * face_size,
-    ];
-    let wrap_position = match destination_direction {
-        Direction::North => [
-            top_left_position_of_face[0] + face_size - 1,
-            top_left_position_of_face[1] + face_size - 1 - source_distance_to_face_border,
+    let [top_of_face, left_of_face] = destination_face.mul(face_size);
+    match destination_direction {
+        grid::NORTH => [
+            top_of_face + face_size - 1,
+            left_of_face + face_size - 1 - source_distance_to_face_border,
         ],
-        Direction::East => [
-            top_left_position_of_face[0] + face_size - 1 - source_distance_to_face_border,
-            top_left_position_of_face[1],
+        grid::EAST => [
+            top_of_face + face_size - 1 - source_distance_to_face_border,
+            left_of_face,
         ],
-        Direction::South => [
-            top_left_position_of_face[0],
-            top_left_position_of_face[1] + source_distance_to_face_border,
+        grid::SOUTH => [top_of_face, left_of_face + source_distance_to_face_border],
+        grid::WEST => [
+            top_of_face + source_distance_to_face_border,
+            left_of_face + face_size - 1,
         ],
-        Direction::West => [
-            top_left_position_of_face[0] + source_distance_to_face_border,
-            top_left_position_of_face[1] + face_size - 1,
-        ],
-    };
-    Position::new(wrap_position[0], wrap_position[1])
+        _ => panic!("direction should be one of four unit vectors"),
+    }
 }
 
-fn face_size(board: &Board) -> Coordinate {
-    let mut board_sides: [Coordinate; 2] = [board.height().cast(), board.width().cast()];
+fn face_size(board: &Board) -> usize {
+    let mut board_sides = [board.height(), board.width()];
     board_sides.sort_unstable();
     if board_sides[0] * 5 == board_sides[1] * 2 {
         board_sides[0] / 2
@@ -220,31 +214,13 @@ fn face_size(board: &Board) -> Coordinate {
     }
 }
 
-fn face_exists(board: &Board, face_size: Coordinate, face: Position) -> bool {
-    let top_left_position_of_face =
-        Position::new(face.row() * face_size, face.column() * face_size);
-    match board.get(top_left_position_of_face) {
+fn face_exists(board: &Board, face_size: Coordinate, face_position: Position) -> bool {
+    let top_left_of_face = face_position.mul(face_size);
+    match board.get(top_left_of_face) {
         Some(' ') | None => false,
         Some('.' | '#') => true,
         _ => panic!("tile on the board should be '.', '#', or ' '"),
     }
-}
-
-fn unit_vector(direction: Direction) -> Vector {
-    match direction {
-        Direction::North => [0, 1, 0],
-        Direction::East => [1, 0, 0],
-        Direction::South => [0, -1, 0],
-        Direction::West => [-1, 0, 0],
-    }
-}
-
-fn negation(direction: Vector) -> Vector {
-    direction.map(|coordinate| -coordinate)
-}
-
-fn cross_product([l1, l2, l3]: Vector, [r1, r2, r3]: Vector) -> Vector {
-    [l2 * r3 - l3 * r2, l3 * r1 - l1 * r3, l1 * r2 - l2 * r1]
 }
 
 fn board_and_path(input: &str) -> (Board, impl Iterator<Item = Instruction> + '_) {
@@ -326,19 +302,19 @@ mod tests {
         let board = board(Input::Example(0));
         let function = |(position, direction)| super::wrap_cube(&board, position, direction);
         let cases = [
-            ((A, Direction::East), (B, Direction::South)),
-            ((B, Direction::North), (A, Direction::West)),
-            ((C, Direction::South), (D, Direction::North)),
-            ((D, Direction::South), (C, Direction::North)),
-            ((E, Direction::North), (F, Direction::East)),
-            ((F, Direction::West), (E, Direction::South)),
+            ((A, grid::EAST), (B, grid::SOUTH)),
+            ((B, grid::NORTH), (A, grid::WEST)),
+            ((C, grid::SOUTH), (D, grid::NORTH)),
+            ((D, grid::SOUTH), (C, grid::NORTH)),
+            ((E, grid::NORTH), (F, grid::EAST)),
+            ((F, grid::WEST), (E, grid::SOUTH)),
         ];
         test_cases(function, cases);
     }
 
     #[test]
     fn cube_wrap_position() {
-        let face_size = super::face_size(&board(Input::Example(0)));
+        let face_size = super::face_size(&board(Input::Example(0))).cast();
         let function =
             |(source_position, source_direction, destination_face, destination_direction)| {
                 super::cube_wrap_position(
@@ -350,54 +326,28 @@ mod tests {
                 )
             };
         let cases = [
-            (
-                (A, Direction::East, Position::new(2, 3), Direction::South),
-                B,
-            ),
-            (
-                (B, Direction::North, Position::new(1, 2), Direction::West),
-                A,
-            ),
-            (
-                (C, Direction::South, Position::new(1, 0), Direction::North),
-                D,
-            ),
-            (
-                (D, Direction::South, Position::new(2, 2), Direction::North),
-                C,
-            ),
-            (
-                (E, Direction::North, Position::new(0, 2), Direction::East),
-                F,
-            ),
-            (
-                (F, Direction::West, Position::new(1, 1), Direction::South),
-                E,
-            ),
+            ((A, grid::EAST, [2, 3], grid::SOUTH), B),
+            ((B, grid::NORTH, [1, 2], grid::WEST), A),
+            ((C, grid::SOUTH, [1, 0], grid::NORTH), D),
+            ((D, grid::SOUTH, [2, 2], grid::NORTH), C),
+            ((E, grid::NORTH, [0, 2], grid::EAST), F),
+            ((F, grid::WEST, [1, 1], grid::SOUTH), E),
         ];
         test_cases(function, cases);
     }
 
-    const A: Position = Position::new(5, 11);
-    const B: Position = Position::new(8, 14);
-    const C: Position = Position::new(11, 10);
-    const D: Position = Position::new(7, 1);
-    const E: Position = Position::new(4, 6);
-    const F: Position = Position::new(2, 8);
+    const A: Position = [5, 11];
+    const B: Position = [8, 14];
+    const C: Position = [11, 10];
+    const D: Position = [7, 1];
+    const E: Position = [4, 6];
+    const F: Position = [2, 8];
 
     #[test]
     fn face_size() {
         let function = |input| super::face_size(&board(input));
         let cases = [(Input::Example(0), 4), (Input::Example(1), 1)];
         test_cases(function, cases);
-    }
-
-    #[test]
-    fn cross_product() {
-        let [left, right] = [[3, -3, 1], [4, 9, 2]];
-        let actual = super::cross_product(left, right);
-        let expected = [-15, -2, 39];
-        assert_eq!(actual, expected);
     }
 
     fn board(input: Input) -> Board {

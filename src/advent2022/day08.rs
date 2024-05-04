@@ -1,7 +1,9 @@
 use itertools::Itertools;
-use strum::IntoEnumIterator;
 
-use crate::data_structures::grid::{Direction, Grid, Position};
+use crate::{
+    data_structures::grid::{self, Direction, Grid, Position},
+    vector::{round, Addition, RotationInTwoDimensions, Subtraction, Unit},
+};
 
 type Height = isize;
 type ScenicScore = usize;
@@ -35,13 +37,11 @@ fn visibility_from_edge(
     from_corner: Position,
     to_corner: Position,
 ) {
-    let edge_direction = from_corner
-        .direction_to(to_corner)
-        .expect("positions should be on the same edge");
+    let edge_direction = round(to_corner.sub(from_corner).unit());
     let mut position = from_corner;
     while position != to_corner {
         visibility_along_line(grid, visibility, position, edge_direction.right());
-        position = position.neighbor(edge_direction);
+        position = position.add(edge_direction);
     }
 }
 
@@ -57,7 +57,7 @@ fn visibility_along_line(
             tallest = height;
             visibility[position] = true;
         }
-        position = position.neighbor(direction);
+        position = position.add(direction);
     }
 }
 
@@ -69,7 +69,7 @@ fn max_scenic_score(grid: &Grid<Height>) -> ScenicScore {
 }
 
 fn scenic_score(grid: &Grid<Height>, position: Position) -> ScenicScore {
-    Direction::iter()
+    grid::directions()
         .map(|direction| number_of_visible_trees_along_line(grid, position, direction))
         .product()
 }
@@ -80,14 +80,14 @@ fn number_of_visible_trees_along_line(
     direction: Direction,
 ) -> ScenicScore {
     let view_height = grid[position];
-    position = position.neighbor(direction);
+    position = position.add(direction);
     let mut number_of_visible_trees = 0;
     while let Some(&height) = grid.get(position) {
         number_of_visible_trees += 1;
         if height >= view_height {
             break;
         }
-        position = position.neighbor(direction);
+        position = position.add(direction);
     }
     number_of_visible_trees
 }

@@ -43,10 +43,12 @@
 mod advent2022;
 mod advent2023;
 mod data_structures;
+mod floating;
 mod math;
 mod matrix;
 mod search;
 mod strings;
+mod vector;
 
 use std::{fmt::Debug, fs, ops::RangeInclusive};
 

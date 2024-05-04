@@ -129,7 +129,7 @@ mod tests {
             }
             left.rotate_right(1);
         }
-        // guaranteed false assertion to get pretty printed output
+        // guaranteed false assertion to get pretty-printed output
         assert_eq!(left, right, "files should be circular equal");
     }
 }

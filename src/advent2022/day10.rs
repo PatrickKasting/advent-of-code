@@ -1,6 +1,6 @@
-use easy_cast::{Cast, Conv};
+use easy_cast::Conv;
 
-use crate::data_structures::grid::{Grid, Position};
+use crate::data_structures::grid::Grid;
 
 type SignalStrength = isize;
 type Register = isize;
@@ -17,12 +17,12 @@ pub fn second(input: &str) -> String {
 fn image(input: &str) -> Image {
     let mut image = Image::new(6, 40, |_| '.');
     let draw_maybe = |register: Register, number_of_completed_cycles: usize| {
-        let [row, column] = [
+        let position @ [_, column] = [
             number_of_completed_cycles / image.width(),
             number_of_completed_cycles % image.width(),
         ];
         if (Register::conv(column) - register).abs() <= 1 {
-            image[Position::new(row.cast(), column.cast())] = '#';
+            image[position] = '#';
         }
     };
     execute(input, draw_maybe);

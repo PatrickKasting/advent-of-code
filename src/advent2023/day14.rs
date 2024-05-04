@@ -2,13 +2,16 @@ use std::collections::HashMap;
 
 use itertools::Itertools;
 
-use crate::data_structures::grid::{Direction, Grid, Position};
+use crate::{
+    data_structures::grid::{self, Direction, Grid, Position},
+    vector::Addition,
+};
 
 type Platform = Grid<char>;
 
 pub fn first(input: &str) -> String {
     let mut platform = Platform::from(input);
-    tilt(&mut platform, Direction::North);
+    tilt(&mut platform, grid::NORTH);
     total_load(&platform).to_string()
 }
 
@@ -40,12 +43,7 @@ fn cycle_start_and_length(platform: &mut Platform) -> (usize, usize) {
 }
 
 fn cycles(platform: &mut Platform, number_of_cycles: usize) {
-    let directions = [
-        Direction::North,
-        Direction::West,
-        Direction::South,
-        Direction::East,
-    ];
+    let directions = [grid::NORTH, grid::WEST, grid::SOUTH, grid::EAST];
     for _ in 0..number_of_cycles {
         for direction in directions {
             tilt(platform, direction);
@@ -57,7 +55,7 @@ fn tilt(platform: &mut Platform, direction: Direction) {
     for mut rock_position in sorted_round_rock_positions(platform, direction) {
         platform[rock_position] = '.';
         loop {
-            let next_position = rock_position.neighbor(direction);
+            let next_position = rock_position.add(direction);
             if platform.get(next_position) != Some(&'.') {
                 break;
             }
@@ -69,13 +67,14 @@ fn tilt(platform: &mut Platform, direction: Direction) {
 
 fn sorted_round_rock_positions(platform: &Platform, direction: Direction) -> Vec<Position> {
     let platform_elements: Box<dyn Iterator<Item = (Position, &char)>> = match direction {
-        Direction::North | Direction::South => Box::new(platform.iter_row_major()),
-        Direction::West | Direction::East => Box::new(platform.iter_column_major()),
+        grid::NORTH | grid::SOUTH => Box::new(platform.iter_row_major()),
+        grid::WEST | grid::EAST => Box::new(platform.iter_column_major()),
+        _ => panic!("direction should be one of four unit vectors"),
     };
     let mut round_rock_positions = platform_elements
         .filter_map(|(position, &element)| (element == 'O').then_some(position))
         .collect_vec();
-    if [Direction::South, Direction::East].contains(&direction) {
+    if [grid::SOUTH, grid::EAST].contains(&direction) {
         round_rock_positions.reverse();
     }
     round_rock_positions

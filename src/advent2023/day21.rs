@@ -1,17 +1,16 @@
 use std::{collections::HashSet, mem};
 
-use crate::data_structures::grid::{Coordinate, Grid, Position};
+use crate::data_structures::grid::{self, Coordinate, Grid, Position};
 
 type Map = Grid<char>;
 
-fn position_parity(position: Position) -> Coordinate {
-    (position.row() + position.column()) % 2
+pub fn first(input: &str) -> String {
+    let example = Map::from(input);
+    number_of_reachable_garden_plots(&example, 64).to_string()
 }
 
-fn starting_plot(map: &Map) -> Position {
-    map.iter_row_major()
-        .find_map(|(position, &tile)| (tile == 'S').then_some(position))
-        .expect("there should be exactly one starting position")
+pub fn second(_input: &str) -> String {
+    unimplemented!()
 }
 
 fn number_of_reachable_garden_plots(map: &Map, number_of_steps: usize) -> usize {
@@ -29,7 +28,7 @@ fn number_of_reachable_garden_plots(map: &Map, number_of_steps: usize) -> usize 
                 number_of_reachable_garden_plots += 1;
             }
 
-            for neighbor in plot.neighbors() {
+            for neighbor in grid::neighbors(plot) {
                 if map.get(neighbor) == Some(&'.') && explored.insert(neighbor) {
                     next_frontier.push(neighbor);
                 }
@@ -42,13 +41,14 @@ fn number_of_reachable_garden_plots(map: &Map, number_of_steps: usize) -> usize 
     number_of_reachable_garden_plots
 }
 
-pub fn first(input: &str) -> String {
-    let example = Map::from(input);
-    number_of_reachable_garden_plots(&example, 64).to_string()
+fn starting_plot(map: &Map) -> Position {
+    map.iter_row_major()
+        .find_map(|(position, &tile)| (tile == 'S').then_some(position))
+        .expect("there should be exactly one starting position")
 }
 
-pub fn second(_input: &str) -> String {
-    unimplemented!()
+fn position_parity([row, column]: Position) -> Coordinate {
+    (row + column) % 2
 }
 
 #[cfg(test)]

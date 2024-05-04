@@ -2,11 +2,11 @@ use std::ops::RangeInclusive;
 
 use easy_cast::Conv;
 use itertools::Itertools;
-use strum::IntoEnumIterator;
 
 use crate::{
-    data_structures::grid::{Coordinate, Direction, Grid, Position},
+    data_structures::grid::{self, Coordinate, Direction, Grid, Position},
     search::cheapest_path_cost,
+    vector::{Addition, RotationInTwoDimensions},
 };
 
 type Move = (Option<Direction>, Position);
@@ -22,11 +22,11 @@ pub fn second(input: &str) -> String {
 }
 
 fn minimum_heat_loss(map: &Map, number_of_steps: RangeInclusive<usize>) -> HeatLoss {
-    let starting_point = (None, Position::new(0, 0));
-    let machine_parts_factory = Position::new(
+    let starting_point = (None, [0, 0]);
+    let machine_parts_factory = [
         Coordinate::conv(map.height()) - 1,
         Coordinate::conv(map.width()) - 1,
-    );
+    ];
     let is_machine_parts_factory = |(_, position)| position == machine_parts_factory;
     cheapest_path_cost(
         starting_point,
@@ -43,7 +43,7 @@ fn moves(
 ) -> impl Iterator<Item = (Move, HeatLoss)> + '_ {
     let next_directions = match previous_direction {
         Some(previous_direction) => vec![previous_direction.left(), previous_direction.right()],
-        None => Direction::iter().collect_vec(),
+        None => grid::directions().collect_vec(),
     };
     next_directions.into_iter().flat_map(move |next_direction| {
         moves_in_direction(map, position, next_direction, number_of_steps.clone())
@@ -59,7 +59,7 @@ fn moves_in_direction(
     let mut moves = vec![];
     let mut heat_loss = 0;
     for current_number_of_steps in 1..=*number_of_steps.end() {
-        position = position.neighbor(direction);
+        position = position.add(direction);
         let Some(&heat_loss_at_position) = map.get(position) else {
             break;
         };

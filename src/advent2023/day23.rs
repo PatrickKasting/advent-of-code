@@ -2,55 +2,49 @@ use std::collections::{HashMap, HashSet};
 
 use easy_cast::Conv;
 use itertools::Itertools;
-use strum::IntoEnumIterator;
 
-use crate::data_structures::grid::{Coordinate, Direction, Grid, Position};
+use crate::{
+    data_structures::grid::{self, Coordinate, Direction, Grid, Position},
+    vector::{Addition, Negation},
+};
 
 type Graph = HashMap<Position, Vec<(Distance, Position)>>;
 type Distance = usize;
 type Map = Grid<char>;
 
-fn start() -> Position {
-    Position::new(0, 1)
+pub fn first(input: &str) -> String {
+    longest_hike(input, false).to_string()
 }
 
-fn goal(map: &Map) -> Position {
-    Position::new(
-        Coordinate::conv(map.height()) - 1,
-        Coordinate::conv(map.width()) - 2,
-    )
+pub fn second(input: &str) -> String {
+    longest_hike(input, true).to_string()
 }
 
-fn slope_direction(char: char) -> Direction {
-    match char {
-        '^' => Direction::North,
-        '>' => Direction::East,
-        'v' => Direction::South,
-        '<' => Direction::West,
-        _ => panic!("slope should be '^', '>', 'v', or '<'"),
-    }
+fn longest_hike(input: &str, ignore_slopes: bool) -> Distance {
+    let map = Map::from(input);
+    let graph = graph(ignore_slopes, &map);
+    maximum_distance(&graph, &mut HashSet::new(), start(), goal(&map))
+        .expect("at least one hike should lead to the goal")
 }
 
-fn successor_tiles(
-    ignore_slopes: bool,
-    map: &Map,
-    from: Direction,
-    to: Position,
-) -> Vec<(Direction, Position)> {
-    Direction::iter()
-        .filter(|&direction| direction != from.backward())
-        .filter_map(|direction| {
-            let neighbor = to.neighbor(direction);
-            match map.get(neighbor) {
-                None | Some(&'#') => None,
-                Some(&'.') => Some((direction, neighbor)),
-                Some(&slope) if ignore_slopes || slope_direction(slope) == direction => {
-                    Some((direction, neighbor))
-                }
-                Some(_) => None,
+fn graph(ignore_slopes: bool, map: &Map) -> Graph {
+    let mut graph = HashMap::new();
+    let mut explored = HashSet::from([(start(), grid::SOUTH)]);
+    let mut frontier = vec![(start(), grid::SOUTH)];
+    while let Some((position, direction)) = frontier.pop() {
+        let (distance, junction, successor_directions) =
+            path_to_next_junction(ignore_slopes, map, position, direction);
+        graph
+            .entry(position)
+            .or_insert(vec![])
+            .push((distance, junction));
+        for successor_direction in successor_directions {
+            if explored.insert((junction, successor_direction)) {
+                frontier.push((junction, successor_direction));
             }
-        })
-        .collect_vec()
+        }
+    }
+    graph
 }
 
 fn path_to_next_junction(
@@ -59,7 +53,7 @@ fn path_to_next_junction(
     mut position: Position,
     mut direction: Direction,
 ) -> (Distance, Position, impl Iterator<Item = Direction>) {
-    position = position.neighbor(direction);
+    position = position.add(direction);
     let mut distance = 1;
     loop {
         let successors = successor_tiles(ignore_slopes, map, direction, position);
@@ -75,24 +69,36 @@ fn path_to_next_junction(
     }
 }
 
-fn graph(ignore_slopes: bool, map: &Map) -> Graph {
-    let mut graph = HashMap::new();
-    let mut explored = HashSet::from([(start(), Direction::South)]);
-    let mut frontier = vec![(start(), Direction::South)];
-    while let Some((position, direction)) = frontier.pop() {
-        let (distance, junction, successor_directions) =
-            path_to_next_junction(ignore_slopes, map, position, direction);
-        graph
-            .entry(position)
-            .or_insert(vec![])
-            .push((distance, junction));
-        for successor_direction in successor_directions {
-            if explored.insert((junction, successor_direction)) {
-                frontier.push((junction, successor_direction));
+fn successor_tiles(
+    ignore_slopes: bool,
+    map: &Map,
+    from: Direction,
+    to: Position,
+) -> Vec<(Direction, Position)> {
+    grid::directions()
+        .filter(|&direction| direction != from.neg())
+        .filter_map(|direction| {
+            let neighbor = to.add(direction);
+            match map.get(neighbor) {
+                None | Some(&'#') => None,
+                Some(&'.') => Some((direction, neighbor)),
+                Some(&slope) if ignore_slopes || slope_direction(slope) == direction => {
+                    Some((direction, neighbor))
+                }
+                Some(_) => None,
             }
-        }
+        })
+        .collect_vec()
+}
+
+fn slope_direction(char: char) -> Direction {
+    match char {
+        '^' => grid::NORTH,
+        '>' => grid::EAST,
+        'v' => grid::SOUTH,
+        '<' => grid::WEST,
+        _ => panic!("slope should be '^', '>', 'v', or '<'"),
     }
-    graph
 }
 
 fn maximum_distance(
@@ -120,19 +126,15 @@ fn maximum_distance(
     maximum_distance
 }
 
-fn longest_hike(input: &str, ignore_slopes: bool) -> Distance {
-    let map = Map::from(input);
-    let graph = graph(ignore_slopes, &map);
-    maximum_distance(&graph, &mut HashSet::new(), start(), goal(&map))
-        .expect("at least one hike should lead to the goal")
+fn start() -> Position {
+    [0, 1]
 }
 
-pub fn first(input: &str) -> String {
-    longest_hike(input, false).to_string()
-}
-
-pub fn second(input: &str) -> String {
-    longest_hike(input, true).to_string()
+fn goal(map: &Map) -> Position {
+    [
+        Coordinate::conv(map.height()) - 1,
+        Coordinate::conv(map.width()) - 2,
+    ]
 }
 
 #[cfg(test)]

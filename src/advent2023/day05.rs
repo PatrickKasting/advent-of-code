@@ -8,6 +8,7 @@ type Number = isize;
 type Offset = isize;
 type Map = BTreeMap<Number, Offset>;
 
+#[allow(clippy::range_plus_one)]
 fn singleton_seed_ranges(seeds: &str) -> Vec<Range<Number>> {
     isizes(seeds)
         .into_iter()

@@ -4,152 +4,14 @@ use std::{
     ops::{Index, IndexMut},
 };
 
-use easy_cast::{Cast, Conv};
+use easy_cast::Cast;
 use itertools::Itertools;
-use strum::{EnumIter, IntoEnumIterator};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, EnumIter)]
-pub enum Direction {
-    North,
-    East,
-    South,
-    West,
-}
+use crate::vector::Addition;
 
-impl Direction {
-    pub fn right(self) -> Self {
-        match self {
-            Self::North => Self::East,
-            Self::East => Self::South,
-            Self::South => Self::West,
-            Self::West => Self::North,
-        }
-    }
-
-    pub fn backward(self) -> Self {
-        self.right().right()
-    }
-
-    pub fn left(self) -> Self {
-        self.backward().right()
-    }
-
-    pub fn relative_direction_to(self, other: Self) -> RelativeDirection {
-        if other == self {
-            RelativeDirection::Forward
-        } else if other == self.right() {
-            RelativeDirection::Right
-        } else if other == self.backward() {
-            RelativeDirection::Backward
-        } else {
-            RelativeDirection::Left
-        }
-    }
-
-    pub fn reflection_north_west_diagonal(self) -> Self {
-        match self {
-            Self::North => Self::West,
-            Self::East => Self::South,
-            Self::South => Self::East,
-            Self::West => Self::North,
-        }
-    }
-
-    pub fn reflection_north_east_diagonal(self) -> Self {
-        match self {
-            Self::North => Self::East,
-            Self::East => Self::North,
-            Self::South => Self::West,
-            Self::West => Self::South,
-        }
-    }
-
-    pub fn from_up_down_left_or_right(char: char) -> Self {
-        match char {
-            'U' => Self::North,
-            'D' => Self::South,
-            'L' => Self::West,
-            'R' => Self::East,
-            _ => panic!("direction should be 'U', 'D', 'L', or 'R'"),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, EnumIter)]
-pub enum RelativeDirection {
-    Forward,
-    Left,
-    Backward,
-    Right,
-}
-
+pub type Position = [Coordinate; 2];
+pub type Direction = Position;
 pub type Coordinate = isize;
-
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Position {
-    row: Coordinate,
-    column: Coordinate,
-}
-
-impl Debug for Position {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "({}, {})", self.row, self.column)
-    }
-}
-
-impl Position {
-    pub const fn new(row: Coordinate, column: Coordinate) -> Self {
-        Position { row, column }
-    }
-
-    pub const fn row(self) -> Coordinate {
-        self.row
-    }
-
-    pub const fn column(self) -> Coordinate {
-        self.column
-    }
-
-    pub const fn neighbor(mut self, direction: Direction) -> Position {
-        match direction {
-            Direction::North => self.row -= 1,
-            Direction::East => self.column += 1,
-            Direction::South => self.row += 1,
-            Direction::West => self.column -= 1,
-        }
-        self
-    }
-
-    pub fn neighbors(self) -> impl Iterator<Item = Self> {
-        Direction::iter().map(move |direction| self.neighbor(direction))
-    }
-
-    pub fn direction_to(self, other: Position) -> Option<Direction> {
-        if self == other {
-            return None;
-        }
-
-        if self.row() == other.row() {
-            if self.column() < other.column() {
-                Some(Direction::East)
-            } else {
-                Some(Direction::West)
-            }
-        } else if self.column() == other.column() {
-            if self.row() < other.row() {
-                Some(Direction::South)
-            } else {
-                Some(Direction::North)
-            }
-        } else {
-            None
-        }
-    }
-
-    pub const fn manhattan_distance(self, other: Position) -> Coordinate {
-        (self.row - other.row).abs() + (self.column - other.column).abs()
-    }
-}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Grid<T> {
@@ -162,20 +24,25 @@ impl<T> Grid<T> {
         let mut elements = vec![];
         for row in 0..height {
             for column in 0..width {
-                elements.push(element(Position::new(row.cast(), column.cast())));
+                elements.push(element([row.cast(), column.cast()]));
             }
         }
         Self { elements, width }
     }
 
-    pub fn get(&self, position: Position) -> Option<&T> {
+    pub fn get<Coordinate: TryInto<usize>>(&self, [row, column]: [Coordinate; 2]) -> Option<&T> {
+        let position = [row.try_into().ok()?, column.try_into().ok()?];
         self.is_within_grid(position)
-            .then(|| &self.elements[self.index_of_position(position)])
+            .then(|| &self.elements[self.index(position)])
     }
 
-    pub fn get_mut(&mut self, position: Position) -> Option<&mut T> {
+    pub fn get_mut<Coordinate: TryInto<usize>>(
+        &mut self,
+        [row, column]: [Coordinate; 2],
+    ) -> Option<&mut T> {
+        let position = [row.try_into().ok()?, column.try_into().ok()?];
         self.is_within_grid(position).then(|| {
-            let index = self.index_of_position(position);
+            let index = self.index(position);
             &mut self.elements[index]
         })
     }
@@ -183,10 +50,7 @@ impl<T> Grid<T> {
     pub fn iter_row_major(&self) -> impl Iterator<Item = (Position, &T)> {
         self.rows().enumerate().flat_map(|(row_index, row)| {
             row.enumerate().map(move |(column_index, element)| {
-                (
-                    Position::new(row_index.cast(), column_index.cast()),
-                    element,
-                )
+                ([row_index.cast(), column_index.cast()], element)
             })
         })
     }
@@ -196,10 +60,7 @@ impl<T> Grid<T> {
             .enumerate()
             .flat_map(|(column_index, column)| {
                 column.enumerate().map(move |(row_index, element)| {
-                    (
-                        Position::new(row_index.cast(), column_index.cast()),
-                        element,
-                    )
+                    ([row_index.cast(), column_index.cast()], element)
                 })
             })
     }
@@ -215,7 +76,7 @@ impl<T> Grid<T> {
     ) -> impl ExactSizeIterator<Item = impl Iterator<Item = &T>> + DoubleEndedIterator {
         (0..self.width()).map(move |column_index| {
             (0..self.height())
-                .map(move |row_index| &self.elements[self.index(row_index, column_index)])
+                .map(move |row_index| &self.elements[self.index([row_index, column_index])])
         })
     }
 
@@ -231,15 +92,13 @@ impl<T> Grid<T> {
     }
 
     pub fn corners_clockwise(&self) -> [Position; 4] {
-        [
-            (Position::new(0, 0)),
-            (Position::new(0, Coordinate::conv(self.width()) - 1)),
-            (Position::new(
-                Coordinate::conv(self.height()) - 1,
-                Coordinate::conv(self.width()) - 1,
-            )),
-            (Position::new(Coordinate::conv(self.height()) - 1, 0)),
-        ]
+        let corners = [
+            [0, 0],
+            [0, self.width() - 1],
+            [self.height() - 1, self.width() - 1],
+            [self.height() - 1, 0],
+        ];
+        corners.map(|[row, column]| [row.cast(), column.cast()])
     }
 
     pub fn height(&self) -> usize {
@@ -250,19 +109,12 @@ impl<T> Grid<T> {
         self.width
     }
 
-    fn index_of_position(&self, position: Position) -> usize {
-        self.index(position.row().cast(), position.column().cast())
+    fn is_within_grid(&self, [row, column]: [usize; 2]) -> bool {
+        row < self.height() && column < self.width()
     }
 
-    fn index(&self, row: usize, column: usize) -> usize {
+    fn index(&self, [row, column]: [usize; 2]) -> usize {
         row * self.width() + column
-    }
-
-    pub fn is_within_grid(&self, position: Position) -> bool {
-        0 <= position.row()
-            && position.row() < Coordinate::conv(self.height())
-            && 0 <= position.column()
-            && position.column() < Coordinate::conv(self.width())
     }
 
     fn from_str(str: &str, element_from_char: impl FnMut(char) -> T) -> Self {
@@ -317,16 +169,16 @@ impl<S: AsRef<str>> From<S> for Grid<isize> {
     }
 }
 
-impl<T> Index<Position> for Grid<T> {
+impl<T, Coordinate: TryInto<usize>> Index<[Coordinate; 2]> for Grid<T> {
     type Output = T;
 
-    fn index(&self, position: Position) -> &Self::Output {
+    fn index(&self, position: [Coordinate; 2]) -> &Self::Output {
         self.get(position).expect("position should be within grid")
     }
 }
 
-impl<T> IndexMut<Position> for Grid<T> {
-    fn index_mut(&mut self, position: Position) -> &mut Self::Output {
+impl<T, Coordinate: TryInto<usize>> IndexMut<[Coordinate; 2]> for Grid<T> {
+    fn index_mut(&mut self, position: [Coordinate; 2]) -> &mut Self::Output {
         self.get_mut(position)
             .expect("position should be within grid")
     }
@@ -342,4 +194,17 @@ impl Display for Grid<char> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.display(f)
     }
+}
+
+pub const NORTH: Direction = [-1, 0];
+pub const EAST: Direction = [0, 1];
+pub const SOUTH: Direction = [1, 0];
+pub const WEST: Direction = [0, -1];
+
+pub fn directions() -> impl Iterator<Item = Direction> {
+    [NORTH, EAST, SOUTH, WEST].into_iter()
+}
+
+pub fn neighbors(position: Position) -> impl Iterator<Item = Position> {
+    directions().map(move |direction| position.add(direction))
 }

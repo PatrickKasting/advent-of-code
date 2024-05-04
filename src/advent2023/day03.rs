@@ -43,6 +43,7 @@ fn for_each_part_number(
     for (line_index, &line) in lines.iter().enumerate() {
         for mat in number_regex.find_iter(line) {
             let horizontal_range = range_extended_by_one(0..schematic_width, mat.range());
+            #[allow(clippy::range_plus_one)]
             let vertical_range =
                 range_extended_by_one(0..schematic_height, line_index..line_index + 1);
             for line_index in vertical_range {

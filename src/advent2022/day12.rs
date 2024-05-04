@@ -1,5 +1,5 @@
 use crate::{
-    data_structures::grid::{Grid, Position},
+    data_structures::grid::{self, Grid, Position},
     search::shortest_path_length,
 };
 
@@ -20,7 +20,7 @@ pub fn second(input: &str) -> String {
 
 fn number_of_steps(heightmap: &Heightmap, from: impl Fn(Position) -> bool, to: Position) -> usize {
     let next_squares = |position: Position| {
-        position.neighbors().filter(move |&neighbor| {
+        grid::neighbors(position).filter(move |&neighbor| {
             heightmap
                 .get(neighbor)
                 .is_some_and(|&neighbor_height| heightmap[position] <= neighbor_height + 1)
