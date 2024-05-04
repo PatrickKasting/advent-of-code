@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use crate::{
     data_structures::grid::{self, Direction, Position},
-    vector::{Addition, Subtraction},
+    vector::Vector,
 };
 
 type Motion = (Direction, usize);

@@ -4,7 +4,7 @@ use itertools::Itertools;
 use crate::{
     data_structures::grid::{self, Coordinate, Grid, Position},
     strings::isizes,
-    vector::{round, Addition, Subtraction, Unit},
+    vector::{Unit, Vector},
 };
 
 type Cave = Grid<u8>;
@@ -97,7 +97,7 @@ fn add_path(cave: &mut Cave, path: &[Position], [_, sand_source_column]: Positio
         *element = b'#';
     }
     for joint in path {
-        let direction = round(joint.sub(position).unit());
+        let direction = joint.sub(position).unit();
         while position != joint {
             position = position.add(direction);
             if let Some(element) = cave.get_mut(position) {

@@ -6,7 +6,7 @@ use crate::{
     data_structures::grid::{self, Direction, Grid, Position},
     floating::ApproxEq,
     search::Exploration,
-    vector::{Addition, Angle, Negation, RotationInTwoDimensions, Subtraction},
+    vector::{AngleInTwoDimensions, Negation, RotationInTwoDimensions, Vector},
 };
 
 type Tile = char;

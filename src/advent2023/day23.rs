@@ -5,7 +5,7 @@ use itertools::Itertools;
 
 use crate::{
     data_structures::grid::{self, Coordinate, Direction, Grid, Position},
-    vector::{Addition, Negation},
+    vector::{Negation, Vector},
 };
 
 type Graph = HashMap<Position, Vec<(Distance, Position)>>;

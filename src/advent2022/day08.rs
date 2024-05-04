@@ -2,7 +2,7 @@ use itertools::Itertools;
 
 use crate::{
     data_structures::grid::{self, Direction, Grid, Position},
-    vector::{round, Addition, RotationInTwoDimensions, Subtraction, Unit},
+    vector::{RotationInTwoDimensions, Unit, Vector},
 };
 
 type Height = isize;
@@ -37,7 +37,7 @@ fn visibility_from_edge(
     from_corner: Position,
     to_corner: Position,
 ) {
-    let edge_direction = round(to_corner.sub(from_corner).unit());
+    let edge_direction = to_corner.sub(from_corner).unit();
     let mut position = from_corner;
     while position != to_corner {
         visibility_along_line(grid, visibility, position, edge_direction.right());

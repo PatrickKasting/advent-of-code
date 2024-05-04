@@ -5,7 +5,7 @@ use itertools::Itertools;
 
 use crate::{
     data_structures::grid::{self, Coordinate, Direction, Position},
-    vector::Addition,
+    vector::Vector,
 };
 
 type Blizzards = Vec<Blizzard>;

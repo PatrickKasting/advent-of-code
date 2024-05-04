@@ -5,7 +5,7 @@ use itertools::Itertools;
 
 use crate::{
     data_structures::grid::{self, Coordinate, Direction, Grid, Position},
-    vector::{Addition, CrossProduct, Negation, RotationInTwoDimensions, ScalarMultiplication},
+    vector::{CrossProduct, Negation, RotationInTwoDimensions, Vector},
 };
 
 type Board = Grid<char>;

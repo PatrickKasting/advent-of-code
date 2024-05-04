@@ -5,7 +5,7 @@ use easy_cast::Conv;
 use crate::{
     data_structures::grid::{self, Coordinate, Direction, Grid, Position},
     search::cheapest_path_cost,
-    vector::{Addition, RotationInTwoDimensions},
+    vector::{RotationInTwoDimensions, Vector},
 };
 
 type Move = (Option<Direction>, Position);

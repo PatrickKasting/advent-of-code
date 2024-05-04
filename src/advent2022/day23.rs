@@ -8,7 +8,7 @@ use itertools::Itertools;
 
 use crate::{
     data_structures::grid::{self, Direction, Position},
-    vector::{Addition, RotationInTwoDimensions},
+    vector::{RotationInTwoDimensions, Vector},
 };
 
 const INITIAL_DIRECTIONS: [Direction; 4] = [grid::NORTH, grid::SOUTH, grid::WEST, grid::EAST];

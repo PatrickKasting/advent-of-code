@@ -7,7 +7,7 @@ use std::{
 use easy_cast::Cast;
 use itertools::Itertools;
 
-use crate::vector::Addition;
+use crate::vector::Vector;
 
 pub type Position = [Coordinate; 2];
 pub type Coordinate = isize;

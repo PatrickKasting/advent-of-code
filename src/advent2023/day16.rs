@@ -5,7 +5,7 @@ use itertools::Itertools;
 
 use crate::{
     data_structures::grid::{self, Direction, Grid, Position},
-    vector::Addition,
+    vector::Vector,
 };
 
 type Beam = (Direction, Position);

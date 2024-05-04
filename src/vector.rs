@@ -1,78 +1,55 @@
-use std::{
-    f64,
-    ops::{Add, Div, Mul, Neg, Sub},
-};
+use std::{f64, ops::Neg};
 
-use num_traits::NumCast;
+use itertools::Itertools;
+use num_traits::{NumCast, NumOps, Zero};
 
-pub trait Addition {
+pub trait Vector {
+    type Scalar;
     fn add(self, rhs: Self) -> Self;
+    fn sub(self, rhs: Self) -> Self;
+    fn mul(self, rhs: Self::Scalar) -> Self;
+    // fn div(self, rhs: Self::Scalar) -> Self;
+    fn dot(self, rhs: Self) -> Self::Scalar;
 }
 
-impl<T, const N: usize> Addition for [T; N]
+impl<T, const N: usize> Vector for [T; N]
 where
-    T: Copy + Add<T, Output = T>,
+    T: Copy + Zero + NumOps,
 {
+    type Scalar = T;
+
     fn add(mut self, rhs: Self) -> Self {
         for (index, element) in self.iter_mut().enumerate() {
             *element = *element + rhs[index];
         }
         self
     }
-}
 
-pub trait Subtraction {
-    fn sub(self, rhs: Self) -> Self;
-}
-
-impl<T, const N: usize> Subtraction for [T; N]
-where
-    T: Copy + Sub<T, Output = T>,
-{
     fn sub(mut self, rhs: Self) -> Self {
         for (index, element) in self.iter_mut().enumerate() {
             *element = *element - rhs[index];
         }
         self
     }
-}
 
-pub trait ScalarMultiplication {
-    type Scalar;
-    fn mul(self, scalar: Self::Scalar) -> Self;
-}
-
-impl<T, const N: usize> ScalarMultiplication for [T; N]
-where
-    T: Copy + Mul<T, Output = T>,
-{
-    type Scalar = T;
-
-    fn mul(mut self, scalar: Self::Scalar) -> Self {
+    fn mul(mut self, rhs: Self::Scalar) -> Self {
         for element in &mut self {
-            *element = *element * scalar;
+            *element = *element * rhs;
         }
         self
     }
-}
 
-pub trait ScalarDivision {
-    type Scalar;
-    #[allow(dead_code)]
-    fn div(self, scalar: Self::Scalar) -> Self;
-}
+    // fn div(mut self, rhs: Self::Scalar) -> Self {
+    //     for element in &mut self {
+    //         *element = *element / rhs;
+    //     }
+    //     self
+    // }
 
-impl<T, const N: usize> ScalarDivision for [T; N]
-where
-    T: Copy + Div<T, Output = T>,
-{
-    type Scalar = T;
-
-    fn div(mut self, scalar: Self::Scalar) -> Self {
-        for element in &mut self {
-            *element = *element / scalar;
-        }
-        self
+    fn dot(self, rhs: Self) -> Self::Scalar {
+        self.into_iter()
+            .zip(rhs)
+            .fold(T::zero(), |sum, (left, right)| sum + left * right)
     }
 }
 
@@ -89,57 +66,22 @@ where
     }
 }
 
-pub trait DotProduct {
-    type Scalar;
-    fn dot(self, rhs: Self) -> Self::Scalar;
-}
-
-impl<T, const N: usize> DotProduct for [T; N]
-where
-    T: Default + Add<T, Output = T> + Mul<T, Output = T>,
-{
-    type Scalar = T;
-
-    fn dot(self, rhs: Self) -> Self::Scalar {
-        self.into_iter()
-            .zip(rhs)
-            .fold(T::default(), |sum, (left, right)| sum + left * right)
-    }
-}
-
-pub trait Magnitude {
-    fn magnitude(self) -> f64;
-}
-
-impl<T, const N: usize> Magnitude for [T; N]
-where
-    T: Copy,
-    [T; N]: DotProduct,
-    <[T; N] as DotProduct>::Scalar: NumCast,
-{
-    fn magnitude(self) -> f64 {
-        let dot = <f64 as NumCast>::from(self.dot(self)).expect("number should convert to 'f64'");
-        dot.sqrt()
-    }
-}
-
 pub trait Unit {
-    type Unit;
-    fn unit(self) -> Self::Unit;
+    fn unit(self) -> Self;
 }
 
-impl<T, const N: usize> Unit for [T; N]
-where
-    T: Copy + NumCast,
-    [T; N]: Magnitude,
-{
-    type Unit = [f64; N];
-    fn unit(self) -> Self::Unit {
-        let magnitude = self.magnitude();
-        self.map(|element| {
-            let floating = <f64 as NumCast>::from(element).expect("number should convert to 'f64'");
-            floating / magnitude
-        })
+impl<const N: usize> Unit for [isize; N] {
+    fn unit(self) -> Self {
+        let (non_zero_index, element) = self
+            .into_iter()
+            .enumerate()
+            .filter(|&(_, element)| element != 0)
+            .exactly_one()
+            .expect("exactly one element should be non-zero");
+
+        let mut unit = [0; N];
+        unit[non_zero_index] = element.signum();
+        unit
     }
 }
 
@@ -149,7 +91,7 @@ pub trait CrossProduct {
 
 impl<T> CrossProduct for [T; 3]
 where
-    T: Copy + Sub<T, Output = T> + Mul<T, Output = T>,
+    T: Copy + NumOps,
 {
     fn cross(self, rhs: Self) -> Self {
         [
@@ -180,27 +122,20 @@ where
     }
 }
 
-pub trait Angle {
+pub trait AngleInTwoDimensions {
     fn angle(self, to: Self) -> f64;
 }
 
-impl<T> Angle for [T; 2]
+impl<T> AngleInTwoDimensions for [T; 2]
 where
-    T: Copy + Add<T, Output = T> + Sub<T, Output = T> + Mul<T, Output = T> + NumCast,
+    T: Copy + Zero + NumOps + NumCast,
 {
     fn angle(self, to: Self) -> f64 {
-        let dot = <f64 as NumCast>::from(self[0] * to[0] + self[1] * to[1])
-            .expect("number should convert to 'f64'");
+        let dot = <f64 as NumCast>::from(self.dot(to)).expect("number should convert to 'f64'");
         let determinant = <f64 as NumCast>::from(self[0] * to[1] - self[1] * to[0])
             .expect("number should convert to 'f64'");
         determinant.atan2(dot)
     }
-}
-
-pub fn round<T: NumCast, const N: usize>(vector: [f64; N]) -> [T; N] {
-    vector.map(|element| {
-        <T as NumCast>::from(element.round()).expect("number should convert from 'f64'")
-    })
 }
 
 #[cfg(test)]
@@ -229,11 +164,11 @@ mod tests {
         assert_eq!(actual, [-6, 8, 0, -6, 4]);
     }
 
-    #[test]
-    fn scalar_division() {
-        let actual = [-4, 4, 0, -2, 8].div(2);
-        assert_eq!(actual, [-2, 2, 0, -1, 4]);
-    }
+    // #[test]
+    // fn scalar_division() {
+    //     let actual = [-4, 4, 0, -2, 8].div(2);
+    //     assert_eq!(actual, [-2, 2, 0, -1, 4]);
+    // }
 
     #[test]
     fn negation() {
@@ -248,18 +183,10 @@ mod tests {
     }
 
     #[test]
-    fn magnitude() {
-        let actual = [-3, 4].magnitude();
-        assert!(actual.approx_eq(5.0));
-    }
-
-    #[test]
     fn unit() {
-        let actual = [-3, 3].unit();
-        let expected = [-FRAC_1_SQRT_2, FRAC_1_SQRT_2];
-        for (coordinate, expected) in actual.into_iter().zip(expected) {
-            assert!(coordinate.approx_eq(expected));
-        }
+        let actual = [0, -4, 0].unit();
+        let expected = [0, -1, 0];
+        assert_eq!(actual, expected);
     }
 
     #[test]
