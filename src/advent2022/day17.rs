@@ -178,7 +178,7 @@ fn surface(chamber: &Chamber, tower_height: Coordinate) -> Surface {
     let right = |[row, column]: Direction| [-column, row];
     let backward = |[row, column]: Direction| [-row, -column];
     let add = |left: [isize; 2], right: [isize; 2]| [left[0] + right[0], left[1] + right[1]];
-    let convert = |[row, column]: [isize; 2]| [usize::conv(row), column.cast()];
+    let convert = |[row, column]: [isize; 2]| [usize::conv(row), usize::conv(column)];
 
     let mut row = tower_height;
     while !chamber[row][1] {

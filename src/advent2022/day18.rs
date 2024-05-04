@@ -69,7 +69,7 @@ fn exterior_volume(
     exploration.explored()
 }
 
-fn area(cubes: &HashSet<Position>) -> Coordinate {
+fn area(cubes: &HashSet<Position>) -> isize {
     cubes
         .iter()
         .copied()
