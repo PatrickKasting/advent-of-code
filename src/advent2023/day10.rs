@@ -68,7 +68,8 @@ fn longest_cycle(grid: &Grid<Tile>) -> Cycle {
         .iter_row_major()
         .find_map(|(position, &tile)| (tile == 'S').then_some(position))
         .expect("there should be exactly one starting position");
-    grid::directions()
+    grid::DIRECTIONS
+        .into_iter()
         .filter_map(|direction| cycle(grid, starting_position, direction))
         .max_by_key(Vec::len)
         .expect("at least one loop should exist")

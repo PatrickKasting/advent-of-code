@@ -1,7 +1,6 @@
 use std::ops::RangeInclusive;
 
 use easy_cast::Conv;
-use itertools::Itertools;
 
 use crate::{
     data_structures::grid::{self, Coordinate, Direction, Grid, Position},
@@ -43,7 +42,7 @@ fn moves(
 ) -> impl Iterator<Item = (Move, HeatLoss)> + '_ {
     let next_directions = match previous_direction {
         Some(previous_direction) => vec![previous_direction.left(), previous_direction.right()],
-        None => grid::directions().collect_vec(),
+        None => grid::DIRECTIONS.into(),
     };
     next_directions.into_iter().flat_map(move |next_direction| {
         moves_in_direction(map, position, next_direction, number_of_steps.clone())

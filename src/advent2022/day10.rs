@@ -22,7 +22,7 @@ fn image(input: &str) -> Image {
             number_of_completed_cycles % image.width(),
         ];
         if (Register::conv(column) - register).abs() <= 1 {
-            image[position] = '#';
+            image[position.map(easy_cast::Cast::cast)] = '#';
         }
     };
     execute(input, draw_maybe);

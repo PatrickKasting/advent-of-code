@@ -20,11 +20,13 @@ pub fn second(input: &str) -> String {
 
 fn number_of_steps(heightmap: &Heightmap, from: impl Fn(Position) -> bool, to: Position) -> usize {
     let next_squares = |position: Position| {
-        grid::neighbors(position).filter(move |&neighbor| {
-            heightmap
-                .get(neighbor)
-                .is_some_and(|&neighbor_height| heightmap[position] <= neighbor_height + 1)
-        })
+        grid::neighbors(position)
+            .into_iter()
+            .filter(move |&neighbor| {
+                heightmap
+                    .get(neighbor)
+                    .is_some_and(|&neighbor_height| heightmap[position] <= neighbor_height + 1)
+            })
     };
     shortest_path_length(to, |_, _| (), next_squares, from)
         .expect("path from 'E' to 'S' should exist")

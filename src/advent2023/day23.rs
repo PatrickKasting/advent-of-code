@@ -75,7 +75,8 @@ fn successor_tiles(
     from: Direction,
     to: Position,
 ) -> Vec<(Direction, Position)> {
-    grid::directions()
+    grid::DIRECTIONS
+        .into_iter()
         .filter(|&direction| direction != from.neg())
         .filter_map(|direction| {
             let neighbor = to.add(direction);

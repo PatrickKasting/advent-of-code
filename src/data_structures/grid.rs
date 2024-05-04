@@ -10,7 +10,6 @@ use itertools::Itertools;
 use crate::vector::Addition;
 
 pub type Position = [Coordinate; 2];
-pub type Direction = Position;
 pub type Coordinate = isize;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -30,16 +29,13 @@ impl<T> Grid<T> {
         Self { elements, width }
     }
 
-    pub fn get<Coordinate: TryInto<usize>>(&self, [row, column]: [Coordinate; 2]) -> Option<&T> {
+    pub fn get(&self, [row, column]: Position) -> Option<&T> {
         let position = [row.try_into().ok()?, column.try_into().ok()?];
         self.is_within_grid(position)
             .then(|| &self.elements[self.index(position)])
     }
 
-    pub fn get_mut<Coordinate: TryInto<usize>>(
-        &mut self,
-        [row, column]: [Coordinate; 2],
-    ) -> Option<&mut T> {
+    pub fn get_mut(&mut self, [row, column]: Position) -> Option<&mut T> {
         let position = [row.try_into().ok()?, column.try_into().ok()?];
         self.is_within_grid(position).then(|| {
             let index = self.index(position);
@@ -169,16 +165,16 @@ impl<S: AsRef<str>> From<S> for Grid<isize> {
     }
 }
 
-impl<T, Coordinate: TryInto<usize>> Index<[Coordinate; 2]> for Grid<T> {
+impl<T> Index<Position> for Grid<T> {
     type Output = T;
 
-    fn index(&self, position: [Coordinate; 2]) -> &Self::Output {
+    fn index(&self, position: Position) -> &Self::Output {
         self.get(position).expect("position should be within grid")
     }
 }
 
-impl<T, Coordinate: TryInto<usize>> IndexMut<[Coordinate; 2]> for Grid<T> {
-    fn index_mut(&mut self, position: [Coordinate; 2]) -> &mut Self::Output {
+impl<T> IndexMut<Position> for Grid<T> {
+    fn index_mut(&mut self, position: Position) -> &mut Self::Output {
         self.get_mut(position)
             .expect("position should be within grid")
     }
@@ -196,15 +192,15 @@ impl Display for Grid<char> {
     }
 }
 
+pub type Direction = [Coordinate; 2];
+
 pub const NORTH: Direction = [-1, 0];
 pub const EAST: Direction = [0, 1];
 pub const SOUTH: Direction = [1, 0];
 pub const WEST: Direction = [0, -1];
 
-pub fn directions() -> impl Iterator<Item = Direction> {
-    [NORTH, EAST, SOUTH, WEST].into_iter()
-}
+pub const DIRECTIONS: [Direction; 4] = [NORTH, EAST, SOUTH, WEST];
 
-pub fn neighbors(position: Position) -> impl Iterator<Item = Position> {
-    directions().map(move |direction| position.add(direction))
+pub fn neighbors(position: Position) -> [Position; 4] {
+    DIRECTIONS.map(|direction| position.add(direction))
 }
