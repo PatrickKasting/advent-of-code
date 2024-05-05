@@ -4,7 +4,7 @@ use itertools::Itertools;
 use crate::{
     data_structures::grid::{self, Coordinate, Grid, Position},
     strings::isizes,
-    vector::{Unit, Vector},
+    vector::Vector,
 };
 
 type Cave = Grid<u8>;

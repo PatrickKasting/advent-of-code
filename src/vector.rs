@@ -1,6 +1,5 @@
 use std::{f64, ops::Neg};
 
-use itertools::Itertools;
 use num_traits::{NumCast, NumOps, Zero};
 
 pub trait Vector {
@@ -8,13 +7,15 @@ pub trait Vector {
     fn add(self, rhs: Self) -> Self;
     fn sub(self, rhs: Self) -> Self;
     fn mul(self, rhs: Self::Scalar) -> Self;
-    // fn div(self, rhs: Self::Scalar) -> Self;
+    fn div(self, rhs: Self::Scalar) -> Self;
     fn dot(self, rhs: Self) -> Self::Scalar;
+    fn norm(self) -> Self::Scalar;
+    fn unit(self) -> Self;
 }
 
 impl<T, const N: usize> Vector for [T; N]
 where
-    T: Copy + Zero + NumOps,
+    T: Copy + Zero + NumOps + NumCast,
 {
     type Scalar = T;
 
@@ -39,17 +40,29 @@ where
         self
     }
 
-    // fn div(mut self, rhs: Self::Scalar) -> Self {
-    //     for element in &mut self {
-    //         *element = *element / rhs;
-    //     }
-    //     self
-    // }
+    fn div(mut self, rhs: Self::Scalar) -> Self {
+        for element in &mut self {
+            *element = *element / rhs;
+        }
+        self
+    }
 
     fn dot(self, rhs: Self) -> Self::Scalar {
         self.into_iter()
             .zip(rhs)
             .fold(T::zero(), |sum, (left, right)| sum + left * right)
+    }
+
+    fn norm(self) -> Self::Scalar {
+        let dot: f64 = self
+            .dot(self)
+            .to_f64()
+            .expect("dot product should be representable as f64");
+        T::from(dot.sqrt()).expect("norm should convert back to original number type")
+    }
+
+    fn unit(self) -> Self {
+        self.div(self.norm())
     }
 }
 
@@ -63,25 +76,6 @@ where
 {
     fn neg(self) -> Self {
         self.map(|element| -element)
-    }
-}
-
-pub trait Unit {
-    fn unit(self) -> Self;
-}
-
-impl<const N: usize> Unit for [isize; N] {
-    fn unit(self) -> Self {
-        let (non_zero_index, element) = self
-            .into_iter()
-            .enumerate()
-            .filter(|&(_, element)| element != 0)
-            .exactly_one()
-            .expect("exactly one element should be non-zero");
-
-        let mut unit = [0; N];
-        unit[non_zero_index] = element.signum();
-        unit
     }
 }
 
@@ -164,11 +158,11 @@ mod tests {
         assert_eq!(actual, [-6, 8, 0, -6, 4]);
     }
 
-    // #[test]
-    // fn scalar_division() {
-    //     let actual = [-4, 4, 0, -2, 8].div(2);
-    //     assert_eq!(actual, [-2, 2, 0, -1, 4]);
-    // }
+    #[test]
+    fn scalar_division() {
+        let actual = [-4, 4, 0, -2, 8].div(2);
+        assert_eq!(actual, [-2, 2, 0, -1, 4]);
+    }
 
     #[test]
     fn negation() {
@@ -183,32 +177,38 @@ mod tests {
     }
 
     #[test]
-    fn unit() {
+    fn norm() {
+        let actual = [17, 1, 909, -42, 0].norm();
+        assert_eq!(actual, 910);
+    }
+
+    #[test]
+    fn unit_vector() {
         let actual = [0, -4, 0].unit();
         let expected = [0, -1, 0];
         assert_eq!(actual, expected);
     }
 
     #[test]
-    fn cross() {
+    fn cross_product() {
         let actual = [3, -3, 1].cross([4, 9, 2]);
         assert_eq!(actual, [-15, -2, 39]);
     }
 
     #[test]
-    fn left() {
+    fn left_rotation() {
         let actual = [2, 1].left();
         assert_eq!(actual, [-1, 2]);
     }
 
     #[test]
-    fn right() {
+    fn right_rotation() {
         let actual = [-1, 2].right();
         assert_eq!(actual, [2, 1]);
     }
 
     #[test]
-    fn angle() {
+    fn angle_between_vectors() {
         let cases = [
             ([[1, 0], [3, 0]], 0.0),
             ([[2, 0], [4, 4]], FRAC_PI_4),

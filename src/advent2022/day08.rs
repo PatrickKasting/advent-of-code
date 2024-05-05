@@ -2,7 +2,7 @@ use itertools::Itertools;
 
 use crate::{
     data_structures::grid::{self, Direction, Grid, Position},
-    vector::{RotationInTwoDimensions, Unit, Vector},
+    vector::{RotationInTwoDimensions, Vector},
 };
 
 type Height = isize;
