@@ -45,8 +45,8 @@ pub fn area(cycle: &mut [Position]) -> usize {
     area.explored().len() - cycle.len()
 }
 
-fn is_clockwise(cycle: &mut [Position]) -> bool {
-    let sum_of_interior_angles: f64 = cycle
+fn is_clockwise(cycle: &[Position]) -> bool {
+    let angles_sum: f64 = cycle
         .iter()
         .circular_tuple_windows()
         .map(|(&first, &second, &third)| {
@@ -54,13 +54,7 @@ fn is_clockwise(cycle: &mut [Position]) -> bool {
             toward.angle(away)
         })
         .sum();
-    debug_assert!(
-        sum_of_interior_angles
-            .abs()
-            .approx_eq(2.0 * f64::consts::PI),
-        "sum of interior angles should be 2.0π or -2.0π",
-    );
-    sum_of_interior_angles.is_sign_negative()
+    angles_sum.is_sign_negative()
 }
 
 fn longest_cycle(grid: &Grid<Tile>) -> Cycle {
