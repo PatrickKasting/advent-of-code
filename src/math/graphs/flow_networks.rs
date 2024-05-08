@@ -1,9 +1,11 @@
 use std::{
     cmp,
-    collections::{hash_map::Entry, HashMap, HashSet, VecDeque},
+    collections::{hash_map::Entry, VecDeque},
     fmt::Debug,
     hash::Hash,
 };
+
+use crate::{HashMap, HashSet};
 
 #[derive(Debug, Clone)]
 struct FlowNetwork<N> {
@@ -83,7 +85,7 @@ fn augmenting_path<N: Debug + Copy + Eq + Hash>(
     sink: N,
 ) -> Option<Predecessors<N>> {
     // Breadth-first search
-    let mut predecessors: Predecessors<N> = Predecessors::new();
+    let mut predecessors: Predecessors<N> = Predecessors::default();
     let mut frontier = VecDeque::from([source]);
     while let Some(from) = frontier.pop_front() {
         // Destination reached?

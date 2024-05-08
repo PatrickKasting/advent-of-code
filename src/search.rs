@@ -1,10 +1,6 @@
-use std::{
-    cmp::Reverse,
-    collections::{BinaryHeap, HashSet},
-    hash::Hash,
-    mem,
-    ops::Add,
-};
+use std::{cmp::Reverse, collections::BinaryHeap, hash::Hash, mem, ops::Add};
+
+use crate::HashSet;
 
 pub struct Exploration<T: Copy + Eq + Hash>(HashSet<T>);
 

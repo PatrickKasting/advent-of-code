@@ -1,6 +1,9 @@
-use std::{collections::HashSet, mem};
+use std::mem;
 
-use crate::data_structures::grid::{self, Coordinate, Grid, Position};
+use crate::{
+    data_structures::grid::{self, Coordinate, Grid, Position},
+    HashSet,
+};
 
 type Map = Grid<char>;
 

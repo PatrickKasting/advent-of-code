@@ -52,6 +52,7 @@ mod vector;
 
 use std::{fmt::Debug, fs, ops::RangeInclusive};
 
+use ahash::{AHashMap as HashMap, AHashSet as HashSet};
 use anyhow::{anyhow, Ok, Result};
 use clap::Parser;
 use strum::EnumString;

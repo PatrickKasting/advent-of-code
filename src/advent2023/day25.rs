@@ -1,9 +1,7 @@
-use std::collections::HashSet;
-
 use itertools::Itertools;
 use rand::{rngs::SmallRng, seq::SliceRandom, SeedableRng};
 
-use crate::math::graphs::flow_networks::maximum_flow;
+use crate::{math::graphs::flow_networks::maximum_flow, HashSet};
 
 type One = usize;
 

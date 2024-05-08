@@ -1,8 +1,8 @@
-use std::{cmp, collections::HashMap, iter};
+use std::{cmp, iter};
 
 use itertools::Itertools;
 
-use crate::strings::usizes;
+use crate::{strings::usizes, HashMap};
 
 type Spring = u8;
 type GroupSize = usize;

@@ -1,7 +1,4 @@
-use std::{
-    cmp,
-    collections::{HashMap, HashSet},
-};
+use std::cmp;
 
 use easy_cast::Cast;
 use itertools::Itertools;
@@ -9,6 +6,7 @@ use itertools::Itertools;
 use crate::{
     data_structures::grid::{self, Direction, Grid, Position},
     vector::{Negation, Vector},
+    HashMap, HashSet,
 };
 
 type Graph = HashMap<Position, Vec<(Position, Distance)>>;

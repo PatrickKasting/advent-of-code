@@ -7,6 +7,10 @@ rust-version = "1.77.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+ahash = { version = "0.8.11", default-features = false, features = [
+    "std",
+    "no-rng",
+] }
 anyhow = "1.0.75"
 clap = { version = "4.4.10", features = ["derive"] }
 easy-cast = "0.5.2"

@@ -1,7 +1,9 @@
-use std::{collections::HashMap, ops::Range};
+use std::ops::Range;
 
 use itertools::Itertools;
 use regex::Regex;
+
+use crate::HashMap;
 
 type GearRatio = usize;
 type PartNumber = usize;

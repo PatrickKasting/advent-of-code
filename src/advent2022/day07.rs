@@ -1,6 +1,8 @@
-use std::{collections::HashMap, iter};
+use std::iter;
 
 use itertools::Itertools;
+
+use crate::HashMap;
 
 type Size = usize;
 

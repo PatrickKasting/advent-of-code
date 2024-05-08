@@ -1,9 +1,9 @@
-use std::{cmp, collections::HashSet};
+use std::cmp;
 
 use easy_cast::Cast;
 use itertools::Itertools;
 
-use crate::{search::Exploration, strings::isizes};
+use crate::{search::Exploration, strings::isizes, HashSet};
 
 type BoundingBox = [Position; 2];
 type Position = [Coordinate; 3];

@@ -1,4 +1,6 @@
-use std::{collections::HashSet, hash::Hash};
+use std::hash::Hash;
+
+use crate::HashSet;
 
 pub fn intersection<T: Eq + Hash>(sets: impl IntoIterator<Item = HashSet<T>>) -> HashSet<T> {
     let mut sets = sets.into_iter();

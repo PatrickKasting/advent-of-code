@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use crate::HashSet;
 
 pub fn first(input: &str) -> String {
     index_of_marker(4, input.as_bytes()).to_string()

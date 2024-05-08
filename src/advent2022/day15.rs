@@ -1,9 +1,9 @@
-use std::{cmp, collections::HashSet, fmt::Debug};
+use std::{cmp, fmt::Debug};
 
 use easy_cast::Conv;
 use itertools::Itertools;
 
-use crate::strings::isizes;
+use crate::{strings::isizes, HashSet};
 
 type Sensor = Position;
 type Beacon = Position;

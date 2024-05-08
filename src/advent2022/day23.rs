@@ -1,7 +1,4 @@
-use std::{
-    collections::{HashMap, HashSet},
-    iter,
-};
+use std::iter;
 
 use easy_cast::Cast;
 use itertools::Itertools;
@@ -9,6 +6,7 @@ use itertools::Itertools;
 use crate::{
     data_structures::grid::{self, Direction, Position},
     vector::{RotationInTwoDimensions, Vector},
+    HashMap, HashSet,
 };
 
 const INITIAL_DIRECTIONS: [Direction; 4] = [grid::NORTH, grid::SOUTH, grid::WEST, grid::EAST];

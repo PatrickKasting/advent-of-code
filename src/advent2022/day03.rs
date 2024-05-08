@@ -1,8 +1,6 @@
-use std::collections::HashSet;
-
 use itertools::Itertools;
 
-use crate::math::sets::intersection;
+use crate::{math::sets::intersection, HashSet};
 
 type Item = char;
 type Set = HashSet<Item>;

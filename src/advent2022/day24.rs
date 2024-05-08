@@ -1,11 +1,10 @@
-use std::collections::HashSet;
-
 use easy_cast::{Cast, Conv};
 use itertools::Itertools;
 
 use crate::{
     data_structures::grid::{self, Coordinate, Direction, Position},
     vector::Vector,
+    HashSet,
 };
 
 type Blizzards = Vec<Blizzard>;

@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use crate::HashSet;
 
 type Score = usize;
 type Numbers = HashSet<Number>;

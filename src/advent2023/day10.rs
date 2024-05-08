@@ -1,4 +1,4 @@
-use std::{collections::HashMap, f64, sync::OnceLock};
+use std::{f64, sync::OnceLock};
 
 use itertools::Itertools;
 
@@ -7,6 +7,7 @@ use crate::{
     floating::ApproxEq,
     search::Exploration,
     vector::{AngleInTwoDimensions, Negation, RotationInTwoDimensions, Vector},
+    HashMap,
 };
 
 type Tile = char;

@@ -1,10 +1,9 @@
-use std::collections::HashMap;
-
 use itertools::Itertools;
 
 use crate::{
     data_structures::grid::{self, Direction, Grid, Position},
     vector::Vector,
+    HashMap,
 };
 
 type Platform = Grid<char>;

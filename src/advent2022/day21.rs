@@ -1,7 +1,6 @@
-use std::{
-    collections::HashMap,
-    ops::{Add, Div, Mul, Sub},
-};
+use std::ops::{Add, Div, Mul, Sub};
+
+use crate::HashMap;
 
 type Monkey<'input> = (&'input str, Expression<'input>);
 

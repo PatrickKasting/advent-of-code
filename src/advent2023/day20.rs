@@ -1,6 +1,8 @@
-use std::collections::{HashMap, VecDeque};
+use std::collections::VecDeque;
 
 use itertools::Itertools;
+
+use crate::HashMap;
 
 type Pulse = bool;
 const LOW: Pulse = false;

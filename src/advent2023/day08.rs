@@ -1,6 +1,6 @@
-use std::collections::HashMap;
-
 use itertools::Itertools;
+
+use crate::HashMap;
 
 type Time = usize;
 type Node<'input> = &'input str;

@@ -1,8 +1,8 @@
-use std::{cmp::Ordering, collections::HashMap, ops::Range};
+use std::{cmp::Ordering, ops::Range};
 
 use itertools::Itertools;
 
-use crate::strings::usizes;
+use crate::{strings::usizes, HashMap};
 
 type Workflows<'input> = HashMap<Name<'input>, Rules<'input>>;
 type Workflow<'input> = (Name<'input>, Rules<'input>);

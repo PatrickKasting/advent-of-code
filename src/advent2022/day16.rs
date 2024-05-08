@@ -1,13 +1,9 @@
-use std::{
-    cmp,
-    collections::{HashMap, HashSet},
-    sync::OnceLock,
-};
+use std::{cmp, sync::OnceLock};
 
 use itertools::Itertools;
 use regex::Regex;
 
-use crate::{search::shortest_path_length, strings::usizes};
+use crate::{search::shortest_path_length, strings::usizes, HashMap, HashSet};
 
 type ContractedCave<'input> = HashMap<Valve<'input>, (Pressure, Vec<(Time, Valve<'input>)>)>;
 type Cave<'input> = HashMap<Valve<'input>, (Pressure, Vec<Valve<'input>>)>;
