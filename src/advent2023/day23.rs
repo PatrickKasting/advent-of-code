@@ -1,10 +1,13 @@
-use std::collections::{HashMap, HashSet};
+use std::{
+    cmp,
+    collections::{HashMap, HashSet},
+};
 
 use easy_cast::Cast;
 use itertools::Itertools;
 
 use crate::{
-    data_structures::grid::{self as map, Direction, Grid, Position},
+    data_structures::grid::{self, Direction, Grid, Position},
     vector::{Negation, Vector},
 };
 
@@ -30,39 +33,40 @@ fn longest_hike(input: &str, slopes: bool) -> Distance {
     }
     let graph = graph(&map);
     let (last_junction, distance_from_last_junction_to_goal) = last_junction(&graph, goal(&map));
-    let maximum_distance_to_last_junction =
-        maximum_distance(&graph, &mut HashSet::new(), START, last_junction)
-            .expect("at least one hike should lead to the goal");
+    let maximum_distance_to_last_junction = maximum_distance(&graph, START, last_junction);
     maximum_distance_to_last_junction + distance_from_last_junction_to_goal
 }
 
-fn maximum_distance(
-    graph: &Graph,
-    visited: &mut HashSet<Position>,
-    from: Position,
-    to: Position,
-) -> Option<Distance> {
-    if from == to {
-        return Some(0);
-    }
+fn maximum_distance(graph: &Graph, from: Position, to: Position) -> Distance {
+    const MARKER: (Position, Distance) = ([0, 0], 0);
+    let mut maximum_distance = Distance::MIN;
+    let mut path = vec![];
+    let mut frontier = vec![(from, 0)];
+    while let Some((position, distance)) = frontier.pop() {
+        if position == MARKER.0 {
+            path.pop();
+            continue;
+        }
 
-    if !visited.insert(from) {
-        return None;
+        if position == to {
+            maximum_distance = cmp::max(maximum_distance, distance);
+            continue;
+        }
+
+        path.push(position);
+        frontier.push(MARKER);
+        for &(successor, step_distance) in &graph[&position] {
+            if !path.contains(&successor) {
+                frontier.push((successor, distance + step_distance));
+            }
+        }
     }
-    let maximum_distance = graph[&from]
-        .iter()
-        .filter_map(|&(successor, distance)| {
-            maximum_distance(graph, visited, successor, to)
-                .map(|maximum_distance| maximum_distance + distance)
-        })
-        .max();
-    visited.remove(&from);
     maximum_distance
 }
 
 fn graph(map: &Map) -> Graph {
-    let mut explored = HashSet::from([(START, map::SOUTH)]);
-    let mut frontier = vec![(START, map::SOUTH)];
+    let mut explored = HashSet::from([(START, grid::SOUTH)]);
+    let mut frontier = vec![(START, grid::SOUTH)];
     let mut graph = HashMap::new();
     while let Some((from, toward)) = frontier.pop() {
         if let Some((to, next_towards, distance)) = next_junction(map, from, toward) {
@@ -105,7 +109,7 @@ fn next_junction(
 }
 
 fn next_path_tiles(map: &Map, from: Direction, position: Position) -> Vec<(Position, Direction)> {
-    map::DIRECTIONS
+    grid::DIRECTIONS
         .into_iter()
         .filter(|&direction| direction != from)
         .filter_map(move |direction| {
@@ -117,10 +121,10 @@ fn next_path_tiles(map: &Map, from: Direction, position: Position) -> Vec<(Posit
 
 fn slope(tile: Tile) -> Option<Direction> {
     match tile {
-        '^' => Some(map::NORTH),
-        '>' => Some(map::EAST),
-        'v' => Some(map::SOUTH),
-        '<' => Some(map::WEST),
+        '^' => Some(grid::NORTH),
+        '>' => Some(grid::EAST),
+        'v' => Some(grid::SOUTH),
+        '<' => Some(grid::WEST),
         '.' => None,
         _ => panic!("only walkable tiles should be checked for slopes"),
     }
