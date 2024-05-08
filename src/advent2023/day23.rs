@@ -29,8 +29,11 @@ fn longest_hike(input: &str, slopes: bool) -> Distance {
         map = map.map(|_, &tile| slope_to_path(tile));
     }
     let graph = graph(&map);
-    maximum_distance(&graph, &mut HashSet::new(), [0, 1], goal(&map))
-        .expect("at least one hike should lead to the goal")
+    let (last_junction, distance_from_last_junction_to_goal) = last_junction(&graph, goal(&map));
+    let maximum_distance_to_last_junction =
+        maximum_distance(&graph, &mut HashSet::new(), START, last_junction)
+            .expect("at least one hike should lead to the goal");
+    maximum_distance_to_last_junction + distance_from_last_junction_to_goal
 }
 
 fn maximum_distance(
@@ -121,6 +124,16 @@ fn slope(tile: Tile) -> Option<Direction> {
         '.' => None,
         _ => panic!("only walkable tiles should be checked for slopes"),
     }
+}
+
+fn last_junction(graph: &Graph, goal: Position) -> (Position, Distance) {
+    let last_junction = graph.iter().find_map(|(&position, successors)| {
+        successors
+            .iter()
+            .find(|&&(successor, _)| successor == goal)
+            .map(|&(_, distance)| (position, distance))
+    });
+    last_junction.expect("single junction should connect to goal")
 }
 
 fn slope_to_path(tile: Tile) -> Tile {
