@@ -1,5 +1,9 @@
 use itertools::Itertools;
 
+type HandType = Vec<usize>;
+type Hand = [Card; 5];
+type Bid = usize;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum Card {
     Joker,
@@ -18,41 +22,32 @@ enum Card {
     Ace,
 }
 
-fn card(j: Card, char: char) -> Card {
-    match char {
-        '2' => Card::Two,
-        '3' => Card::Three,
-        '4' => Card::Four,
-        '5' => Card::Five,
-        '6' => Card::Six,
-        '7' => Card::Seven,
-        '8' => Card::Eight,
-        '9' => Card::Nine,
-        'T' => Card::Ten,
-        'J' => j,
-        'Q' => Card::Queen,
-        'K' => Card::King,
-        'A' => Card::Ace,
-        _ => panic!("card should be one of the 13 known ones"),
-    }
+pub fn first(input: &str) -> String {
+    total_winnings(input, Card::Jack).to_string()
 }
 
-type Hand = [Card; 5];
-type Bid = usize;
-type HandType = Vec<usize>;
-
-fn hand(j: Card, hand: &str) -> Hand {
-    hand.chars()
-        .map(|char| card(j, char))
-        .collect_vec()
-        .try_into()
-        .expect("a hand should contain five cards")
+pub fn second(input: &str) -> String {
+    total_winnings(input, Card::Joker).to_string()
 }
 
-fn player(j: Card, line: &str) -> (Hand, Bid) {
+fn total_winnings(input: &str, j: Card) -> Bid {
+    let mut strengths_and_bids = input
+        .lines()
+        .map(|line| player(line, j))
+        .map(|(hand, bid)| ((hand_type(hand), hand), bid))
+        .collect_vec();
+    strengths_and_bids.sort_by_key(|(strength, _)| strength.clone());
+
+    (1..)
+        .zip(strengths_and_bids)
+        .map(|(rank, (_, bid))| rank * bid)
+        .sum()
+}
+
+fn player(line: &str, j: Card) -> (Hand, Bid) {
     let (hand, bid) = line.split_once(' ').expect("a line should include a space");
     (
-        self::hand(j, hand),
+        self::hand(hand, j),
         bid.parse().expect("bid should be numerical"),
     )
 }
@@ -77,26 +72,31 @@ fn hand_type(mut hand: Hand) -> HandType {
     group_sizes
 }
 
-fn total_winnings(j: Card, input: &str) -> Bid {
-    let mut strengths_and_bids = input
-        .lines()
-        .map(|line| player(j, line))
-        .map(|(hand, bid)| ((hand_type(hand), hand), bid))
-        .collect_vec();
-    strengths_and_bids.sort_by_key(|(strength, _)| strength.clone());
-
-    (1..)
-        .zip(strengths_and_bids)
-        .map(|(rank, (_, bid))| rank * bid)
-        .sum()
+fn hand(hand: &str, j: Card) -> Hand {
+    hand.chars()
+        .map(|char| card(char, j))
+        .collect_vec()
+        .try_into()
+        .expect("a hand should contain five cards")
 }
 
-pub fn first(input: &str) -> String {
-    total_winnings(Card::Jack, input).to_string()
-}
-
-pub fn second(input: &str) -> String {
-    total_winnings(Card::Joker, input).to_string()
+fn card(char: char, j: Card) -> Card {
+    match char {
+        '2' => Card::Two,
+        '3' => Card::Three,
+        '4' => Card::Four,
+        '5' => Card::Five,
+        '6' => Card::Six,
+        '7' => Card::Seven,
+        '8' => Card::Eight,
+        '9' => Card::Nine,
+        'T' => Card::Ten,
+        'J' => j,
+        'Q' => Card::Queen,
+        'K' => Card::King,
+        'A' => Card::Ace,
+        _ => panic!("card should be one of the 13 known ones"),
+    }
 }
 
 #[cfg(test)]

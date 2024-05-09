@@ -2,15 +2,15 @@ use itertools::Itertools;
 
 use crate::strings::usizes;
 
-type Worry = usize;
-type Operation = Box<dyn Fn(Worry) -> Worry>;
-
 struct Monkey {
     items: Vec<Worry>,
     operation: Operation,
     divisor: Worry,
-    destinations: [usize; 2],
+    receivers: [usize; 2],
 }
+
+type Worry = usize;
+type Operation = Box<dyn Fn(Worry) -> Worry>;
 
 pub fn first(input: &str) -> String {
     monkey_business(&mut monkeys(input), 20, 3).to_string()
@@ -49,9 +49,9 @@ fn round(
             let worry = monkey.items[item_index];
             let worry = ((monkey.operation)(worry) / worry_divisor) % worry_modulo;
             let destination = if worry % monkey.divisor == 0 {
-                monkey.destinations[0]
+                monkey.receivers[0]
             } else {
-                monkey.destinations[1]
+                monkey.receivers[1]
             };
             monkeys[destination].items.push(worry);
         }
@@ -72,12 +72,12 @@ fn monkey(str: &str) -> Monkey {
         .expect("operation should contain an equal sign");
     let operation = operation(rhs);
     let divisor = usizes(lines[3])[0];
-    let destinations = [4, 5].map(|index| usizes(lines[index])[0]);
+    let receivers = [4, 5].map(|index| usizes(lines[index])[0]);
     Monkey {
         items,
         operation,
         divisor,
-        destinations,
+        receivers,
     }
 }
 

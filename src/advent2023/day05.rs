@@ -4,33 +4,62 @@ use itertools::Itertools;
 
 use crate::strings::isizes;
 
+type Map = BTreeMap<Number, Offset>;
 type Number = isize;
 type Offset = isize;
-type Map = BTreeMap<Number, Offset>;
 
-#[allow(clippy::range_plus_one)]
-fn singleton_seed_ranges(seeds: &str) -> Vec<Range<Number>> {
-    isizes(seeds)
+pub fn first(input: &str) -> String {
+    minimum_location_from_input(input, singleton_seed_ranges).to_string()
+}
+
+pub fn second(input: &str) -> String {
+    minimum_location_from_input(input, seed_ranges).to_string()
+}
+
+fn minimum_location_from_input(input: &str, seed_ranges: fn(&str) -> Vec<Range<Number>>) -> Number {
+    let blocks = input.split("\n\n").collect_vec();
+    let seed_ranges = seed_ranges(blocks[0]);
+    let maps = blocks[1..].iter().map(|&block| map(block)).collect_vec();
+    minimum_location(&maps, seed_ranges)
+}
+
+fn minimum_location(maps: &[Map], seed_ranges: Vec<Range<Number>>) -> Number {
+    seed_ranges
         .into_iter()
-        .map(|number| number..number + 1)
-        .collect_vec()
+        .flat_map(|seed_range| location(maps, seed_range))
+        .map(|location_range| location_range.start)
+        .min()
+        .expect("there should be at least one seed range")
 }
 
-fn seed_ranges(seeds: &str) -> Vec<Range<Number>> {
-    isizes(seeds)
-        .chunks(2)
-        .map(|pair| pair[0]..pair[0] + pair[1])
-        .collect_vec()
+fn location(maps: &[Map], seed_range: Range<Number>) -> Vec<Range<Number>> {
+    let mut number_ranges = Vec::from([seed_range]);
+    for map in maps {
+        number_ranges = number_ranges
+            .into_iter()
+            .flat_map(|number_range| mapped_number_range(map, number_range))
+            .collect_vec();
+    }
+    number_ranges
 }
 
-fn map_numbers(block: &str) -> Vec<[Number; 3]> {
-    block
-        .lines()
-        .skip(1)
-        .map(|line| {
-            isizes(line)
-                .try_into()
-                .expect("every line of a map should contain three numbers")
+fn mapped_number_range(map: &Map, number_range: Range<Number>) -> Vec<Range<Number>> {
+    let predcecessor = map
+        .range(0..=number_range.start)
+        .next_back()
+        .expect("every map should have a map range starting at zero");
+    let mut subranges_ends_and_translations = Vec::from([(number_range.start, *predcecessor.1)]);
+    for (&start, &translation) in map.range(number_range.clone()) {
+        subranges_ends_and_translations.push((start, translation));
+    }
+    subranges_ends_and_translations.push((number_range.end, 0)); // translation irrelevant
+    subranges_ends_and_translations.dedup_by_key(|(endpoint, _)| *endpoint);
+
+    subranges_ends_and_translations
+        .windows(2)
+        .map(|pair| {
+            let translation = pair[0].1;
+            pair[0].0 + translation..pair[1].0 + translation
         })
         .collect_vec()
 }
@@ -47,59 +76,31 @@ fn map(block: &str) -> Map {
     map
 }
 
-fn mapped_number_range(map: &Map, number_range: Range<Number>) -> Vec<Range<Number>> {
-    let predcecessor = map
-        .range(0..=number_range.start)
-        .next_back()
-        .expect("every map should have a map range starting at zero");
-    let mut subrange_endpoints = Vec::from([(number_range.start, *predcecessor.1)]);
-    for (&start, &translation) in map.range(number_range.clone()) {
-        subrange_endpoints.push((start, translation));
-    }
-    subrange_endpoints.push((number_range.end, 0)); // translation irrelevant
-    subrange_endpoints.dedup_by_key(|(endpoint, _)| *endpoint);
-
-    subrange_endpoints
-        .windows(2)
-        .map(|pair| {
-            let translation = pair[0].1;
-            pair[0].0 + translation..pair[1].0 + translation
+fn map_numbers(block: &str) -> Vec<[Number; 3]> {
+    block
+        .lines()
+        .skip(1)
+        .map(|line| {
+            isizes(line)
+                .try_into()
+                .expect("every line of a map should contain three numbers")
         })
         .collect_vec()
 }
 
-fn location(maps: &[Map], seed_range: Range<Number>) -> Vec<Range<Number>> {
-    let mut number_ranges = Vec::from([seed_range]);
-    for map in maps {
-        number_ranges = number_ranges
-            .into_iter()
-            .flat_map(|number_range| mapped_number_range(map, number_range))
-            .collect_vec();
-    }
-    number_ranges
-}
-
-fn minimum_location(maps: &[Map], seed_ranges: Vec<Range<Number>>) -> Number {
-    seed_ranges
+#[allow(clippy::range_plus_one)]
+fn singleton_seed_ranges(seeds: &str) -> Vec<Range<Number>> {
+    isizes(seeds)
         .into_iter()
-        .flat_map(|seed_range| location(maps, seed_range))
-        .map(|location_range| location_range.start)
-        .min()
-        .expect("there should be at least one seed range")
+        .map(|number| number..number + 1)
+        .collect_vec()
 }
 
-pub fn first(input: &str) -> String {
-    let blocks = input.split("\n\n").collect_vec();
-    let seed_ranges = singleton_seed_ranges(blocks[0]);
-    let maps = blocks[1..].iter().map(|&block| map(block)).collect_vec();
-    minimum_location(&maps, seed_ranges).to_string()
-}
-
-pub fn second(input: &str) -> String {
-    let blocks = input.split("\n\n").collect_vec();
-    let seed_ranges = seed_ranges(blocks[0]);
-    let maps = blocks[1..].iter().map(|&block| map(block)).collect_vec();
-    minimum_location(&maps, seed_ranges).to_string()
+fn seed_ranges(seeds: &str) -> Vec<Range<Number>> {
+    isizes(seeds)
+        .chunks(2)
+        .map(|pair| pair[0]..pair[0] + pair[1])
+        .collect_vec()
 }
 
 #[cfg(test)]

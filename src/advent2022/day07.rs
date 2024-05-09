@@ -4,12 +4,13 @@ use itertools::Itertools;
 
 use crate::HashMap;
 
-type Size = usize;
-
+#[derive(Debug, PartialEq, Eq)]
 struct Directory<'input> {
     children: HashMap<&'input str, Directory<'input>>,
     file_size_sum: Size,
 }
+
+type Size = usize;
 
 pub fn first(input: &str) -> String {
     let total_sizes = total_sizes(&root(input));

@@ -28,7 +28,7 @@ pub fn maximum_flow<N: Debug + Copy + Eq + Hash>(
     arcs: impl IntoIterator<Item = (N, Number, N)>,
     source: N,
     sink: N,
-) -> (Number, (HashSet<N>, HashSet<N>)) {
+) -> (Number, [HashSet<N>; 2]) {
     debug_assert_ne!(source, sink, "source and sink should differ");
     let mut flow_network = flow_network(nodes, arcs);
     let mut flow = 0;
@@ -157,10 +157,7 @@ fn increase_flow<N: Debug + Copy + Eq + Hash>(
     }
 }
 
-fn cut<N: Debug + Copy + Eq + Hash>(
-    flow_network: &FlowNetwork<N>,
-    source: N,
-) -> (HashSet<N>, HashSet<N>) {
+fn cut<N: Debug + Copy + Eq + Hash>(flow_network: &FlowNetwork<N>, source: N) -> [HashSet<N>; 2] {
     let mut source_subset = HashSet::from([source]);
     let mut frontier = vec![source];
     while let Some(current) = frontier.pop() {
@@ -178,7 +175,7 @@ fn cut<N: Debug + Copy + Eq + Hash>(
         .copied()
         .filter(|node| !source_subset.contains(node))
         .collect();
-    (source_subset, sink_subset)
+    [source_subset, sink_subset]
 }
 
 #[cfg(test)]
@@ -203,8 +200,8 @@ mod tests {
         ];
         let (maximum_flow, cut) = maximum_flow(nodes, arcs, 'A', 'G');
         assert_eq!(maximum_flow, 5);
-        assert_eq!(cut.0, HashSet::from(['A', 'B', 'C', 'E']));
-        assert_eq!(cut.1, HashSet::from(['D', 'F', 'G']));
+        assert_eq!(cut[0], HashSet::from(['A', 'B', 'C', 'E']));
+        assert_eq!(cut[1], HashSet::from(['D', 'F', 'G']));
     }
 
     #[test]

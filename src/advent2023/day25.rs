@@ -8,7 +8,7 @@ type One = usize;
 pub fn first(input: &str) -> String {
     let (components, connections) = network(input);
     let groups = separate_groups(&components, &connections, 3);
-    (groups.0.len() * groups.1.len()).to_string()
+    (groups[0].len() * groups[1].len()).to_string()
 }
 
 pub fn second(_input: &str) -> String {
@@ -19,7 +19,7 @@ fn separate_groups<'input>(
     components: &[&'input str],
     connections: &[(&'input str, One, &'input str)],
     number_of_wires_to_cut: usize,
-) -> (HashSet<&'input str>, HashSet<&'input str>) {
+) -> [HashSet<&'input str>; 2] {
     let mut rng = SmallRng::from_seed([0; 32]);
     loop {
         let mut terminals = components.choose_multiple(&mut rng, 2);

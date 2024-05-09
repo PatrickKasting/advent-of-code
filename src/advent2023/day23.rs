@@ -36,12 +36,12 @@ fn longest_hike(input: &str, slopes: bool) -> Distance {
 }
 
 fn maximum_distance(graph: &Graph, from: Position, to: Position) -> Distance {
-    const MARKER: (Position, Distance) = ([0, 0], 0);
+    const STACK_MARKER: (Position, Distance) = ([0, 0], 0);
     let mut maximum_distance = Distance::MIN;
     let mut path = vec![];
     let mut frontier = vec![(from, 0)];
     while let Some((position, distance)) = frontier.pop() {
-        if position == MARKER.0 {
+        if position == STACK_MARKER.0 {
             path.pop();
             continue;
         }
@@ -52,7 +52,7 @@ fn maximum_distance(graph: &Graph, from: Position, to: Position) -> Distance {
         }
 
         path.push(position);
-        frontier.push(MARKER);
+        frontier.push(STACK_MARKER);
         for &(successor, step_distance) in &graph[&position] {
             if !path.contains(&successor) {
                 frontier.push((successor, distance + step_distance));
