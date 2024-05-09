@@ -3,9 +3,9 @@ use std::{cmp, sync::OnceLock};
 use itertools::Itertools;
 use regex::Regex;
 
-use crate::{search::shortest_path_length, strings::usizes, HashMap, HashSet};
+use crate::{search::distances, strings::usizes, HashMap, HashSet};
 
-type ContractedCave<'input> = HashMap<Valve<'input>, (Pressure, Vec<(Time, Valve<'input>)>)>;
+type ContractedCave<'input> = HashMap<Valve<'input>, (Pressure, Vec<(Valve<'input>, Time)>)>;
 type Cave<'input> = HashMap<Valve<'input>, (Pressure, Vec<Valve<'input>>)>;
 type Valve<'input> = &'input str;
 type Pressure = usize;
@@ -50,7 +50,7 @@ fn maximum_release<'input, const NUM_AGENTS: usize>(
     }
 
     let mut maximum_release = 0;
-    for &(distance, valve) in &cave[current_valve].1 {
+    for &(valve, distance) in &cave[current_valve].1 {
         if !closed_valves.contains(valve) {
             continue;
         }
@@ -89,17 +89,12 @@ fn contracted_cave<'input>(cave: &Cave<'input>, start: Valve<'input>) -> Contrac
 fn distances_to_functioning_valves<'input>(
     cave: &Cave<'input>,
     source: Valve<'input>,
-) -> Vec<(Distance, Valve<'input>)> {
-    let mut other_valves = Vec::new();
-    let add_valve_maybe = |valve, distance: usize| {
-        let (flow, _) = cave[valve];
-        if flow != 0 && valve != source {
-            other_valves.push((distance, valve));
-        }
-    };
+) -> Vec<(Valve<'input>, Distance)> {
     let successors = |name| cave[name].1.iter().copied();
-    shortest_path_length(source, add_valve_maybe, successors, |_| false);
-    other_valves
+    distances(source, successors)
+        .into_iter()
+        .filter(|&(valve, _)| cave[valve].0 != 0 && valve != source)
+        .collect_vec()
 }
 
 fn cave(input: &str) -> Cave {
@@ -122,13 +117,6 @@ mod tests {
     const DAY: usize = 16;
 
     #[test]
-    fn farther_agent_should_not_close_last_valve() {
-        let input = input(2022, 16, Input::Example(1));
-        let actual = maximum_release_from_input::<2>(&input, "AA", 10);
-        assert_eq!(actual, 80 + 70 + 50);
-    }
-
-    #[test]
     fn first_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 1651);
     }
@@ -147,4 +135,11 @@ mod tests {
     // fn second_input() {
     //     test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 2052);
     // }
+
+    #[test]
+    fn farther_agent_should_not_close_last_valve() {
+        let input = input(2022, 16, Input::Example(1));
+        let actual = maximum_release_from_input::<2>(&input, "AA", 10);
+        assert_eq!(actual, 80 + 70 + 50);
+    }
 }

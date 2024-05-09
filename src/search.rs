@@ -1,6 +1,12 @@
-use std::{cmp::Reverse, collections::BinaryHeap, hash::Hash, mem, ops::Add};
+use std::{
+    cmp::Reverse,
+    collections::{hash_map::Entry, BinaryHeap},
+    hash::Hash,
+    mem,
+    ops::Add,
+};
 
-use crate::HashSet;
+use crate::{HashMap, HashSet};
 
 pub struct Exploration<T: Copy + Eq + Hash>(HashSet<T>);
 
@@ -27,12 +33,15 @@ impl<State: Copy + Eq + Hash> Exploration<State> {
     }
 }
 
-pub fn shortest_path_length<State: Copy + Eq + Hash, Successors: IntoIterator<Item = State>>(
+pub fn shortest_path_length<State, Successors>(
     source: State,
-    mut inspect: impl FnMut(State, usize),
     mut successors: impl FnMut(State) -> Successors,
     mut target: impl FnMut(State) -> bool,
-) -> Option<usize> {
+) -> Option<usize>
+where
+    State: Copy + Eq + Hash,
+    Successors: IntoIterator<Item = State>,
+{
     let mut explored = HashSet::new();
     let mut current_ring = vec![];
     let mut next_ring = vec![source];
@@ -40,11 +49,10 @@ pub fn shortest_path_length<State: Copy + Eq + Hash, Successors: IntoIterator<It
     while !next_ring.is_empty() {
         mem::swap(&mut current_ring, &mut next_ring);
         while let Some(state) = current_ring.pop() {
+            if target(state) {
+                return Some(distance);
+            }
             if explored.insert(state) {
-                inspect(state, distance);
-                if target(state) {
-                    return Some(distance);
-                }
                 next_ring.extend(successors(state));
             }
         }
@@ -53,15 +61,44 @@ pub fn shortest_path_length<State: Copy + Eq + Hash, Successors: IntoIterator<It
     None
 }
 
-pub fn cheapest_path_cost<
-    State: Copy + Eq + Hash + Ord,
-    Cost: Copy + Ord + Default + Add<Cost, Output = Cost>,
-    Successors: IntoIterator<Item = (State, Cost)>,
->(
+pub fn distances<State, Successors>(
+    source: State,
+    mut successors: impl FnMut(State) -> Successors,
+) -> HashMap<State, usize>
+where
+    State: Copy + Eq + Hash,
+    Successors: IntoIterator<Item = State>,
+{
+    let mut distances = HashMap::new();
+    let mut current_ring = vec![];
+    let mut next_ring = vec![source];
+    let mut distance = 0;
+    while !next_ring.is_empty() {
+        mem::swap(&mut current_ring, &mut next_ring);
+        while let Some(state) = current_ring.pop() {
+            match distances.entry(state) {
+                Entry::Occupied(_) => (),
+                Entry::Vacant(entry) => {
+                    entry.insert(distance);
+                    next_ring.extend(successors(state));
+                }
+            }
+        }
+        distance += 1;
+    }
+    distances
+}
+
+pub fn cheapest_path_cost<State, Cost, Successors>(
     source: State,
     mut successors: impl FnMut(State) -> Successors,
     mut target: impl FnMut(State) -> bool,
-) -> Option<Cost> {
+) -> Option<Cost>
+where
+    State: Copy + Eq + Hash + Ord,
+    Cost: Copy + Ord + Default + Add<Cost, Output = Cost>,
+    Successors: IntoIterator<Item = (State, Cost)>,
+{
     let mut explored: HashSet<State> = HashSet::new();
     let mut frontier: BinaryHeap<(Reverse<Cost>, State)> =
         BinaryHeap::from([(Reverse(Cost::default()), source)]);
