@@ -1,13 +1,17 @@
 use itertools::Itertools;
 
-type Real = f64;
-
-fn is_almost_zero(number: Real) -> bool {
-    const EPSILON: Real = 128.0 * Real::EPSILON;
-    number.abs() < EPSILON
-}
+use crate::floating::ApproxEq;
 
 type Matrix<const NUM_ROWS: usize, const NUM_COLUMNS: usize> = [[Real; NUM_COLUMNS]; NUM_ROWS];
+type Real = f64;
+
+#[must_use]
+pub fn solution<const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
+    augmented_matrix: Matrix<NUM_ROWS, NUM_COLUMNS>,
+) -> Solution {
+    let reduced_row_echelon_form = reduced_row_echelon_form(augmented_matrix);
+    solution_from_reduced_row_echelon_form(reduced_row_echelon_form)
+}
 
 fn reduced_row_echelon_form<const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
     mut matrix: Matrix<NUM_ROWS, NUM_COLUMNS>,
@@ -23,7 +27,7 @@ fn reduced_row_echelon_form<const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
             .max_by(|(_, first), (_, second)| first.total_cmp(second))
             .expect("slice should not be empty because the pivot row is within the matrix");
         let pivot = matrix[row_with_max_absolute_value][pivot_column];
-        if is_almost_zero(pivot) {
+        if pivot.approx_eq(0.0) {
             pivot_column += 1;
             continue;
         }
@@ -61,7 +65,7 @@ fn solution_from_reduced_row_echelon_form<const NUM_ROWS: usize, const NUM_COLUM
     let mut free_parameters = vec![];
     let mut solution = vec![vec![]];
     while pivot_row < NUM_ROWS && pivot_column < NUM_COLUMNS - 1 {
-        if is_almost_zero(matrix[pivot_row][pivot_column]) {
+        if matrix[pivot_row][pivot_column].approx_eq(0.0) {
             solution[0].push(0.0);
 
             let mut vector = negated_column(pivot_column, pivot_row);
@@ -80,34 +84,15 @@ fn solution_from_reduced_row_echelon_form<const NUM_ROWS: usize, const NUM_COLUM
             (pivot_row, pivot_column) = (pivot_row + 1, pivot_column + 1);
         }
     }
-    if pivot_row < NUM_ROWS && is_almost_zero(matrix[pivot_row][NUM_COLUMNS - 1] - 1.0) {
+    if pivot_row < NUM_ROWS && matrix[pivot_row][NUM_COLUMNS - 1].approx_eq(1.0) {
         solution.clear();
     }
     solution
 }
 
-#[must_use]
-pub fn solution<const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
-    augmented_matrix: Matrix<NUM_ROWS, NUM_COLUMNS>,
-) -> Solution {
-    let reduced_row_echelon_form = reduced_row_echelon_form(augmented_matrix);
-    solution_from_reduced_row_echelon_form(reduced_row_echelon_form)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    fn are_solutions_almost_equal(first: Solution, second: Solution) -> bool {
-        for (left_vector, right_vector) in first.into_iter().zip_eq(second) {
-            for (left_number, right_number) in left_vector.into_iter().zip_eq(right_vector) {
-                if !is_almost_zero(left_number - right_number) {
-                    return false;
-                }
-            }
-        }
-        true
-    }
 
     #[test]
     fn exactly_one_solution() {
@@ -160,5 +145,16 @@ mod tests {
             vec![11.0, -4.0, 0.0, -1.0, 1.0],
         ];
         are_solutions_almost_equal(solution, expected);
+    }
+
+    fn are_solutions_almost_equal(first: Solution, second: Solution) -> bool {
+        for (left_vector, right_vector) in first.into_iter().zip_eq(second) {
+            for (left_number, right_number) in left_vector.into_iter().zip_eq(right_vector) {
+                if !left_number.approx_eq(right_number) {
+                    return false;
+                }
+            }
+        }
+        true
     }
 }
