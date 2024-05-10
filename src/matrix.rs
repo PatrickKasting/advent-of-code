@@ -3,6 +3,7 @@ use itertools::Itertools;
 use crate::floating::ApproxEq;
 
 type Matrix<const NUM_ROWS: usize, const NUM_COLUMNS: usize> = [[Real; NUM_COLUMNS]; NUM_ROWS];
+type Solution = Vec<Vec<Real>>;
 type Real = f64;
 
 #[must_use]
@@ -16,40 +17,62 @@ pub fn solution<const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
 fn reduced_row_echelon_form<const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
     mut matrix: Matrix<NUM_ROWS, NUM_COLUMNS>,
 ) -> Matrix<NUM_ROWS, NUM_COLUMNS> {
-    let mut pivot_row = 0;
-    let mut pivot_column = 0;
+    let [mut pivot_row, mut pivot_column] = [0, 0];
     while pivot_row < NUM_ROWS && pivot_column < NUM_COLUMNS {
-        let (row_with_max_absolute_value, _) = matrix
-            .into_iter()
-            .map(|row| row[pivot_column].abs())
-            .enumerate()
-            .skip(pivot_row)
-            .max_by(|(_, first), (_, second)| first.total_cmp(second))
-            .expect("slice should not be empty because the pivot row is within the matrix");
-        let pivot = matrix[row_with_max_absolute_value][pivot_column];
+        let row_with_max_abs_value = row_with_max_abs_value(matrix, pivot_row, pivot_column);
+        let pivot = matrix[row_with_max_abs_value][pivot_column];
         if pivot.approx_eq(0.0) {
             pivot_column += 1;
             continue;
         }
 
-        [matrix[row_with_max_absolute_value], matrix[pivot_row]] =
-            [matrix[pivot_row], matrix[row_with_max_absolute_value]];
-        for row in (0..NUM_ROWS).filter(|&row| row != pivot_row) {
-            let ratio = matrix[row][pivot_column] / pivot;
-            matrix[row][pivot_column] = 0.0;
-            for column in pivot_column + 1..NUM_COLUMNS {
-                matrix[row][column] -= matrix[pivot_row][column] * ratio;
-            }
-        }
-        for column in pivot_column..NUM_COLUMNS {
-            matrix[pivot_row][column] /= pivot;
-        }
-        (pivot_row, pivot_column) = (pivot_row + 1, pivot_column + 1);
+        [matrix[row_with_max_abs_value], matrix[pivot_row]] =
+            [matrix[pivot_row], matrix[row_with_max_abs_value]];
+        subtract_pivot_row_from_other_rows(&mut matrix, pivot_row, pivot_column, pivot);
+        divide_pivot_row_by_pivot(&mut matrix, pivot_row, pivot_column, pivot);
+        [pivot_row, pivot_column] = [pivot_row + 1, pivot_column + 1];
     }
     matrix
 }
 
-type Solution = Vec<Vec<Real>>;
+fn row_with_max_abs_value<const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
+    matrix: Matrix<NUM_ROWS, NUM_COLUMNS>,
+    first_row: usize,
+    column: usize,
+) -> usize {
+    let row_with_max_abs_value = matrix[first_row..]
+        .iter()
+        .map(|row| row[column].abs())
+        .position_max_by(|left, right| left.total_cmp(right))
+        .expect("first row should be within maxtrix");
+    row_with_max_abs_value + first_row
+}
+
+fn subtract_pivot_row_from_other_rows<const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
+    matrix: &mut Matrix<NUM_ROWS, NUM_COLUMNS>,
+    pivot_row: usize,
+    pivot_column: usize,
+    pivot: f64,
+) {
+    for row in (0..NUM_ROWS).filter(|&row| row != pivot_row) {
+        let ratio = matrix[row][pivot_column] / pivot;
+        matrix[row][pivot_column] = 0.0;
+        for column in pivot_column + 1..NUM_COLUMNS {
+            matrix[row][column] -= matrix[pivot_row][column] * ratio;
+        }
+    }
+}
+
+fn divide_pivot_row_by_pivot<const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
+    matrix: &mut Matrix<NUM_ROWS, NUM_COLUMNS>,
+    pivot_row: usize,
+    pivot_column: usize,
+    pivot: f64,
+) {
+    for column in pivot_column..NUM_COLUMNS {
+        matrix[pivot_row][column] /= pivot;
+    }
+}
 
 fn solution_from_reduced_row_echelon_form<const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
     matrix: Matrix<NUM_ROWS, NUM_COLUMNS>,
