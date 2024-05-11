@@ -45,7 +45,7 @@ fn row_with_max_abs_value<const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
     let row_with_max_abs_value = matrix[first_row..]
         .iter()
         .map(|row| row[column].abs())
-        .position_max_by(|left, right| left.total_cmp(right))
+        .position_max_by(f64::total_cmp)
         .expect("first row should be within maxtrix");
     row_with_max_abs_value + first_row
 }
@@ -130,7 +130,7 @@ fn negated_column<const NUM_COLUMNS: usize>(
 
 #[cfg(test)]
 mod tests {
-    use crate::tests::panic_incompatible;
+    use crate::tests::panic_left_right;
 
     use super::*;
 
@@ -196,7 +196,7 @@ mod tests {
         match [left, right] {
             [Some((left_origin, left_directions)), Some((right_origin, right_directions))] => {
                 if !vectors_approx_eq(&left_origin, &right_origin) {
-                    panic_incompatible(
+                    panic_left_right(
                         "solution set origins should be equal",
                         left_origin,
                         right_origin,
@@ -208,7 +208,7 @@ mod tests {
                     .zip_eq(right_directions.iter())
                     .position(|(left, right)| !vectors_approx_eq(left, right));
                 if let Some(index) = direction_index {
-                    panic_incompatible(
+                    panic_left_right(
                         &format!("solution set directions at index {index} should be equal"),
                         &left_directions[index],
                         &right_directions[index],
