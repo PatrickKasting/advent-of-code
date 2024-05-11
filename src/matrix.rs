@@ -3,13 +3,15 @@ use itertools::Itertools;
 use crate::floating::ApproxEq;
 
 type Matrix<const NUM_ROWS: usize, const NUM_COLUMNS: usize> = [[Real; NUM_COLUMNS]; NUM_ROWS];
-type Solution = Vec<Vec<Real>>;
+type SolutionSet = Option<(Origin, Vec<Direction>)>;
+type Origin = Vec<Real>;
+type Direction = Vec<Real>;
 type Real = f64;
 
 #[must_use]
-pub fn solution<const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
+pub fn solution_set<const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
     augmented_matrix: Matrix<NUM_ROWS, NUM_COLUMNS>,
-) -> Solution {
+) -> SolutionSet {
     let reduced_row_echelon_form = reduced_row_echelon_form(augmented_matrix);
     solution_from_reduced_row_echelon_form(reduced_row_echelon_form)
 }
@@ -76,7 +78,7 @@ fn divide_pivot_row_by_pivot<const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
 
 fn solution_from_reduced_row_echelon_form<const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
     matrix: Matrix<NUM_ROWS, NUM_COLUMNS>,
-) -> Solution {
+) -> SolutionSet {
     let negated_column = |column: usize, num_rows| {
         matrix[0..num_rows]
             .iter()
@@ -84,33 +86,35 @@ fn solution_from_reduced_row_echelon_form<const NUM_ROWS: usize, const NUM_COLUM
             .collect_vec()
     };
 
-    let (mut pivot_row, mut pivot_column) = (0, 0);
+    let [mut pivot_row, mut pivot_column] = [0, 0];
     let mut free_parameters = vec![];
-    let mut solution = vec![vec![]];
+    let mut origin = vec![];
+    let mut directions = vec![];
     while pivot_row < NUM_ROWS && pivot_column < NUM_COLUMNS - 1 {
         if matrix[pivot_row][pivot_column].approx_eq(0.0) {
-            solution[0].push(0.0);
+            origin.push(0.0);
 
-            let mut vector = negated_column(pivot_column, pivot_row);
+            let mut direction = negated_column(pivot_column, pivot_row);
             for &parameter in &free_parameters {
-                vector.insert(parameter, 0.0);
+                direction.insert(parameter, 0.0);
             }
-            vector.push(1.0);
-            vector.resize(NUM_COLUMNS - 1, 0.0);
-            solution.push(vector);
+            direction.push(1.0);
+            direction.resize(NUM_COLUMNS - 1, 0.0);
+            directions.push(direction);
 
             free_parameters.push(pivot_column);
             pivot_column += 1;
         } else {
-            solution[0].push(matrix[pivot_row][NUM_COLUMNS - 1]);
+            origin.push(matrix[pivot_row][NUM_COLUMNS - 1]);
 
-            (pivot_row, pivot_column) = (pivot_row + 1, pivot_column + 1);
+            [pivot_row, pivot_column] = [pivot_row + 1, pivot_column + 1];
         }
     }
     if pivot_row < NUM_ROWS && matrix[pivot_row][NUM_COLUMNS - 1].approx_eq(1.0) {
-        solution.clear();
+        None
+    } else {
+        Some((origin, directions))
     }
-    solution
 }
 
 #[cfg(test)]
@@ -124,9 +128,9 @@ mod tests {
             [-3.0, -1.0, 2.0, -11.0],
             [-2.0, 1.0, 2.0, -3.0],
         ];
-        let solution = solution(matrix);
-        let expected = vec![vec![2.0, 3.0, -1.0]];
-        are_solutions_almost_equal(solution, expected);
+        let solution = solution_set(matrix);
+        let expected = Some((vec![2.0, 3.0, -1.0], vec![]));
+        assert_solutions_approx_eq(solution, expected);
     }
 
     #[test]
@@ -136,9 +140,9 @@ mod tests {
             [-1.0, -3.0, 3.0, 1.0],
             [2.0, 3.0, 0.0, -3.0],
         ];
-        let solution = solution(matrix);
-        let expected: Solution = vec![];
-        are_solutions_almost_equal(solution, expected);
+        let solution = solution_set(matrix);
+        let expected = None;
+        assert_solutions_approx_eq(solution, expected);
     }
 
     #[test]
@@ -148,9 +152,9 @@ mod tests {
             [1.0, 1.0, -1.0, 1.0],
             [3.0, 11.0, 5.0, 35.0],
         ];
-        let solution = solution(matrix);
-        let expected = vec![vec![-3.0, 4.0, 0.0], vec![2.0, -1.0, 1.0]];
-        are_solutions_almost_equal(solution, expected);
+        let solution = solution_set(matrix);
+        let expected = Some((vec![-3.0, 4.0, 0.0], vec![vec![2.0, -1.0, 1.0]]));
+        assert_solutions_approx_eq(solution, expected);
     }
 
     #[test]
@@ -161,23 +165,48 @@ mod tests {
             [3.0, 8.0, 6.0, 7.0, 6.0, 5.0],
             [4.0, 14.0, 8.0, 10.0, 22.0, 32.0],
         ];
-        let solution = solution(matrix);
-        let expected = vec![
+        let solution = solution_set(matrix);
+        let expected = Some((
             vec![-24.0, 7.0, 0.0, 3.0, 0.0],
-            vec![-2.0, 0.0, 1.0, 0.0, 0.0],
-            vec![11.0, -4.0, 0.0, -1.0, 1.0],
-        ];
-        are_solutions_almost_equal(solution, expected);
+            vec![
+                vec![-2.0, 0.0, 1.0, 0.0, 0.0],
+                vec![11.0, -4.0, 0.0, -1.0, 1.0],
+            ],
+        ));
+        assert_solutions_approx_eq(solution, expected);
     }
 
-    fn are_solutions_almost_equal(first: Solution, second: Solution) -> bool {
-        for (left_vector, right_vector) in first.into_iter().zip_eq(second) {
-            for (left_number, right_number) in left_vector.into_iter().zip_eq(right_vector) {
-                if !left_number.approx_eq(right_number) {
-                    return false;
+    fn assert_solutions_approx_eq(left: SolutionSet, right: SolutionSet) {
+        match [left, right] {
+            [Some((left_origin, left_directions)), Some((right_origin, right_directions))] => {
+                assert!(
+                    vectors_approx_eq(&left_origin, &right_origin),
+                    "solution set origins should be equal:\n  left: {left_origin:?}\n right: {right_origin:?}"
+                );
+
+                let direction_index = left_directions
+                    .iter()
+                    .zip_eq(right_directions.iter())
+                    .position(|(left, right)| !vectors_approx_eq(left, right));
+                if let Some(index) = direction_index {
+                    let left_direction = &left_directions[index];
+                    let right_direction = &right_directions[index];
+                    panic!("solution set directions at index {index} should be equal:\n  left: {left_direction:?}\n right: {right_direction:?}");
                 }
             }
+            [None, None] => (),
+            [None, Some(_)] => {
+                panic!("left solution set should not be empty while right solution set is not")
+            }
+            [Some(_), None] => {
+                panic!("right solution set should not be empty while left solution set is not")
+            }
         }
-        true
+    }
+
+    fn vectors_approx_eq(left: &[Real], right: &[Real]) -> bool {
+        left.iter()
+            .zip_eq(right)
+            .all(|(&left, &right)| left.approx_eq(right))
     }
 }

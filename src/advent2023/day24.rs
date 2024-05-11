@@ -2,7 +2,7 @@ use std::ops::RangeInclusive;
 
 use itertools::Itertools;
 
-use crate::{matrix::solution, vector::Vector};
+use crate::{matrix::solution_set, vector::Vector};
 
 type Hailstone = (Position, Velocity);
 type Position = [Coordinate; 3];
@@ -40,10 +40,14 @@ fn path_intersection((s0, v0): Hailstone, (s1, v1): Hailstone) -> Option<[Coordi
         [v0[X], -v1[X], s1[X] - s0[X]],
         [v0[Y], -v1[Y], s1[Y] - s0[Y]],
     ];
-    match &solution(augmented_matrix)[..] {
-        [] => None,
-        [time] => (time[0] >= 0.0 && time[1] >= 0.0)
-            .then(|| [s0[X] + v0[X] * time[0], s0[Y] + v0[Y] * time[0]]),
+    match solution_set(augmented_matrix) {
+        None => None,
+        Some((origin, directions)) if directions.is_empty() => {
+            let time = origin;
+            let collision_in_future_for_both_hailstones = time[0] >= 0.0 && time[1] >= 0.0;
+            collision_in_future_for_both_hailstones
+                .then(|| [s0[X] + v0[X] * time[0], s0[Y] + v0[Y] * time[0]])
+        }
         _ => panic!("hailstones should not have identical paths"),
     }
 }
@@ -83,12 +87,12 @@ fn initial_position_and_velocity(hailstones: &[Hailstone]) -> (Position, Velocit
     let mut augmented_matrix: [[Coordinate; 7]; 6] = Default::default();
     augmented_matrix[0..3].copy_from_slice(&equations(hailstones[0], hailstones[1]));
     augmented_matrix[3..6].copy_from_slice(&equations(hailstones[0], hailstones[2]));
-    match &solution(augmented_matrix)[..] {
-        [solution] => (
-            [solution[0], solution[1], solution[2]],
-            [solution[3], solution[4], solution[5]],
+    match solution_set(augmented_matrix) {
+        Some((origin, directions)) if directions.is_empty() => (
+            [origin[0], origin[1], origin[2]],
+            [origin[3], origin[4], origin[5]],
         ),
-        _ => panic!("linear equations should have exactly one solution"),
+        _ => panic!("linear system should have exactly one solution"),
     }
 }
 
