@@ -119,6 +119,8 @@ fn solution_from_reduced_row_echelon_form<const NUM_ROWS: usize, const NUM_COLUM
 
 #[cfg(test)]
 mod tests {
+    use crate::tests::panic_incompatible;
+
     use super::*;
 
     #[test]
@@ -182,19 +184,24 @@ mod tests {
     fn assert_solution_sets_approx_eq(left: SolutionSet, right: SolutionSet) {
         match [left, right] {
             [Some((left_origin, left_directions)), Some((right_origin, right_directions))] => {
-                assert!(
-                    vectors_approx_eq(&left_origin, &right_origin),
-                    "solution set origins should be equal:\n  left: {left_origin:?}\n right: {right_origin:?}"
-                );
+                if !vectors_approx_eq(&left_origin, &right_origin) {
+                    panic_incompatible(
+                        "solution set origins should be equal",
+                        left_origin,
+                        right_origin,
+                    );
+                }
 
                 let direction_index = left_directions
                     .iter()
                     .zip_eq(right_directions.iter())
                     .position(|(left, right)| !vectors_approx_eq(left, right));
                 if let Some(index) = direction_index {
-                    let left_direction = &left_directions[index];
-                    let right_direction = &right_directions[index];
-                    panic!("solution set directions at index {index} should be equal:\n  left: {left_direction:?}\n right: {right_direction:?}");
+                    panic_incompatible(
+                        &format!("solution set directions at index {index} should be equal"),
+                        &left_directions[index],
+                        &right_directions[index],
+                    );
                 }
             }
             [None, None] => (),

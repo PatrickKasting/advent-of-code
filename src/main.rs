@@ -192,4 +192,13 @@ pub mod tests {
             );
         }
     }
+
+    pub fn panic_incompatible(msg: &str, left: impl Debug, right: impl Debug) {
+        let lines = vec![
+            format!("{msg}:"),
+            format!("  left: {left:?}"),
+            format!(" right: {right:?}"),
+        ];
+        panic!("{}", lines.join("\n"))
+    }
 }
