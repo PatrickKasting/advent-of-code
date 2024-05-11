@@ -128,9 +128,11 @@ mod tests {
             [-3.0, -1.0, 2.0, -11.0],
             [-2.0, 1.0, 2.0, -3.0],
         ];
-        let solution = solution_set(matrix);
-        let expected = Some((vec![2.0, 3.0, -1.0], vec![]));
-        assert_solutions_approx_eq(solution, expected);
+        let actual = solution_set(matrix);
+        let expected_origin = vec![2.0, 3.0, -1.0];
+        let expected_directions = vec![];
+        let expected = Some((expected_origin, expected_directions));
+        assert_solution_sets_approx_eq(actual, expected);
     }
 
     #[test]
@@ -140,9 +142,9 @@ mod tests {
             [-1.0, -3.0, 3.0, 1.0],
             [2.0, 3.0, 0.0, -3.0],
         ];
-        let solution = solution_set(matrix);
+        let actual = solution_set(matrix);
         let expected = None;
-        assert_solutions_approx_eq(solution, expected);
+        assert_solution_sets_approx_eq(actual, expected);
     }
 
     #[test]
@@ -152,9 +154,11 @@ mod tests {
             [1.0, 1.0, -1.0, 1.0],
             [3.0, 11.0, 5.0, 35.0],
         ];
-        let solution = solution_set(matrix);
-        let expected = Some((vec![-3.0, 4.0, 0.0], vec![vec![2.0, -1.0, 1.0]]));
-        assert_solutions_approx_eq(solution, expected);
+        let actual = solution_set(matrix);
+        let expected_origin = vec![-3.0, 4.0, 0.0];
+        let expected_directions = vec![vec![2.0, -1.0, 1.0]];
+        let expected = Some((expected_origin, expected_directions));
+        assert_solution_sets_approx_eq(actual, expected);
     }
 
     #[test]
@@ -165,18 +169,17 @@ mod tests {
             [3.0, 8.0, 6.0, 7.0, 6.0, 5.0],
             [4.0, 14.0, 8.0, 10.0, 22.0, 32.0],
         ];
-        let solution = solution_set(matrix);
-        let expected = Some((
-            vec![-24.0, 7.0, 0.0, 3.0, 0.0],
-            vec![
-                vec![-2.0, 0.0, 1.0, 0.0, 0.0],
-                vec![11.0, -4.0, 0.0, -1.0, 1.0],
-            ],
-        ));
-        assert_solutions_approx_eq(solution, expected);
+        let actual = solution_set(matrix);
+        let expected_origin = vec![-24.0, 7.0, 0.0, 3.0, 0.0];
+        let expected_directions = vec![
+            vec![-2.0, 0.0, 1.0, 0.0, 0.0],
+            vec![11.0, -4.0, 0.0, -1.0, 1.0],
+        ];
+        let expected = Some((expected_origin, expected_directions));
+        assert_solution_sets_approx_eq(actual, expected);
     }
 
-    fn assert_solutions_approx_eq(left: SolutionSet, right: SolutionSet) {
+    fn assert_solution_sets_approx_eq(left: SolutionSet, right: SolutionSet) {
         match [left, right] {
             [Some((left_origin, left_directions)), Some((right_origin, right_directions))] => {
                 assert!(
