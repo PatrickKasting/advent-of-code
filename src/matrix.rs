@@ -13,7 +13,7 @@ pub fn solution_set<const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
     augmented_matrix: Matrix<NUM_ROWS, NUM_COLUMNS>,
 ) -> SolutionSet {
     let reduced_row_echelon_form = reduced_row_echelon_form(augmented_matrix);
-    solution_from_reduced_row_echelon_form(reduced_row_echelon_form)
+    solution_set_from_reduced_row_echelon_form(reduced_row_echelon_form)
 }
 
 fn reduced_row_echelon_form<const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
@@ -76,16 +76,9 @@ fn divide_pivot_row_by_pivot<const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
     }
 }
 
-fn solution_from_reduced_row_echelon_form<const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
+fn solution_set_from_reduced_row_echelon_form<const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
     matrix: Matrix<NUM_ROWS, NUM_COLUMNS>,
 ) -> SolutionSet {
-    let negated_column = |column: usize, num_rows| {
-        matrix[0..num_rows]
-            .iter()
-            .map(|row| -row[column])
-            .collect_vec()
-    };
-
     let [mut pivot_row, mut pivot_column] = [0, 0];
     let mut free_parameters = vec![];
     let mut origin = vec![];
@@ -93,20 +86,16 @@ fn solution_from_reduced_row_echelon_form<const NUM_ROWS: usize, const NUM_COLUM
     while pivot_row < NUM_ROWS && pivot_column < NUM_COLUMNS - 1 {
         if matrix[pivot_row][pivot_column].approx_eq(0.0) {
             origin.push(0.0);
-
-            let mut direction = negated_column(pivot_column, pivot_row);
-            for &parameter in &free_parameters {
-                direction.insert(parameter, 0.0);
-            }
-            direction.push(1.0);
-            direction.resize(NUM_COLUMNS - 1, 0.0);
-            directions.push(direction);
-
+            directions.push(solution_set_direction(
+                matrix,
+                pivot_row,
+                pivot_column,
+                &free_parameters,
+            ));
             free_parameters.push(pivot_column);
             pivot_column += 1;
         } else {
             origin.push(matrix[pivot_row][NUM_COLUMNS - 1]);
-
             [pivot_row, pivot_column] = [pivot_row + 1, pivot_column + 1];
         }
     }
@@ -115,6 +104,28 @@ fn solution_from_reduced_row_echelon_form<const NUM_ROWS: usize, const NUM_COLUM
     } else {
         Some((origin, directions))
     }
+}
+
+fn solution_set_direction<const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
+    matrix: Matrix<NUM_ROWS, NUM_COLUMNS>,
+    pivot_row: usize,
+    pivot_column: usize,
+    free_parameters: &[usize],
+) -> Vec<f64> {
+    let mut direction = negated_column(&matrix[..pivot_row], pivot_column);
+    for &parameter in free_parameters {
+        direction.insert(parameter, 0.0);
+    }
+    direction.push(1.0);
+    direction.resize(NUM_COLUMNS - 1, 0.0);
+    direction
+}
+
+fn negated_column<const NUM_COLUMNS: usize>(
+    matrix: &[[Real; NUM_COLUMNS]],
+    column: usize,
+) -> Vec<Real> {
+    matrix.iter().map(|row| -row[column]).collect_vec()
 }
 
 #[cfg(test)]
