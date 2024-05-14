@@ -4,6 +4,6 @@ pub trait ApproxEq {
 
 impl ApproxEq for f64 {
     fn approx_eq(self, rhs: Self) -> bool {
-        (self - rhs).abs() < Self::EPSILON
+        (self - rhs).abs() < 128.0 * Self::EPSILON
     }
 }

@@ -192,4 +192,16 @@ pub mod tests {
             );
         }
     }
+
+    /// # Panics
+    ///
+    /// Panics with the message `msg` followed by `left` and `right`.
+    pub fn panic_left_right(msg: &str, left: impl Debug, right: impl Debug) {
+        let lines = [
+            format!("{msg}:"),
+            format!("  left: {left:?}"),
+            format!(" right: {right:?}"),
+        ];
+        panic!("{}", lines.join("\n"))
+    }
 }
