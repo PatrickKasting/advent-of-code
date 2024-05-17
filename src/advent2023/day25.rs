@@ -1,59 +1,93 @@
-use itertools::Itertools;
-use rand::{rngs::SmallRng, seq::SliceRandom, SeedableRng};
+use rand::{rngs::SmallRng, seq::IteratorRandom, SeedableRng};
 
-use crate::{math::graphs::flow_networks::maximum_flow, HashSet};
+use crate::{
+    search::{shortest_path, Exploration},
+    HashMap, HashSet,
+};
 
-type One = usize;
+type Apparatus<'input> = HashMap<Component<'input>, HashSet<Component<'input>>>;
+type Connection<'input> = [Component<'input>; 2];
+type Component<'input> = &'input str;
 
 pub fn first(input: &str) -> String {
-    let (components, connections) = network(input);
-    let groups = separate_groups(&components, &connections, 3);
-    (groups[0].len() * groups[1].len()).to_string()
+    let apparatus = apparatus(input);
+    disconnected_group_sizes(&apparatus)
+        .into_iter()
+        .product::<usize>()
+        .to_string()
 }
 
 pub fn second(_input: &str) -> String {
     unimplemented!();
 }
 
-fn separate_groups<'input>(
-    components: &[&'input str],
-    connections: &[(&'input str, One, &'input str)],
-    number_of_wires_to_cut: usize,
-) -> [HashSet<&'input str>; 2] {
+fn disconnected_group_sizes(apparatus: &Apparatus) -> [usize; 2] {
     let mut rng = SmallRng::from_seed([0; 32]);
     loop {
-        let mut terminals = components.choose_multiple(&mut rng, 2);
-        let (maximum_flow, cut) = maximum_flow(
-            components.iter().copied(),
-            connections.iter().copied(),
-            terminals
-                .next()
-                .expect("two components should be randomly chosen"),
-            terminals
-                .next()
-                .expect("two components should be randomly chosen"),
-        );
-        if maximum_flow == number_of_wires_to_cut {
-            return cut;
+        let terminals = apparatus.keys().copied().choose_multiple(&mut rng, 2);
+        let (source, target) = (terminals[0], |component| component == terminals[1]);
+        let mut paths: HashSet<Connection> = HashSet::new();
+        let mut number_of_disjoint_paths = 0;
+        loop {
+            let successors = |from| {
+                let paths = &paths;
+                apparatus[&from]
+                    .iter()
+                    .copied()
+                    .filter(move |&to| !paths.contains(&[from, to]))
+            };
+            let Some(path) = shortest_path(source, successors, target) else {
+                return [0, 1].map(|index| group_size(apparatus, &paths, terminals[index]));
+            };
+            for connection in path.windows(2) {
+                let [from, to] = [connection[0], connection[1]];
+                if paths.contains(&[to, from]) {
+                    paths.remove(&[to, from]);
+                } else {
+                    paths.insert([from, to]);
+                }
+            }
+            number_of_disjoint_paths += 1;
+            if number_of_disjoint_paths > 3 {
+                break;
+            }
         }
     }
 }
 
-fn network(input: &str) -> (Vec<&str>, Vec<(&str, One, &str)>) {
-    let mut components = HashSet::new();
-    let mut connections = vec![];
+fn group_size(apparatus: &Apparatus, paths: &HashSet<Connection>, component: Component) -> usize {
+    let successors = |from| {
+        apparatus[&from]
+            .iter()
+            .copied()
+            .filter(move |&to| !paths.contains(&[from, to]) && !paths.contains(&[to, from]))
+    };
+    let mut exploration = Exploration::new([]);
+    exploration.explore(component, successors);
+    exploration.explored().len()
+}
+
+fn apparatus(input: &str) -> Apparatus {
+    let mut apparatus = HashMap::new();
+    let mut add_connection = |from, to| {
+        apparatus
+            .entry(from)
+            .or_insert_with(HashSet::new)
+            .insert(to);
+        apparatus
+            .entry(to)
+            .or_insert_with(HashSet::new)
+            .insert(from);
+    };
     for line in input.lines() {
         let (from, tos) = line
             .split_once(": ")
             .expect("every line should contain a colon succeeded by a space");
-        components.insert(from);
         for to in tos.split(' ') {
-            components.insert(to);
-            connections.push((from, 1, to));
-            connections.push((to, 1, from));
+            add_connection(from, to);
         }
     }
-    (components.into_iter().collect_vec(), connections)
+    apparatus
 }
 
 #[cfg(test)]

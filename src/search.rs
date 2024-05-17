@@ -61,6 +61,52 @@ where
     None
 }
 
+pub fn shortest_path<State, Successors>(
+    source: State,
+    mut successors: impl FnMut(State) -> Successors,
+    mut target: impl FnMut(State) -> bool,
+) -> Option<Vec<State>>
+where
+    State: Copy + Eq + Hash,
+    Successors: IntoIterator<Item = State>,
+{
+    let mut predecessors = HashMap::from([(source, None)]);
+    let mut current_ring = vec![];
+    let mut next_ring = vec![source];
+    while !next_ring.is_empty() {
+        mem::swap(&mut current_ring, &mut next_ring);
+        while let Some(state) = current_ring.pop() {
+            for successor in successors(state) {
+                match predecessors.entry(successor) {
+                    Entry::Occupied(_) => (),
+                    Entry::Vacant(entry) => {
+                        entry.insert(Some(state));
+                        if target(successor) {
+                            return Some(path(&predecessors, successor));
+                        }
+                        next_ring.push(successor);
+                    }
+                }
+            }
+        }
+    }
+    None
+}
+
+fn path<State: Copy + Eq + Hash>(
+    predecessors: &HashMap<State, Option<State>>,
+    end: State,
+) -> Vec<State> {
+    let mut current = end;
+    let mut path = vec![end];
+    while let Some(predecessor) = predecessors[&current] {
+        path.push(predecessor);
+        current = predecessor;
+    }
+    path.reverse();
+    path
+}
+
 pub fn distances<State, Successors>(
     source: State,
     mut successors: impl FnMut(State) -> Successors,
