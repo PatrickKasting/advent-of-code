@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::{collections::VecDeque, convert::identity};
 
 use itertools::Itertools;
 
@@ -14,6 +14,7 @@ enum Module<'input> {
 }
 
 type Pulse = bool;
+const HIGH: Pulse = true;
 const LOW: Pulse = false;
 
 pub fn first(input: &str) -> String {
@@ -23,8 +24,9 @@ pub fn first(input: &str) -> String {
     (total_number_of_low_pulses * total_number_of_high_pulses).to_string()
 }
 
-pub fn second(_input: &str) -> String {
-    unimplemented!()
+pub fn second(input: &str) -> String {
+    let mut configuration = configuration(input);
+    number_of_button_presses_before_single_low_pulse_to_rx(&mut configuration).to_string()
 }
 
 fn total_number_of_low_and_high_pulses(configuration: &mut Configuration) -> (usize, usize) {
@@ -81,6 +83,38 @@ fn receive(pulse: Pulse, to: &mut Module, from: &str) -> Option<Pulse> {
     }
 }
 
+/// Returns the number of button presses before a single low pulse reaches the module named `rx`.
+///
+/// # Correctness
+/// From the puzzle input, we see that `rx` only has a single source module, namely the conjunction
+/// `nc`. `nc` has four source modules: `lk`, `fn`, `fh`, and `hh`. Upon receiving a pulse A conjunction sends a low pulse, if and only if it remembers high pulses from
+fn number_of_button_presses_before_single_low_pulse_to_rx(
+    configuration: &mut Configuration,
+) -> usize {
+    const SOURCES: [&str; 4] = ["lk", "fn", "fh", "hh"];
+
+    let mut number_of_button_presses = 0;
+    let mut cycle_lengths: [Option<usize>; 4] = [None; 4];
+    while cycle_lengths.iter().any(Option::is_none) {
+        press_button(configuration);
+        number_of_button_presses += 1;
+        for (source, cycle_length) in SOURCES.into_iter().zip(&mut cycle_lengths) {
+            let (Module::Conjunction(module), _) = &configuration[source] else {
+                panic!("source module to 'rx' should be a conjunction")
+            };
+            if module.values().all(|memory| *memory) {
+                cycle_length.get_or_insert(number_of_button_presses);
+            }
+        }
+    }
+
+    todo!()
+}
+
+fn least_common_multiple(numbers: impl IntoIterator<Item = usize>) -> usize {
+    todo!()
+}
+
 fn configuration(str: &str) -> Configuration {
     let mut configuration: Configuration = str.lines().map(module).collect();
 
@@ -130,5 +164,10 @@ mod tests {
     #[test]
     fn first_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 1_020_211_150);
+    }
+
+    #[test]
+    fn second_input() {
+        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 42)
     }
 }

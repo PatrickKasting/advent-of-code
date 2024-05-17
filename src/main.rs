@@ -49,6 +49,7 @@ mod matrix;
 mod search;
 mod strings;
 mod vector;
+mod number_theory;
 
 use std::{fmt::Debug, fs, ops::RangeInclusive};
 
