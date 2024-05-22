@@ -1,24 +1,23 @@
 use std::mem;
 
 use crate::{
-    data_structures::grid::{self, Coordinate, Grid, Position},
+    data_structures::grid::{self, Grid, Position},
     HashSet,
 };
 
 type Map = Grid<char>;
 
 pub fn first(input: &str) -> String {
-    let example = Map::from(input);
-    number_of_reachable_garden_plots(&example, 64).to_string()
+    let map = Map::from(input);
+    number_of_reachable_garden_plots_non_repeating(&map, 64).to_string()
 }
 
 pub fn second(_input: &str) -> String {
     unimplemented!()
 }
 
-fn number_of_reachable_garden_plots(map: &Map, number_of_steps: usize) -> usize {
+fn number_of_reachable_garden_plots_non_repeating(map: &Map, number_of_steps: usize) -> usize {
     let starting_plot = starting_plot(map);
-    let starting_plot_parity = position_parity(starting_plot);
 
     let mut explored = HashSet::from([starting_plot]);
     let mut frontier = vec![starting_plot];
@@ -27,7 +26,7 @@ fn number_of_reachable_garden_plots(map: &Map, number_of_steps: usize) -> usize 
     let mut number_of_reachable_garden_plots = 0;
     for _ in 0..=number_of_steps {
         while let Some(plot) = frontier.pop() {
-            if position_parity(plot) == starting_plot_parity {
+            if is_current_distance_multiple_of_two_from_number_of_steps {
                 number_of_reachable_garden_plots += 1;
             }
 
@@ -50,10 +49,6 @@ fn starting_plot(map: &Map) -> Position {
         .expect("there should be exactly one starting position")
 }
 
-fn position_parity([row, column]: Position) -> Coordinate {
-    (row + column) % 2
-}
-
 #[cfg(test)]
 mod tests {
     use super::super::tests::{test_on_input, YEAR};
@@ -66,7 +61,7 @@ mod tests {
     #[test]
     fn first_example() {
         let example = Map::from(&input(YEAR, DAY, Input::Example(0)));
-        let actual = number_of_reachable_garden_plots(&example, 6);
+        let actual = number_of_reachable_garden_plots_non_repeating(&example, 6);
         assert_eq!(actual, 16);
     }
 
