@@ -18,7 +18,7 @@ pub fn first(input: &str) -> String {
 }
 
 pub fn second(_input: &str) -> String {
-    unimplemented!();
+    panic!("there is no second part on the 25th");
 }
 
 fn disconnected_group_sizes(apparatus: &Apparatus) -> [usize; 2] {

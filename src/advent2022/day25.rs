@@ -6,7 +6,7 @@ pub fn first(input: &str) -> String {
 }
 
 pub fn second(_input: &str) -> String {
-    unimplemented!();
+    panic!("there is no second part on the 25th");
 }
 
 fn snafu(mut decimal: Decimal) -> String {
@@ -81,15 +81,20 @@ mod tests {
         );
     }
 
-    // #[test]
-    // fn second_example() {
-    //     test_on_input(DAY, Puzzle::Second, Input::Example(0), 24_933_642);
-    // }
+    #[test]
+    fn small_decimal_to_snafu() {
+        test_cases(
+            snafu,
+            SMALL_DECIMAL
+                .into_iter()
+                .zip_eq(SMALL_SNAFU.map(String::from)),
+        );
+    }
 
-    // #[test]
-    // fn second_input() {
-    //     test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 404_395);
-    // }
+    #[test]
+    fn small_snafu_to_decimal() {
+        test_cases(decimal, SMALL_SNAFU.into_iter().zip_eq(SMALL_DECIMAL));
+    }
 
     #[test]
     fn large_decimal_to_snafu() {
@@ -104,21 +109,6 @@ mod tests {
     #[test]
     fn large_snafu_to_decimal() {
         test_cases(decimal, LARGE_SNAFU.into_iter().zip_eq(LARGE_DECIMAL));
-    }
-
-    #[test]
-    fn small_decimal_to_snafu() {
-        test_cases(
-            snafu,
-            SMALL_DECIMAL
-                .into_iter()
-                .zip_eq(SMALL_SNAFU.map(String::from)),
-        );
-    }
-
-    #[test]
-    fn small_snafu_to_decimal() {
-        test_cases(decimal, SMALL_SNAFU.into_iter().zip_eq(SMALL_DECIMAL));
     }
 
     const SMALL_DECIMAL: [Decimal; 11] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
