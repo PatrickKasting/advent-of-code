@@ -175,10 +175,11 @@ fn coordinates(str: &str) -> [Coordinate; 3] {
 
 #[cfg(test)]
 mod tests {
-    use super::super::tests::{test_on_input, YEAR};
+    use super::{
+        super::tests::{test_on_input, YEAR},
+        *,
+    };
     use crate::{input, Input, Puzzle};
-
-    use super::*;
 
     const DAY: usize = 24;
 

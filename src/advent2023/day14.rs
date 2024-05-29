@@ -81,10 +81,11 @@ fn sorted_round_rock_positions(platform: &Platform, direction: Direction) -> Vec
 
 #[cfg(test)]
 mod tests {
-    use super::super::tests::{test_on_input, YEAR};
+    use super::{
+        super::tests::{test_on_input, YEAR},
+        *,
+    };
     use crate::{Input, Puzzle};
-
-    use super::{cycles, Platform};
 
     const DAY: usize = 14;
 

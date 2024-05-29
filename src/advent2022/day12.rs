@@ -3,8 +3,8 @@ use crate::{
     search::shortest_path_length,
 };
 
-type Height = usize;
 type Heightmap = Grid<Height>;
+type Height = usize;
 
 pub fn first(input: &str) -> String {
     let (heightmap, current_position, best_signal) = heightmap(input);

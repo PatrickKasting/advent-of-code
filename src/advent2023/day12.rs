@@ -92,8 +92,6 @@ mod tests {
     };
     use crate::{input, tests::*, Input, Puzzle};
 
-    use super::number_of_arrangements;
-
     const DAY: usize = 12;
 
     #[test]

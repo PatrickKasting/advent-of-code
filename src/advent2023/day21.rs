@@ -56,10 +56,11 @@ fn position_parity([row, column]: Position) -> Coordinate {
 
 #[cfg(test)]
 mod tests {
-    use super::super::tests::{test_on_input, YEAR};
+    use super::{
+        super::tests::{test_on_input, YEAR},
+        *,
+    };
     use crate::{input, Input, Puzzle};
-
-    use super::*;
 
     const DAY: usize = 21;
 

@@ -2,9 +2,9 @@ use std::ops::RangeInclusive;
 
 use crate::string::usizes;
 
-type IdNumber = usize;
-type Sections = RangeInclusive<IdNumber>;
 type Pair = [Sections; 2];
+type Sections = RangeInclusive<IdNumber>;
+type IdNumber = usize;
 
 pub fn first(input: &str) -> String {
     number_of_pairs(input, contains).to_string()

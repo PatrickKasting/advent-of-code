@@ -1,8 +1,8 @@
 use crate::string::usizes;
 
-type Crate = char;
-type Stack = Vec<Crate>;
 type Stacks = Vec<Stack>;
+type Stack = Vec<Crate>;
+type Crate = char;
 type ProcedureStep = (usize, usize, usize);
 
 pub fn first(input: &str) -> String {

@@ -133,6 +133,7 @@ mod tests {
 
     // #[test]
     // fn second_input() {
+    //     // This takes several minutes with the 'dev' compilation profile
     //     test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 2052);
     // }
 

@@ -89,7 +89,7 @@ fn dig_plan_step_from_color_codes(line: &str) -> DigStep {
 mod tests {
     use super::{
         super::tests::{test_on_input, YEAR},
-        dig_plan_step_from_directions_and_distances, RIGHT, *,
+        *,
     };
     use crate::{input, Input, Puzzle};
 

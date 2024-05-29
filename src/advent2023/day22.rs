@@ -6,28 +6,30 @@ type Brick = [Position; 2];
 type Position = [Coordinate; 3];
 type Coordinate = usize;
 
-fn brick(line: &str) -> Brick {
-    let coordinates = usizes(line);
-    let mut ends = [
-        [0, 1, 2].map(|index| coordinates[index]),
-        [3, 4, 5].map(|index| coordinates[index]),
-    ];
-    ends.sort_unstable();
-    ends
+pub fn first(input: &str) -> String {
+    let bricks = bricks(input);
+    let (settled_bricks, _) = settled_bricks(bricks);
+    number_of_disintegrable_bricks(&settled_bricks).to_string()
 }
 
-fn shadows_intersect(left: Brick, right: Brick) -> bool {
-    let not_intersecting = left[1][1] < right[0][1]
-        || left[0][1] > right[1][1]
-        || left[1][0] < right[0][0]
-        || left[0][0] > right[1][0];
-    !not_intersecting
+pub fn second(_input: &str) -> String {
+    unimplemented!();
 }
 
-fn bricks(input: &str) -> Vec<Brick> {
-    let mut bricks = input.lines().map(brick).collect_vec();
-    bricks.sort_unstable_by(|left, right| left[0][2].cmp(&right[0][2]));
-    bricks
+fn number_of_disintegrable_bricks(settled_bricks: &[Brick]) -> usize {
+    (0..settled_bricks.len())
+        .filter(|&missing_brick_index| disintegrable(settled_bricks, missing_brick_index))
+        .count()
+}
+
+fn disintegrable(settled_bricks: &[Brick], index: usize) -> bool {
+    let without_brick = settled_bricks
+        .iter()
+        .enumerate()
+        .filter(|&(other_index, _)| other_index != index)
+        .map(|(_, brick)| *brick);
+    let (_, number_of_fallen_bricks) = self::settled_bricks(without_brick);
+    number_of_fallen_bricks == 0
 }
 
 fn settled_bricks(bricks: impl IntoIterator<Item = Brick>) -> (Vec<Brick>, usize) {
@@ -51,33 +53,28 @@ fn settled_bricks(bricks: impl IntoIterator<Item = Brick>) -> (Vec<Brick>, usize
     (settled_bricks, number_of_fallen_bricks)
 }
 
-fn disintegrable(settled_bricks: &[Brick], index: usize) -> bool {
-    if index == 48 {
-        return false;
-    }
-    let without_brick = settled_bricks
-        .iter()
-        .enumerate()
-        .filter(|&(other_index, _)| other_index != index)
-        .map(|(_, brick)| *brick);
-    let (_, number_of_fallen_bricks) = self::settled_bricks(without_brick);
-    number_of_fallen_bricks == 0
+fn shadows_intersect(left: Brick, right: Brick) -> bool {
+    let not_intersecting = left[1][1] < right[0][1]
+        || left[0][1] > right[1][1]
+        || left[1][0] < right[0][0]
+        || left[0][0] > right[1][0];
+    !not_intersecting
 }
 
-fn number_of_disintegrable_bricks(settled_bricks: &[Brick]) -> usize {
-    (0..settled_bricks.len())
-        .filter(|&missing_brick_index| disintegrable(settled_bricks, missing_brick_index))
-        .count()
+fn bricks(input: &str) -> Vec<Brick> {
+    let mut bricks = input.lines().map(brick).collect_vec();
+    bricks.sort_unstable_by(|left, right| left[0][2].cmp(&right[0][2]));
+    bricks
 }
 
-pub fn first(input: &str) -> String {
-    let bricks = bricks(input);
-    let (settled_bricks, _) = settled_bricks(bricks);
-    number_of_disintegrable_bricks(&settled_bricks).to_string()
-}
-
-pub fn second(_input: &str) -> String {
-    unimplemented!();
+fn brick(line: &str) -> Brick {
+    let coordinates = usizes(line);
+    let mut ends = [
+        [0, 1, 2].map(|index| coordinates[index]),
+        [3, 4, 5].map(|index| coordinates[index]),
+    ];
+    ends.sort_unstable();
+    ends
 }
 
 #[cfg(test)]
@@ -93,9 +90,4 @@ mod tests {
         test_on_input(DAY, Puzzle::First, Input::Example(1), 3);
         test_on_input(DAY, Puzzle::First, Input::Example(2), 2);
     }
-
-    // #[test]
-    // fn first_input() {
-    //     test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 488);
-    // }
 }

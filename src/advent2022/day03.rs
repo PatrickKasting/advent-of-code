@@ -2,8 +2,8 @@ use itertools::Itertools;
 
 use crate::HashSet;
 
-type Item = char;
 type Set = HashSet<Item>;
+type Item = char;
 type Priority = u32;
 
 pub fn first(input: &str) -> String {
