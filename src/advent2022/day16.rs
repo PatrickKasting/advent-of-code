@@ -3,7 +3,7 @@ use std::{cmp, sync::OnceLock};
 use itertools::Itertools;
 use regex::Regex;
 
-use crate::{search::distances, strings::usizes, HashMap, HashSet};
+use crate::{search::distances, string::usizes, HashMap, HashSet};
 
 type ContractedCave<'input> = HashMap<Valve<'input>, (Pressure, Vec<(Valve<'input>, Time)>)>;
 type Cave<'input> = HashMap<Valve<'input>, (Pressure, Vec<Valve<'input>>)>;

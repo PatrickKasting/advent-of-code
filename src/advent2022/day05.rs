@@ -1,4 +1,4 @@
-use crate::strings::usizes;
+use crate::string::usizes;
 
 type Crate = char;
 type Stack = Vec<Crate>;

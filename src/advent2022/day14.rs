@@ -2,8 +2,8 @@ use easy_cast::Cast;
 use itertools::Itertools;
 
 use crate::{
-    data_structures::grid::{self, Coordinate, Grid, Position},
-    strings::isizes,
+    grid::{self, Coordinate, Grid, Position},
+    string::isizes,
     vector::Vector,
 };
 

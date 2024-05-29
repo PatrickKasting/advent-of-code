@@ -3,8 +3,8 @@ use std::{f64, sync::OnceLock};
 use itertools::Itertools;
 
 use crate::{
-    data_structures::grid::{self, Direction, Grid, Position},
-    floating::ApproxEq,
+    floating_point::ApproxEq,
+    grid::{self, Direction, Grid, Position},
     search::Exploration,
     vector::{AngleInTwoDimensions, Negation, RotationInTwoDimensions, Vector},
     HashMap,

@@ -2,7 +2,7 @@ use std::ops::RangeInclusive;
 
 use itertools::Itertools;
 
-use crate::{matrix::solution_set, vector::Vector};
+use crate::{linear_equations::solution_set, vector::Vector};
 
 type Hailstone = (Position, Velocity);
 type Position = [Coordinate; 3];

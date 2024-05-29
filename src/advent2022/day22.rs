@@ -4,7 +4,7 @@ use easy_cast::{Cast, Conv};
 use itertools::Itertools;
 
 use crate::{
-    data_structures::grid::{self, Coordinate, Direction, Grid, Position},
+    grid::{self, Coordinate, Direction, Grid, Position},
     vector::{CrossProduct, Negation, RotationInTwoDimensions, Vector},
 };
 

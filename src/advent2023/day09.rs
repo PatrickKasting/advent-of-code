@@ -2,7 +2,7 @@ use std::ops::{Add, Sub};
 
 use itertools::Itertools;
 
-use crate::strings::isizes;
+use crate::string::isizes;
 
 type Combination = fn(Number, Number) -> Number;
 type Prediction = fn(Number, Number) -> Number;

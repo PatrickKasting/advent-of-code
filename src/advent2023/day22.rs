@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use crate::strings::usizes;
+use crate::string::usizes;
 
 type Brick = [Position; 2];
 type Position = [Coordinate; 3];

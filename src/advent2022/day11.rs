@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use crate::strings::usizes;
+use crate::string::usizes;
 
 struct Monkey {
     items: Vec<Worry>,

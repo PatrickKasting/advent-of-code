@@ -2,7 +2,7 @@ use std::{cmp, iter};
 
 use itertools::Itertools;
 
-use crate::{strings::usizes, HashMap};
+use crate::{string::usizes, HashMap};
 
 type Spring = u8;
 type GroupSize = usize;

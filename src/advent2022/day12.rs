@@ -1,5 +1,5 @@
 use crate::{
-    data_structures::grid::{self, Grid, Position},
+    grid::{self, Grid, Position},
     search::shortest_path_length,
 };
 

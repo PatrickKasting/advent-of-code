@@ -42,12 +42,11 @@
 
 mod advent2022;
 mod advent2023;
-mod data_structures;
-mod floating;
-mod math;
-mod matrix;
+mod floating_point;
+mod grid;
+mod linear_equations;
 mod search;
-mod strings;
+mod string;
 mod vector;
 
 use std::{fmt::Debug, fs, ops::RangeInclusive};

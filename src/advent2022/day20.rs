@@ -1,7 +1,7 @@
 use easy_cast::{Cast, Conv};
 use itertools::Itertools;
 
-use crate::strings::isizes;
+use crate::string::isizes;
 
 type File = Vec<Number>;
 type Number = isize;

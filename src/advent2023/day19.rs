@@ -2,7 +2,7 @@ use std::{cmp::Ordering, ops::Range};
 
 use itertools::Itertools;
 
-use crate::{strings::usizes, HashMap};
+use crate::{string::usizes, HashMap};
 
 type Workflows<'input> = HashMap<Name<'input>, Rules<'input>>;
 type Workflow<'input> = (Name<'input>, Rules<'input>);

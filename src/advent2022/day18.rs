@@ -3,7 +3,7 @@ use std::cmp;
 use easy_cast::Cast;
 use itertools::Itertools;
 
-use crate::{search::Exploration, strings::isizes, HashSet};
+use crate::{search::Exploration, string::isizes, HashSet};
 
 type BoundingBox = [Position; 2];
 type Position = [Coordinate; 3];

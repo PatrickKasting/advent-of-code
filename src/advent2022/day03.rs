@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use crate::{math::sets::intersection, HashSet};
+use crate::HashSet;
 
 type Item = char;
 type Set = HashSet<Item>;
@@ -33,6 +33,17 @@ fn common_item(sets: impl IntoIterator<Item = Set>) -> Item {
         .into_iter()
         .exactly_one()
         .expect("only one item should be in common")
+}
+
+fn intersection(sets: impl IntoIterator<Item = Set>) -> Set {
+    let mut sets = sets.into_iter();
+    let mut intersection = sets
+        .next()
+        .expect("intersection should not be computed from empty collections of sets");
+    for set in sets {
+        intersection.retain(|element| set.contains(element));
+    }
+    intersection
 }
 
 fn compartments(input: &str) -> impl Iterator<Item = [Set; 2]> + '_ {

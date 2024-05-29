@@ -136,7 +136,7 @@ where
 mod tests {
     use std::f64::consts::*;
 
-    use crate::floating::ApproxEq;
+    use crate::floating_point::ApproxEq;
 
     use super::*;
 

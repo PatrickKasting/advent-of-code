@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use crate::floating::ApproxEq;
+use crate::floating_point::ApproxEq;
 
 type Matrix<const NUM_ROWS: usize, const NUM_COLUMNS: usize> = [[Real; NUM_COLUMNS]; NUM_ROWS];
 type SolutionSet = Option<(Origin, Vec<Direction>)>;

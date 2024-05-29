@@ -4,7 +4,7 @@ use easy_cast::Cast;
 use itertools::Itertools;
 
 use crate::{
-    data_structures::grid::{self, Direction, Position},
+    grid::{self, Direction, Position},
     vector::{RotationInTwoDimensions, Vector},
     HashMap, HashSet,
 };

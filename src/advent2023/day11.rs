@@ -1,7 +1,7 @@
 use easy_cast::Cast;
 use itertools::Itertools;
 
-use crate::data_structures::grid::Grid;
+use crate::grid::Grid;
 
 type Image = Grid<char>;
 type Coordinate = usize;

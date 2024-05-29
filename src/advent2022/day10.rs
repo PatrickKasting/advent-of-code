@@ -1,6 +1,6 @@
 use easy_cast::Conv;
 
-use crate::data_structures::grid::Grid;
+use crate::grid::Grid;
 
 type SignalStrength = isize;
 type Register = isize;

@@ -1,5 +1,5 @@
 use crate::{
-    data_structures::grid::{self, Direction, Position},
+    grid::{self, Direction, Position},
     vector::Vector,
     HashSet,
 };
