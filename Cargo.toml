@@ -1,12 +1,13 @@
-[package]
-name = "advent-of-code"
+[workspace]
+members = ["advent-*", "infrastructure", "shared"]
+
+[workspace.package]
 version = "0.1.0"
+authors = ["Patrick Kasting"]
 edition = "2021"
 rust-version = "1.77.0"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
+[workspace.dependencies]
 ahash = { version = "0.8.11", default-features = false, features = [
     "std",
     "no-rng",
@@ -19,3 +20,67 @@ num-traits = "0.2.18"
 rand = { version = "0.8.5", features = ["small_rng"] }
 regex = "1.10.2"
 strum = { version = "0.25.0", features = ["derive"] }
+
+[workspace.lints.rust]
+non_ascii_idents = "forbid"
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = "warn"
+pedantic = "warn"
+allow_attributes_without_reason = "warn"
+clone_on_ref_ptr = "warn"
+dbg_macro = "warn"
+empty_enum_variants_with_brackets = "warn"
+empty_structs_with_brackets = "warn"
+float_cmp_const = "warn"
+fn_to_numeric_cast_any = "warn"
+format_push_string = "warn"
+if_then_some_else_none = "warn"
+infinite_loop = "warn"
+let_underscore_must_use = "warn"
+mem_forget = "warn"
+mixed_read_write_in_expression = "warn"
+missing_assert_message = "warn"
+mod_module_files = "warn"
+mutex_atomic = "warn"
+needless_raw_strings = "warn"
+partial_pub_fields = "warn"
+pub_with_shorthand = "warn"
+ref_patterns = "warn"
+rest_pat_in_fully_bound_structs = "warn"
+semicolon_inside_block = "warn"
+str_to_string = "warn"
+string_add = "warn"
+string_to_string = "warn"
+tests_outside_test_module = "warn"
+todo = "warn"
+try_err = "warn"
+undocumented_unsafe_blocks = "warn"
+unnecessary_safety_comment = "warn"
+unnecessary_safety_doc = "warn"
+unnecessary_self_imports = "warn"
+unneeded_field_pattern = "warn"
+unseparated_literal_suffix = "warn"
+use_debug = "warn"
+unwrap_used = "warn"
+wildcard_enum_match_arm = "warn"
+
+[package]
+name = "advent-of-code"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+
+infrastructure = { path = "infrastructure" }
+advent-2021 = { path = "advent-2021" }
+advent-2022 = { path = "advent-2022" }
+advent-2023 = { path = "advent-2023" }
+
+[lints]
+workspace = true

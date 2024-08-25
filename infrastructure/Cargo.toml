@@ -1,0 +1,20 @@
+[package]
+name = "infrastructure"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+ahash.workspace = true
+anyhow.workspace = true
+clap.workspace = true
+easy-cast.workspace = true
+itertools.workspace = true
+num-traits.workspace = true
+rand.workspace = true
+regex.workspace = true
+strum.workspace = true
+
+[lints]
+workspace = true
