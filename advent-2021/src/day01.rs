@@ -1,29 +1,30 @@
+use itertools::Itertools;
+
+type Measurement = usize;
+
 pub fn first(input: &str) -> String {
-    let measurements = measurements(input);
-    measurements
-        .iter()
-        .zip(measurements.iter().skip(1))
-        .filter(|(current, next)| current < next)
-        .count()
-        .to_string()
+    number_of_increasing(measurements(input)).to_string()
 }
 
 pub fn second(input: &str) -> String {
-    let window_size: usize = 3;
-    let measurements = measurements(input);
-    measurements
-        .windows(window_size)
-        .zip(measurements.windows(window_size).skip(1))
-        .filter(|(current, next)| current.iter().sum::<usize>() < next.iter().sum::<usize>())
-        .count()
-        .to_string()
+    let window_sums = measurements(input)
+        .tuple_windows()
+        .map(|(first, second, third)| first + second + third);
+    number_of_increasing(window_sums).to_string()
 }
 
-fn measurements(input: &str) -> Vec<usize> {
-    input
-        .lines()
-        .map(|line| str::parse::<usize>(line).expect("every measurement should be an integer"))
-        .collect()
+fn number_of_increasing<T: Copy + Ord>(sequence: impl Iterator<Item = T>) -> usize {
+    sequence
+        .tuple_windows()
+        .filter(|&(first, second)| first < second)
+        .count()
+}
+
+fn measurements(input: &str) -> impl Iterator<Item = Measurement> + '_ {
+    input.lines().map(|line| {
+        line.parse()
+            .expect("every measurement should be a positive integer")
+    })
 }
 
 #[cfg(test)]
