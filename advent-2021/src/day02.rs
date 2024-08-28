@@ -1,83 +1,120 @@
 trait Submarine {
-    fn forward(&mut self, distance: usize);
-    fn up(&mut self, distance: usize);
-    fn down(&mut self, distance: usize);
+    fn forward(&mut self, value: Value);
+    fn down(&mut self, value: Value);
+    fn up(&mut self, value: Value);
+    fn horizontal_position(&self) -> Value;
+    fn depth(&self) -> Value;
+
+    fn mov(&mut self, command: Command) {
+        match command {
+            Command::Forward(value) => self.forward(value),
+            Command::Down(value) => self.down(value),
+            Command::Up(value) => self.up(value),
+        }
+    }
 }
 
-struct FirstSubmarine {
-    horizontal_position: usize,
-    depth: usize,
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+enum Command {
+    Forward(Value),
+    Down(Value),
+    Up(Value),
 }
 
-impl Submarine for FirstSubmarine {
-    fn forward(&mut self, distance: usize) {
+type Value = isize;
+
+pub fn first(input: &str) -> String {
+    let mut submarine = AimlessSubmarine::default();
+    follow_commands(input, &mut submarine);
+    (submarine.horizontal_position() * submarine.depth()).to_string()
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+struct AimlessSubmarine {
+    horizontal_position: Value,
+    depth: Value,
+}
+
+impl Submarine for AimlessSubmarine {
+    fn forward(&mut self, distance: Value) {
         self.horizontal_position += distance;
     }
 
-    fn up(&mut self, distance: usize) {
+    fn down(&mut self, distance: Value) {
+        self.depth += distance;
+    }
+
+    fn up(&mut self, distance: Value) {
         self.depth -= distance;
     }
 
-    fn down(&mut self, distance: usize) {
-        self.depth += distance;
-    }
-}
-
-struct SecondSubmarine {
-    horizontal_position: usize,
-    depth: usize,
-    aim: usize,
-}
-
-impl Submarine for SecondSubmarine {
-    fn forward(&mut self, distance: usize) {
-        self.horizontal_position += distance;
-        self.depth += self.aim * distance;
+    fn horizontal_position(&self) -> Value {
+        self.horizontal_position
     }
 
-    fn up(&mut self, distance: usize) {
-        self.aim -= distance;
+    fn depth(&self) -> Value {
+        self.depth
     }
-
-    fn down(&mut self, distance: usize) {
-        self.aim += distance;
-    }
-}
-
-pub fn first(input: &str) -> String {
-    let mut submarine = FirstSubmarine {
-        horizontal_position: 0,
-        depth: 0,
-    };
-    commands(input, &mut submarine);
-    (submarine.horizontal_position * submarine.depth).to_string()
 }
 
 pub fn second(input: &str) -> String {
-    let mut submarine = SecondSubmarine {
-        horizontal_position: 0,
-        depth: 0,
-        aim: 0,
-    };
-    commands(input, &mut submarine);
-    (submarine.horizontal_position * submarine.depth).to_string()
+    let mut submarine = AimfullSubmarine::default();
+    follow_commands(input, &mut submarine);
+    (submarine.horizontal_position() * submarine.depth()).to_string()
 }
 
-fn commands(commands: &str, submarine: &mut impl Submarine) {
-    for command in commands.lines() {
-        let (direction, distance) = command
-            .split_once(' ')
-            .expect("command should contain a space");
-        let distance: usize = distance
-            .parse()
-            .expect("last part of command should be a positive integer");
-        match direction {
-            "forward" => submarine.forward(distance),
-            "up" => submarine.up(distance),
-            "down" => submarine.down(distance),
-            _ => panic!("command should be 'forward', 'up', or 'down'"),
-        }
+#[derive(Debug, Clone, Copy, Default)]
+struct AimfullSubmarine {
+    horizontal_position: Value,
+    depth: Value,
+    aim: Value,
+}
+
+impl Submarine for AimfullSubmarine {
+    fn forward(&mut self, value: Value) {
+        self.horizontal_position += value;
+        self.depth += self.aim * value;
     }
+
+    fn down(&mut self, value: Value) {
+        self.aim += value;
+    }
+
+    fn up(&mut self, value: Value) {
+        self.aim -= value;
+    }
+
+    fn horizontal_position(&self) -> Value {
+        self.horizontal_position
+    }
+
+    fn depth(&self) -> Value {
+        self.depth
+    }
+}
+
+fn follow_commands(input: &str, submarine: &mut impl Submarine) {
+    for command in commands(input) {
+        submarine.mov(command);
+    }
+}
+
+fn commands(input: &str) -> impl Iterator<Item = Command> + '_ {
+    input.lines().map(command)
+}
+
+fn command(line: &str) -> Command {
+    let (command, value) = line
+        .split_once(' ')
+        .expect("line should contain command and value separated by a space");
+    let command = match command {
+        "forward" => Command::Forward,
+        "down" => Command::Down,
+        "up" => Command::Up,
+        _ => panic!("command should be 'forward', 'down', or 'up'"),
+    };
+    let value = value.parse().expect("value should be an integer");
+    command(value)
 }
 
 #[cfg(test)]
