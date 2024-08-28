@@ -1,69 +1,63 @@
-use std::{
-    cmp::{max, min},
-    collections::HashMap,
-};
+use ahash::AHashMap;
+use shared::{string::isizes, vector::Vector};
 
-use shared::{
-    grid::{self, Position},
-    string::isizes,
-    vector::Vector,
-};
-
-type Grid = HashMap<Position, usize>;
-type Line = (Position, Position);
+type Diagram = AHashMap<Point, usize>;
+type Line = [Point; 2];
+type Point = [Coordinate; 2];
+type Coordinate = isize;
 
 pub fn first(input: &str) -> String {
-    number_of_dangerous_areas(true, input).to_string()
+    let lines = lines(input);
+    let lines = lines.filter(|&line| !is_diagonal(line));
+    number_of_overlap_points(lines).to_string()
 }
 
 pub fn second(input: &str) -> String {
-    number_of_dangerous_areas(false, input).to_string()
+    let lines = lines(input);
+    number_of_overlap_points(lines).to_string()
 }
 
-fn number_of_dangerous_areas(ignore_diagonals: bool, input: &str) -> usize {
-    let mut grid: Grid = HashMap::new();
-    for line in parse_input(input) {
-        add_line(ignore_diagonals, &mut grid, line)
+fn is_diagonal([from, to]: Line) -> bool {
+    from[0] != to[0] && from[1] != to[1]
+}
+
+fn number_of_overlap_points(lines: impl Iterator<Item = Line>) -> usize {
+    let mut diagram = AHashMap::new();
+    for line in lines {
+        add(line, &mut diagram);
     }
-    grid.values().filter(|&&count| count >= 2).count()
+    diagram
+        .into_iter()
+        .filter(|&(_, number_of_overlaps)| number_of_overlaps >= 2)
+        .count()
 }
 
-fn parse_input(input: &str) -> Vec<Line> {
-    input.lines().map(parse_line).collect()
-}
+fn add([from, to]: Line, diagram: &mut Diagram) {
+    *diagram.entry(from).or_default() += 1;
 
-fn parse_line(line: &str) -> Line {
-    let coordinates: Vec<isize> = isizes(line);
-    debug_assert!(
-        coordinates.len() == 4,
-        "number of coordinates on a single line should be four"
-    );
-    (
-        [coordinates[0], coordinates[1]],
-        [coordinates[2], coordinates[3]],
-    )
-}
-
-fn add_line(ignore_diagonal: bool, grid: &mut Grid, (start, end): Line) {
-    let (mut start, end) = (min(start, end), max(start, end));
-    let direction = if start[0] == end[0] {
-        grid::EAST
-    } else if start[1] == end[1] {
-        grid::SOUTH
-    } else if !ignore_diagonal && start[1] < end[1] {
-        grid::SOUTH_EAST
-    } else if !ignore_diagonal {
-        grid::SOUTH_WEST
-    } else {
-        return;
-    };
-    loop {
-        *grid.entry(start).or_default() += 1;
-        if start == end {
-            break;
-        }
-        start = start.add(direction);
+    let direction = to.sub(from).map(Coordinate::signum);
+    let mut current = from;
+    while current != to {
+        current = current.add(direction);
+        *diagram.entry(current).or_default() += 1;
     }
+}
+
+fn lines(input: &str) -> impl Iterator<Item = Line> + '_ {
+    input.lines().map(line)
+}
+
+fn line(line: &str) -> Line {
+    let (left, right) = line
+        .split_once(" -> ")
+        .expect("line should contain an arrow");
+    [point(left), point(right)]
+}
+
+fn point(str: &str) -> Point {
+    isizes(str)
+        .try_into()
+        .expect("point should consist of two coordinates")
 }
 
 #[cfg(test)]
