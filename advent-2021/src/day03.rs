@@ -1,70 +1,87 @@
+use std::convert::identity;
+
+use itertools::Itertools;
+
+type BinaryNumber<'a> = &'a [Bit];
+type Bit = u8;
+
 pub fn first(input: &str) -> String {
-    let numbers: Vec<&str> = input.lines().collect();
-    let mut gamma_rate = 0;
-    let number_of_bits = numbers[0].chars().count();
-    for position in 0..number_of_bits {
-        if most_frequent_bit(&numbers, position) {
-            gamma_rate += 1 << (number_of_bits - 1 - position)
-        }
-    }
-    let epsilon_rate = (1 << number_of_bits) - 1 - gamma_rate;
-    (gamma_rate * epsilon_rate).to_string()
+    let binary_numbers = binary_numbers(input);
+    let rates = rates(&binary_numbers);
+    let power_consumption = rates
+        .into_iter()
+        .map(|number| decimal(&number))
+        .product::<usize>();
+    power_consumption.to_string()
 }
 
 pub fn second(input: &str) -> String {
-    let o2_generator_rating = find_rating(input.lines().collect(), true);
-    let co2_scrubber_rating = find_rating(input.lines().collect(), false);
-    (o2_generator_rating * co2_scrubber_rating).to_string()
+    let oxygen_generator_rating = filtering(binary_numbers(input), identity);
+    let co2_scrubber_rating = filtering(binary_numbers(input), negation);
+    let life_support_rating = decimal(oxygen_generator_rating) * decimal(co2_scrubber_rating);
+    life_support_rating.to_string()
 }
 
-fn most_frequent_bit(numbers: &[&str], position: usize) -> bool {
-    let mut number_of_ones = 0;
-    for number in numbers {
-        let bit = number
-            .chars()
-            .nth(position)
-            .expect("position should be within number");
-        if bit == '1' {
-            number_of_ones += 1;
+fn filtering(
+    mut binary_numbers: Vec<BinaryNumber>,
+    most_common_bit_to_target_bit: fn(Bit) -> Bit,
+) -> BinaryNumber {
+    for index in 0..binary_numbers[0].len() {
+        let most_common_bit = most_common_bit(&binary_numbers, index);
+        let target_bit = most_common_bit_to_target_bit(most_common_bit);
+        binary_numbers.retain(|number| number[index] == target_bit);
+
+        if binary_numbers.len() == 1 {
+            return binary_numbers[0];
         }
     }
-    number_of_ones >= numbers.len() - number_of_ones
+    panic!("binary numbers should filter down to exactly one number");
 }
 
-fn find_rating(mut numbers: Vec<&str>, most_common: bool) -> usize {
-    let mut position = 0;
-    while numbers.len() > 1 {
-        let expected = most_frequent_bit(&numbers, position) ^ !most_common;
-        filter_matching_numbers(&mut numbers, position, expected);
-        position += 1;
+fn rates(binary_numbers: &[BinaryNumber]) -> [Vec<Bit>; 2] {
+    let mut gamma_rate = vec![];
+    let mut epsilon_rate = vec![];
+    for index in 0..binary_numbers[0].len() {
+        let most_common_bit = most_common_bit(binary_numbers, index);
+        gamma_rate.push(most_common_bit);
+        epsilon_rate.push(negation(most_common_bit));
     }
-    binary(numbers[0])
+    [gamma_rate, epsilon_rate]
 }
 
-fn filter_matching_numbers(numbers: &mut Vec<&str>, position: usize, expected: bool) {
-    let expected = if expected { '1' } else { '0' };
-    let mut index = 0;
-    while index < numbers.len() {
-        let actual = numbers[index]
-            .chars()
-            .nth(position)
-            .expect("position should be within number");
-        if actual != expected {
-            numbers.swap_remove(index);
-        } else {
-            index += 1;
+fn most_common_bit(binary_numbers: &[BinaryNumber], index: usize) -> Bit {
+    let number_of_high_bits = binary_numbers
+        .iter()
+        .filter(|number| number[index] == b'1')
+        .count();
+    if 2 * number_of_high_bits < binary_numbers.len() {
+        b'0'
+    } else {
+        b'1'
+    }
+}
+
+fn negation(bit: Bit) -> Bit {
+    match bit {
+        b'0' => b'1',
+        b'1' => b'0',
+        _ => panic!("bit should be '0' or '1'"),
+    }
+}
+
+fn decimal(binary_number: BinaryNumber) -> usize {
+    let mut decimal = 0;
+    for &bit in binary_number {
+        decimal <<= 1;
+        if bit == b'1' {
+            decimal += 1;
         }
     }
+    decimal
 }
 
-fn binary(number: &str) -> usize {
-    let mut result = 0;
-    for (index, bit) in number.chars().rev().enumerate() {
-        if bit == '1' {
-            result += 1 << index;
-        }
-    }
-    result
+fn binary_numbers(input: &str) -> Vec<BinaryNumber> {
+    input.lines().map(str::as_bytes).collect_vec()
 }
 
 #[cfg(test)]
