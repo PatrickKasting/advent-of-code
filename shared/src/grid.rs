@@ -98,6 +98,11 @@ impl<T> Grid<T> {
         }
     }
 
+    pub fn position(&self, mut predicate: impl FnMut(&T) -> bool) -> Option<Position> {
+        self.iter_row_major()
+            .find_map(|(position, element)| predicate(element).then_some(position))
+    }
+
     #[must_use]
     pub fn corners_clockwise(&self) -> [Position; 4] {
         let corners = [

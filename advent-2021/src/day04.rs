@@ -1,108 +1,95 @@
+use std::convert::identity;
+
+use itertools::Itertools;
+use shared::{grid::Grid, string::usizes};
+
 const BOARD_SIZE: usize = 5;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-struct Board {
-    board: [u8; BOARD_SIZE * BOARD_SIZE],
-    marks: [bool; BOARD_SIZE * BOARD_SIZE],
-}
+type Board = (Grid<Number>, Grid<bool>);
+type Number = usize;
 
 pub fn first(input: &str) -> String {
-    let (numbers, mut boards) = parse_input(input);
-    for number in numbers {
-        for board in boards.iter_mut() {
-            if board.mark(number) {
-                return board.score(number).to_string();
-            }
-        }
-    }
-    panic!("bingo should finish before the numbers run out");
+    let (numbers, mut boards) = numbers_and_boards(input);
+    winning_board_score(numbers, &mut boards).to_string()
 }
 
 pub fn second(input: &str) -> String {
-    let (numbers, mut boards) = parse_input(input);
+    let (numbers, mut boards) = numbers_and_boards(input);
+    losing_board_score(numbers, &mut boards).to_string()
+}
+
+pub fn winning_board_score(numbers: impl Iterator<Item = Number>, boards: &mut [Board]) -> Number {
     for number in numbers {
-        let mut board_index = 0;
-        while board_index < boards.len() {
-            if boards[board_index].mark(number) {
-                let finished_board = boards.swap_remove(board_index);
-                if boards.is_empty() {
-                    return finished_board.score(number).to_string();
-                }
-            } else {
-                board_index += 1;
-            }
+        mark(number, boards);
+        if let Some(winning_board) = boards.iter().find(|board| has_bingo(board)) {
+            return score(winning_board, number);
         }
     }
-    panic!("bingo should end with a single board");
+    panic!("a bingo should occur before the numbers run out");
 }
 
-impl Board {
-    fn from_lines<'lines, 'input>(lines: &'lines mut impl Iterator<Item = &'input str>) -> Self {
-        let mut board = [0; BOARD_SIZE * BOARD_SIZE];
-        for row in 0..BOARD_SIZE {
-            let line = lines
-                .next()
-                .expect("input should contain only entire boards");
-            for (col, number) in line
-                .split_whitespace()
-                .map(|number| number.parse().expect("boards should contain only numbers"))
-                .enumerate()
-            {
-                board[row * BOARD_SIZE + col] = number;
-            }
+pub fn losing_board_score(
+    numbers: impl Iterator<Item = Number>,
+    boards: &mut Vec<Board>,
+) -> Number {
+    for number in numbers {
+        mark(number, boards.as_mut_slice());
+        if boards.len() == 1 && has_bingo(&boards[0]) {
+            return score(&boards[0], number);
         }
-        let marks = [false; BOARD_SIZE * BOARD_SIZE];
-        Board { board, marks }
+        boards.retain(|board| !has_bingo(board));
     }
+    panic!("all bingos should occur before the numbers run out");
+}
 
-    fn mark(&mut self, number: u8) -> bool {
-        if let Some(pos) = self
-            .board
-            .iter()
-            .position(|&board_number| number == board_number)
-        {
-            self.marks[pos] = true;
-            return self.wins(pos);
+fn mark(number: Number, boards: &mut [Board]) {
+    for (numbers, marks) in boards {
+        if let Some(position) = numbers.position(|&board_number| board_number == number) {
+            marks[position] = true;
         }
-        false
-    }
-
-    fn wins(&self, mark: usize) -> bool {
-        let (row, col) = (mark / BOARD_SIZE, mark % BOARD_SIZE);
-        let mut row_positions = row * BOARD_SIZE..(row + 1) * BOARD_SIZE;
-        let mut col_positions = (col..BOARD_SIZE * BOARD_SIZE).step_by(BOARD_SIZE);
-        row_positions.all(|pos| self.marks[pos]) || col_positions.all(|pos| self.marks[pos])
-    }
-
-    fn score(&self, number: u8) -> usize {
-        let sum_unmarked: usize = self
-            .board
-            .iter()
-            .zip(self.marks.iter())
-            .filter(|(_, &mark)| !mark)
-            .map(|(&board_number, _)| board_number as usize)
-            .sum();
-        sum_unmarked * number as usize
     }
 }
 
-fn parse_input(input: &str) -> (Vec<u8>, Vec<Board>) {
-    let mut lines = input.lines();
-    let numbers: Vec<u8> = lines
-        .next()
-        .expect("input should have a line of numbers")
-        .split(',')
-        .map(|number| {
-            number
-                .parse()
-                .expect("the first line should be comma-separated numbers")
-        })
-        .collect();
-    let mut boards = Vec::new();
-    while lines.next().is_some() {
-        boards.push(Board::from_lines(&mut lines))
-    }
-    (numbers, boards)
+fn has_bingo((_, marks): &Board) -> bool {
+    let is_bingo_row = marks.rows().any(|row| row.copied().all(identity));
+    let is_bingo_column = marks.columns().any(|column| column.copied().all(identity));
+    is_bingo_row || is_bingo_column
+}
+
+fn score(board: &Board, last_number: usize) -> usize {
+    sum_of_unmarked_numbers(board) * last_number
+}
+
+fn sum_of_unmarked_numbers((numbers, marks): &Board) -> Number {
+    let all_numbers: Number = numbers.iter_row_major().map(|(_, number)| number).sum();
+    let marked_numbers: Number = marks
+        .iter_row_major()
+        .filter_map(|(position, is_marked)| is_marked.then_some(numbers[position]))
+        .sum();
+    all_numbers - marked_numbers
+}
+
+fn numbers_and_boards(input: &str) -> (impl Iterator<Item = Number> + '_, Vec<Board>) {
+    let (numbers, boards) = input
+        .split_once("\n\n")
+        .expect("numbers and boards should be separated by an empty line");
+    (self::numbers(numbers), self::boards(boards))
+}
+
+fn numbers(line: &str) -> impl Iterator<Item = Number> + '_ {
+    line.split(',')
+        .map(str::parse)
+        .map(|number| number.expect("number should be numerical"))
+}
+
+fn boards(str: &str) -> Vec<Board> {
+    str.split("\n\n").map(board).collect_vec()
+}
+
+fn board(str: &str) -> Board {
+    let numbers = Grid::from_elements(usizes(str), BOARD_SIZE);
+    let marks = Grid::new(BOARD_SIZE, BOARD_SIZE, |_| false);
+    (numbers, marks)
 }
 
 #[cfg(test)]
