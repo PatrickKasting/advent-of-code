@@ -1,42 +1,40 @@
+use itertools::Itertools;
+use shared::string::usizes;
+
 const CYCLE_LENGTH: usize = 7;
 const FIRST_CYCLE_LENGTH: usize = CYCLE_LENGTH + 2;
 
-type School = [usize; FIRST_CYCLE_LENGTH];
+type Fish = [usize; FIRST_CYCLE_LENGTH];
 
 pub fn first(input: &str) -> String {
-    number_of_fish(80, input).to_string()
+    let fish = fish(input);
+    number_of_fish_after(80, fish).to_string()
 }
 
 pub fn second(input: &str) -> String {
-    number_of_fish(256, input).to_string()
+    let fish = fish(input);
+    number_of_fish_after(256, fish).to_string()
 }
 
-fn number_of_fish(number_of_days: usize, input: &str) -> usize {
-    let mut school = parse_input(input);
+fn number_of_fish_after(number_of_days: usize, mut fish: [usize; FIRST_CYCLE_LENGTH]) -> usize {
     for _ in 0..number_of_days {
-        advance_one_day(&mut school);
+        advance_one_day(&mut fish);
     }
-    school.into_iter().sum()
+    fish.into_iter().sum()
 }
 
-fn advance_one_day(school: &mut School) {
-    let number_of_spawning_fish = school[0];
-    school.rotate_left(1);
-    school[CYCLE_LENGTH - 1] += number_of_spawning_fish;
+fn advance_one_day(fish: &mut Fish) {
+    let number_of_spawning_fish = fish[0];
+    fish.rotate_left(1);
+    fish[CYCLE_LENGTH - 1] += number_of_spawning_fish;
 }
 
-fn parse_input(input: &str) -> School {
-    let input = input.trim();
-    let mut school: School = [0; FIRST_CYCLE_LENGTH];
-    let timers = input.split(',').map(|timer| {
-        timer
-            .parse::<usize>()
-            .expect("input should contain only numbers")
-    });
-    for timer in timers {
-        school[timer] += 1;
+fn fish(input: &str) -> Fish {
+    let mut fish = [0; FIRST_CYCLE_LENGTH];
+    for (timer, count) in usizes(input).into_iter().counts() {
+        fish[timer] = count;
     }
-    school
+    fish
 }
 
 #[cfg(test)]
