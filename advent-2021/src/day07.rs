@@ -1,48 +1,54 @@
-use std::{collections::BTreeMap, convert::identity};
+use std::convert::identity;
 
-type Integer = i32;
+use itertools::Itertools;
+use shared::string::isizes;
+
+type Position = isize;
+type Distance = isize;
+type FuelConsumption = isize;
 
 pub fn first(input: &str) -> String {
-    min_total_fuel_cost(input, identity).to_string()
+    let crabs = crabs(input);
+    minimum_fuel_comsumption(&crabs, identity).to_string()
 }
 
 pub fn second(input: &str) -> String {
-    let fuel_cost = |distance| distance * (distance + 1) / 2;
-    min_total_fuel_cost(input, fuel_cost).to_string()
+    let crabs = crabs(input);
+    minimum_fuel_comsumption(&crabs, triangular_fuel_comsumption).to_string()
 }
 
-fn min_total_fuel_cost(input: &str, fuel_cost: impl Fn(Integer) -> Integer) -> Integer {
-    const AT_LEAST_ONE_CRAB: &str = "input should contain at least one crab";
-    let crabs = parse_input(input);
-    let &min_pos = crabs.first_key_value().expect(AT_LEAST_ONE_CRAB).0;
-    let &max_pos = crabs.last_key_value().expect(AT_LEAST_ONE_CRAB).0;
-    (min_pos..=max_pos)
-        .map(|position| total_fuel_cost(&crabs, &fuel_cost, position))
+fn minimum_fuel_comsumption(
+    crabs: &[Position],
+    fuel_consumption: fn(Distance) -> FuelConsumption,
+) -> FuelConsumption {
+    let (&minimum_position, &maximum_position) = crabs
+        .iter()
+        .minmax()
+        .into_option()
+        .expect("at least one crab should exist");
+    (minimum_position..=maximum_position)
+        .map(|position| total_fuel_consumption(crabs, position, fuel_consumption))
         .min()
-        .expect(AT_LEAST_ONE_CRAB)
+        .expect("at least one position should be in the range")
 }
 
-fn total_fuel_cost(
-    crabs: &BTreeMap<Integer, Integer>,
-    fuel_cost: &impl Fn(Integer) -> Integer,
-    position: Integer,
-) -> Integer {
+fn total_fuel_consumption(
+    crabs: &[Position],
+    destination: Position,
+    fuel_consumption: fn(Distance) -> FuelConsumption,
+) -> FuelConsumption {
     crabs
         .iter()
-        .map(|(&crab_position, &num_crabs)| num_crabs * fuel_cost((position - crab_position).abs()))
+        .map(|crab| fuel_consumption((crab - destination).abs()))
         .sum()
 }
 
-fn parse_input(input: &str) -> BTreeMap<Integer, Integer> {
-    let mut crabs = BTreeMap::new();
-    for horizontal_position in input
-        .trim()
-        .split(',')
-        .map(|pos| pos.parse().expect("input should only contain numbers"))
-    {
-        *crabs.entry(horizontal_position).or_default() += 1;
-    }
-    crabs
+fn triangular_fuel_comsumption(distance: Distance) -> FuelConsumption {
+    distance * (distance + 1) / 2
+}
+
+fn crabs(input: &str) -> Vec<Position> {
+    isizes(input)
 }
 
 #[cfg(test)]
