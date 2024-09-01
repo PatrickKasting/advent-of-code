@@ -54,7 +54,7 @@ mod tests {
 
     use crate::tests::test_on_input;
 
-    const DAY: usize = 7;
+    const DAY: usize = 9;
 
     #[test]
     fn first_example() {

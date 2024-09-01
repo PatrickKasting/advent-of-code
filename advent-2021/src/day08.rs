@@ -1,108 +1,112 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-type SignalPattern<'input> = &'input str;
-type OutputDigit<'input> = &'input str;
-type Display<'input> = ([SignalPattern<'input>; 10], [OutputDigit<'input>; 4]);
+use itertools::Itertools;
+
+type Wiring<'digits> = BTreeMap<&'digits SevenSegmentDigit, usize>;
+type Entry = ([SevenSegmentDigit; 10], [SevenSegmentDigit; 4]);
+type SevenSegmentDigit = BTreeSet<char>;
+type Number = usize;
 
 pub fn first(input: &str) -> String {
-    num_output_digits_with_segment_counts(&[2, 3, 4, 7], &parse_input(input)).to_string()
-}
-
-pub fn second(input: &str) -> String {
-    parse_input(input)
-        .into_iter()
-        .map(|(signal_patterns, output_digits)| {
-            let signal_patterns: [BTreeSet<char>; 10] =
-                signal_patterns.map(|patterns| patterns.chars().collect());
-            let digits = digits(&signal_patterns);
-            let mut output_value = 0;
-            for output_digit in output_digits {
-                let output_digit: BTreeSet<char> = output_digit.chars().collect();
-                output_value = output_value * 10 + digits[&output_digit];
-            }
-            output_value
-        })
-        .sum::<usize>()
+    let entries = entries(input);
+    entries
+        .flat_map(|(_, output)| output)
+        .filter(is_one_seven_four_or_eight)
+        .count()
         .to_string()
 }
 
-fn num_output_digits_with_segment_counts(segment_counts: &[usize], displays: &[Display]) -> usize {
-    displays
-        .iter()
-        .map(|(_, output_digits)| {
-            output_digits
-                .iter()
-                .filter(|&digit| segment_counts.contains(&digit.len()))
-                .count()
-        })
-        .sum::<usize>()
+pub fn second(input: &str) -> String {
+    let entries = entries(input);
+    entries
+        .map(|entry| output_value(&entry))
+        .sum::<Number>()
+        .to_string()
 }
 
-fn digits(signal_patterns: &[BTreeSet<char>]) -> BTreeMap<&BTreeSet<char>, usize> {
-    let mut digits: Vec<&BTreeSet<char>> = signal_patterns.iter().collect();
-    for (digit, segment_count) in [(1, 2), (7, 3), (4, 4), (8, 7)] {
-        digits[digit] = signal_patterns
-            .iter()
-            .find(|pattern| pattern.len() == segment_count)
-            .expect("signal pattern with given segment count should exist");
+fn is_one_seven_four_or_eight(digit: &SevenSegmentDigit) -> bool {
+    [2, 3, 4, 7].contains(&digit.len())
+}
+
+fn output_value((signal_patterns, outputs): &Entry) -> Number {
+    let wiring = wiring(signal_patterns);
+
+    let mut number = 0;
+    for digit in outputs {
+        number *= 10;
+        number += wiring[digit];
     }
+    number
+}
 
-    let all_signal_patterns_with_segment_count = |segment_count| {
-        signal_patterns
-            .iter()
-            .filter(|pattern| pattern.len() == segment_count)
-            .collect::<Vec<_>>()
-    };
-    let two_three_five = all_signal_patterns_with_segment_count(5);
-    let zero_six_nine = all_signal_patterns_with_segment_count(6);
-
-    digits[6] = find_signal_pattern(&zero_six_nine, |pattern| (pattern - digits[7]).len() == 4);
-    digits[5] = find_signal_pattern(&two_three_five, |pattern| (digits[6] - pattern).len() == 1);
-    digits[3] = find_signal_pattern(&two_three_five, |pattern| (digits[5] - pattern).len() == 1);
-    digits[0] = find_signal_pattern(&zero_six_nine, |pattern| (pattern - digits[5]).len() == 2);
-    digits[9] = find_signal_pattern(&zero_six_nine, |pattern| (pattern - digits[3]).len() == 1);
-    digits[2] = find_signal_pattern(&two_three_five, |pattern| {
-        ![digits[3], digits[5]].contains(&pattern)
+fn wiring(signal_patterns: &[SevenSegmentDigit; 10]) -> Wiring {
+    let [one, seven, four, eight] = [2, 3, 4, 7].map(|number_of_segments| {
+        digit_satisfying(signal_patterns.each_ref().each_ref(), |digit| {
+            digit.len() == number_of_segments
+        })
+    });
+    let [two_three_five, zero_six_nine] = [5, 6].map(|number_of_segments| {
+        digits_with_number_of_segments(signal_patterns, number_of_segments)
     });
 
-    digits
+    let nine = digit_satisfying(&zero_six_nine, |digit| digit.difference(four).count() == 2);
+    let two = digit_satisfying(&two_three_five, |digit| digit.difference(nine).count() == 1);
+    let five = digit_satisfying(&two_three_five, |digit| digit.difference(two).count() == 2);
+    let zero = digit_satisfying(&zero_six_nine, |digit| digit.difference(five).count() == 2);
+    let three = digit_satisfying(&two_three_five, |digit| ![two, five].contains(&digit));
+    let six = digit_satisfying(&zero_six_nine, |digit| ![zero, nine].contains(&digit));
+
+    [zero, one, two, three, four, five, six, seven, eight, nine]
         .into_iter()
-        .enumerate()
-        .map(|(digit, pattern)| (pattern, digit))
+        .zip_eq(0..=9)
         .collect()
 }
 
-fn find_signal_pattern<'patterns>(
-    patterns: &[&'patterns BTreeSet<char>],
-    predicate: impl Fn(&BTreeSet<char>) -> bool,
-) -> &'patterns BTreeSet<char> {
-    patterns
+fn digit_satisfying<'collection, 'digits: 'collection>(
+    digits: impl IntoIterator<Item = &'collection &'digits SevenSegmentDigit>,
+    predicate: impl Fn(&SevenSegmentDigit) -> bool,
+) -> &'digits SevenSegmentDigit {
+    digits
+        .into_iter()
+        .find(|digit| predicate(digit))
+        .expect("digit with number of segments should exist")
+}
+
+fn digits_with_number_of_segments(
+    digits: &[SevenSegmentDigit],
+    number_of_segments: usize,
+) -> Vec<&SevenSegmentDigit> {
+    digits
         .iter()
-        .find(|&pattern| predicate(pattern))
-        .expect("exactly one signal patterns should match the pattern")
+        .filter(|digit| digit.len() == number_of_segments)
+        .collect_vec()
 }
 
-fn parse_input(input: &str) -> Vec<Display> {
-    input.lines().map(parse_line).collect()
+fn entries(input: &str) -> impl Iterator<Item = Entry> + '_ {
+    input.lines().map(entry)
 }
 
-fn parse_line(line: &str) -> Display {
-    let mut tokens = line.split(' ');
-    let mut next_token = || {
-        tokens
-            .next()
-            .expect("each input line should contain exactly 15 tokens")
-    };
-    let mut signal_patterns = [""; 10];
-    for signal_pattern in signal_patterns.iter_mut() {
-        *signal_pattern = next_token();
-    }
-    next_token(); // skip delimiter
-    let mut output_digits = [""; 4];
-    for output_digit in output_digits.iter_mut() {
-        *output_digit = next_token();
-    }
-    (signal_patterns, output_digits)
+fn entry(line: &str) -> Entry {
+    let (signal_patterns, outputs) = line
+        .split_once(" | ")
+        .expect("every line should contain a pipe separating signal patterns and outputs");
+    let signal_patterns = signal_patterns
+        .split_whitespace()
+        .map(seven_segment_digit)
+        .collect_vec()
+        .try_into()
+        .expect("line should contain 10 signal patterns");
+    let outputs = outputs
+        .split_whitespace()
+        .map(seven_segment_digit)
+        .collect_vec()
+        .try_into()
+        .expect("line should contain four outputs");
+    (signal_patterns, outputs)
+}
+
+fn seven_segment_digit(str: &str) -> SevenSegmentDigit {
+    SevenSegmentDigit::from_iter(str.chars())
 }
 
 #[cfg(test)]
@@ -111,7 +115,7 @@ mod tests {
 
     use crate::tests::test_on_input;
 
-    const DAY: usize = 7;
+    const DAY: usize = 8;
 
     #[test]
     fn first_example() {
@@ -124,7 +128,7 @@ mod tests {
     }
 
     #[test]
-    fn second_example() {
+    fn second_examples() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 61229);
     }
 
