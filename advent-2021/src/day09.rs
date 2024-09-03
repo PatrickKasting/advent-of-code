@@ -1,51 +1,68 @@
-use std::collections::HashSet;
+use itertools::Itertools;
+use shared::{
+    grid::{neighbors, Grid, Position},
+    search::Exploration,
+};
 
-use shared::grid::{self, Grid, Position};
+type BasinSize = usize;
+type RiskLevel = isize;
+type Heightmap = Grid<Height>;
+type Height = isize;
 
 pub fn first(input: &str) -> String {
-    let heightmap = Grid::from(input);
-    let low_points = low_points(&heightmap);
-    low_points
-        .map(|pos| 1 + heightmap[pos])
-        .sum::<usize>()
+    let heightmap = Heightmap::from(input);
+    low_points(&heightmap)
+        .map(|low_point| risk_level(&heightmap, low_point))
+        .sum::<RiskLevel>()
         .to_string()
 }
 
 pub fn second(input: &str) -> String {
-    let heightmap = Grid::from(input);
-    let low_points = low_points(&heightmap);
-    let mut basin_sizes: Vec<usize> = low_points
-        .map(|low_point| basin_size(&heightmap, low_point))
-        .collect();
-    basin_sizes.sort_by_key(|basin_size| usize::MAX - basin_size);
-    basin_sizes[0..3].iter().product::<usize>().to_string()
+    let heightmap = Heightmap::from(input);
+    descending_basin_sizes(&heightmap)[0..3]
+        .iter()
+        .product::<BasinSize>()
+        .to_string()
 }
 
-fn low_points(heightmap: &Grid<usize>) -> impl Iterator<Item = Position> + '_ {
+fn descending_basin_sizes(heightmap: &Heightmap) -> Vec<BasinSize> {
+    let mut basin_sizes = low_points(heightmap)
+        .map(|low_point| basin_size(heightmap, low_point))
+        .collect_vec();
+    basin_sizes.sort_unstable_by_key(|&basin_size| BasinSize::MAX - basin_size);
+    basin_sizes
+}
+
+fn basin_size(heightmap: &Heightmap, low_point: Position) -> BasinSize {
+    let mut exploration = Exploration::new([]);
+    let successors = |point| {
+        neighbors(point)
+            .into_iter()
+            .filter(|&neighbor| heightmap.get(neighbor).is_some())
+            .filter(|&point| heightmap[point] != 9)
+    };
+    exploration.explore(low_point, successors);
+    exploration.explored().len()
+}
+
+fn risk_level(heightmap: &Heightmap, low_point: Position) -> RiskLevel {
+    heightmap[low_point] + 1
+}
+
+fn low_points(heightmap: &Heightmap) -> impl Iterator<Item = Position> + '_ {
     heightmap
         .iter_row_major()
-        .filter(|&(pos, &height)| {
-            grid::neighbors(pos)
-                .into_iter()
-                .all(|neighbor| heightmap[neighbor] > height)
-        })
-        .map(|(pos, _)| pos)
+        .filter(|&(point, _)| is_low_point(heightmap, point))
+        .map(|(point, _)| point)
 }
 
-fn basin_size(heightmap: &Grid<usize>, low_point: Position) -> usize {
-    let mut explored = HashSet::from([low_point]);
-    let mut frontier = Vec::from([low_point]);
-    while let Some(position) = frontier.pop() {
-        for neighbor in grid::neighbors(position) {
-            if heightmap[neighbor] == 9 {
-                continue;
-            }
-            if explored.insert(neighbor) {
-                frontier.push(neighbor)
-            }
-        }
-    }
-    explored.len()
+fn is_low_point(heightmap: &Heightmap, point: Position) -> bool {
+    let height = heightmap[point];
+    let mut neighbor_heights = neighbors(point)
+        .into_iter()
+        .filter_map(|neighbor| heightmap.get(neighbor))
+        .copied();
+    neighbor_heights.all(|neighbor_height| neighbor_height > height)
 }
 
 #[cfg(test)]
