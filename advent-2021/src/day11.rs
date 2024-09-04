@@ -1,68 +1,88 @@
-use shared::grid::{self, Grid, Position};
+use easy_cast::Cast;
+use shared::grid::{neighbors_including_diagonal, Grid, Position};
 
-type Octopusses = Grid<usize>;
+type Octopusses = Grid<EnergyLevel>;
+type EnergyLevel = usize;
+
+const FLASHING_ENERGY_LEVEL: EnergyLevel = 10;
 
 pub fn first(input: &str) -> String {
-    let mut octopuses = Grid::from(input);
-    (0..100)
-        .map(|_| advance_one_step(&mut octopuses))
-        .sum::<usize>()
-        .to_string()
+    let mut octopusses = Octopusses::from(input);
+    total_number_of_flashes(&mut octopusses, 100).to_string()
 }
 
 pub fn second(input: &str) -> String {
-    let mut octopuses = Grid::from(&input);
-    let number_of_octopuses = octopuses.height() * octopuses.width();
-    (1..)
-        .find(|_| advance_one_step(&mut octopuses) == number_of_octopuses)
-        .expect("octopuses should flash simultaneously eventually")
-        .to_string()
+    let mut octopusses = Octopusses::from(input);
+    number_of_steps_until_all_flash_simultaneously(&mut octopusses).to_string()
 }
 
-fn advance_one_step(octopuses: &mut Octopusses) -> usize {
-    increase_energies(octopuses);
-    let num_flashes = flash(octopuses);
-    reset(octopuses);
-    num_flashes
+fn total_number_of_flashes(octopusses: &mut Octopusses, number_of_steps: usize) -> usize {
+    let mut total_number_of_flashes = 0;
+    for _ in 0..number_of_steps {
+        total_number_of_flashes += number_of_flashes_during_step(octopusses);
+    }
+    total_number_of_flashes
 }
 
-fn increase_energies(octopuses: &mut Octopusses) {
-    for pos in octopuses
-        .iter_row_major()
-        .map(|(position, _)| position)
-        .collect::<Vec<Position>>()
-    {
-        octopuses[pos] += 1;
+fn number_of_steps_until_all_flash_simultaneously(octopusses: &mut Grid<usize>) -> usize {
+    for number_of_steps in 1.. {
+        number_of_flashes_during_step(octopusses);
+        if are_all_zeroes(octopusses) {
+            return number_of_steps;
+        }
+    }
+    unreachable!("infinite loop iterator should never deplete");
+}
+
+fn number_of_flashes_during_step(octopusses: &mut Octopusses) -> usize {
+    let mut number_of_flashes = 0;
+    for row_index in 0..octopusses.height() {
+        for column_index in 0..octopusses.width() {
+            let position: Position = [row_index, column_index].cast();
+            number_of_flashes += number_of_flashes_from_energy_increase(octopusses, position);
+        }
+    }
+    zero_flashed_octopusses(octopusses);
+    number_of_flashes
+}
+
+fn number_of_flashes_from_energy_increase(
+    octopusses: &mut Octopusses,
+    position: Position,
+) -> usize {
+    octopusses[position] += 1;
+    if octopusses[position] == FLASHING_ENERGY_LEVEL {
+        number_of_flashes_from_flash(octopusses, position)
+    } else {
+        0
     }
 }
 
-fn flashing_octopuses(octopuses: &Octopusses) -> Vec<Position> {
-    octopuses
-        .iter_row_major()
-        .filter(|(_, &energy)| energy > 9)
-        .map(|(pos, _)| pos)
-        .collect()
+fn number_of_flashes_from_flash(octopusses: &mut Grid<usize>, position: [isize; 2]) -> usize {
+    let mut number_of_flashes = 1;
+    for neighbor in neighbors_including_diagonal(position) {
+        if octopusses.get(neighbor).is_some() {
+            number_of_flashes += number_of_flashes_from_energy_increase(octopusses, neighbor);
+        }
+    }
+    number_of_flashes
 }
 
-fn flash(octopuses: &mut Octopusses) -> usize {
-    let mut flashing_octopuses = flashing_octopuses(octopuses);
-    let mut num_flashes = 0;
-    while let Some(octopus) = flashing_octopuses.pop() {
-        num_flashes += 1;
-        for neighbor_octopus in grid::neighbors_including_diagonal(octopus) {
-            octopuses[neighbor_octopus] += 1;
-            if octopuses[neighbor_octopus] == 10 {
-                flashing_octopuses.push(neighbor_octopus);
+fn zero_flashed_octopusses(octopusses: &mut Octopusses) {
+    for row_index in 0..octopusses.height() {
+        for column_index in 0..octopusses.width() {
+            let energy_level = &mut octopusses[[row_index, column_index].cast()];
+            if *energy_level >= FLASHING_ENERGY_LEVEL {
+                *energy_level = 0;
             }
         }
     }
-    num_flashes
 }
 
-fn reset(octopuses: &mut Octopusses) {
-    for flashing_octopus in flashing_octopuses(octopuses) {
-        octopuses[flashing_octopus] = 0;
-    }
+fn are_all_zeroes(octopusses: &Grid<usize>) -> bool {
+    octopusses
+        .iter_row_major()
+        .all(|(_, &energy_level)| energy_level == 0)
 }
 
 #[cfg(test)]
