@@ -1,54 +1,54 @@
+use easy_cast::{Cast, Conv};
 use shared::{
-    grid::{self, Grid, Position},
-    search,
+    grid::{neighbors, Grid, Position},
+    search::cheapest_path_cost,
+    vector::Vector,
 };
 
+type Cave = Grid<RiskLevel>;
+type RiskLevel = isize;
+
 pub fn first(input: &str) -> String {
-    let risk_levels = Grid::from(input);
-    lowest_total_risk(&risk_levels, 1).to_string()
+    let cave = Cave::from(input);
+    lowest_total_risk(&cave, 1).to_string()
 }
 
 pub fn second(input: &str) -> String {
-    let risk_levels = Grid::from(input);
-    lowest_total_risk(&risk_levels, 5).to_string()
+    let cave = Cave::from(input);
+    lowest_total_risk(&cave, 5).to_string()
 }
 
-fn is_position_within_cave(
-    risk_levels: &Grid<u8>,
-    num_repetitions: usize,
-    [row, column]: Position,
-) -> bool {
-    0 <= row
-        && row < (risk_levels.height() * num_repetitions) as isize
-        && 0 <= column
-        && column < (risk_levels.width() * num_repetitions) as isize
-}
+fn lowest_total_risk(cave: &Cave, expansion_factor: isize) -> RiskLevel {
+    debug_assert!(cave.height() == cave.width(), "cave should be square");
 
-fn risk(risk_levels: &Grid<u8>, [row, column]: Position) -> usize {
-    let pos_within_tile = [
-        row % risk_levels.height() as isize,
-        column % risk_levels.width() as isize,
-    ];
-    let additional_risk =
-        row as usize / risk_levels.height() + column as usize / risk_levels.width();
-    (risk_levels[pos_within_tile] as usize + additional_risk - 1) % 9 + 1
-}
-
-fn lowest_total_risk(risk_levels: &Grid<u8>, num_repetitions: usize) -> usize {
-    let start = [0, 0];
-    let finish = [
-        (risk_levels.height() * num_repetitions - 1) as isize,
-        (risk_levels.width() * num_repetitions - 1) as isize,
-    ];
-
+    let expanded_cave_size = isize::conv(cave.width()) * expansion_factor;
+    let [start, goal] = [[0, 0], [expanded_cave_size - 1, expanded_cave_size - 1]];
     let successors = |position| {
-        grid::neighbors(position)
-            .into_iter()
-            .filter(|&neighbor| is_position_within_cave(risk_levels, num_repetitions, neighbor))
-            .map(|neighbor| (neighbor, risk(risk_levels, neighbor)))
+        neighbors(position).into_iter().filter_map(|neighbor| {
+            extended_cave_risk(cave, expansion_factor, neighbor).map(|risk| (neighbor, risk))
+        })
     };
-    search::cheapest_path_cost(start, successors, |position| position == finish)
-        .expect("search should reach the bottom-right corner of the cave")
+    cheapest_path_cost(start, successors, |position| position == goal)
+        .expect("path from start to goal should exist")
+}
+
+fn extended_cave_risk(
+    cave: &Cave,
+    expansion_factor: isize,
+    position @ [row, column]: Position,
+) -> Option<RiskLevel> {
+    let original_cave_size: isize = cave.width().cast();
+    let expanded_cave_size = original_cave_size * expansion_factor;
+    if row < 0 || expanded_cave_size <= row || column < 0 || expanded_cave_size <= column {
+        return None;
+    }
+
+    let [tile_row, tile_column] = position.div(original_cave_size);
+    let original_position = position.map(|coordinate| coordinate % original_cave_size);
+    let &original_risk = cave
+        .get(original_position)
+        .expect("modulo arithmetic should ensure that position is within original grid");
+    Some((original_risk + tile_row + tile_column - 1) % 9 + 1)
 }
 
 #[cfg(test)]
