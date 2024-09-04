@@ -1,89 +1,80 @@
-use std::collections::{BTreeMap, BTreeSet};
+use ahash::{AHashMap, AHashSet};
 
-type CaveSystem<'input> = BTreeMap<&'input str, Vec<&'input str>>;
+type CaveSystem<'input> = AHashMap<Cave<'input>, Vec<Cave<'input>>>;
+type Cave<'input> = &'input [u8];
 
 pub fn first(input: &str) -> String {
-    let cave_system = parse_cave_system(input);
-    num_paths(&cave_system, false).to_string()
+    let cave_system = cave_system(input);
+    number_of_paths(&cave_system, b"start", AHashSet::new(), true).to_string()
 }
 
 pub fn second(input: &str) -> String {
-    let cave_system = parse_cave_system(input);
-    num_paths(&cave_system, true).to_string()
+    let cave_system = cave_system(input);
+    number_of_paths(&cave_system, b"start", AHashSet::new(), false).to_string()
 }
 
-fn parse_connection<'input>(cave_system: &mut CaveSystem<'input>, line: &'input str) {
-    let (left, right) = line
-        .split_once('-')
-        .expect("every line should be split by a hyphen");
-    cave_system.entry(left).or_default().push(right);
-    cave_system.entry(right).or_default().push(left);
-}
-
-fn parse_cave_system(input: &str) -> CaveSystem {
-    let mut cave_system = CaveSystem::new();
-    for line in input.lines() {
-        parse_connection(&mut cave_system, line);
-    }
-    cave_system
-        .iter_mut()
-        .for_each(|(_, adjacencies)| adjacencies.sort());
-    cave_system
-}
-
-fn is_small_cave(cave_name: &str) -> bool {
-    cave_name
-        .chars()
-        .next()
-        .expect("cave name should not be empty")
-        .is_ascii_lowercase()
-}
-
-fn num_paths_to_end<'input>(
+fn number_of_paths<'input>(
     cave_system: &CaveSystem<'input>,
-    visited: &mut BTreeSet<&'input str>,
-    free_small_cave_visit: bool,
-    current: &'input str,
+    position: Cave<'input>,
+    mut visited: AHashSet<Cave<'input>>,
+    small_cave_twice: bool,
 ) -> usize {
-    if current == "end" {
+    if position == b"end" {
         return 1;
     }
 
-    if is_small_cave(current) {
-        visited.insert(current);
+    if is_small_cave(position) {
+        visited.insert(position);
     }
-    let mut num_paths = 0;
-    for &adjacent in cave_system[current].iter() {
-        if !visited.contains(adjacent) {
-            num_paths += num_paths_to_end(
-                cave_system,
-                &mut visited.clone(),
-                free_small_cave_visit,
-                adjacent,
-            );
-        } else if free_small_cave_visit && adjacent != "start" {
-            num_paths += num_paths_to_end(cave_system, visited, false, adjacent);
+
+    let mut number_of_paths = 0;
+    for &cave in &cave_system[position] {
+        if !visited.contains(cave) {
+            number_of_paths +=
+                self::number_of_paths(cave_system, cave, visited.clone(), small_cave_twice);
+        } else if !small_cave_twice && cave != b"start" {
+            number_of_paths += self::number_of_paths(cave_system, cave, visited.clone(), true);
         }
     }
-    num_paths
+    number_of_paths
 }
 
-fn num_paths(cave_system: &CaveSystem, visit_small_cave_twice: bool) -> usize {
-    let mut visited = BTreeSet::new();
-    num_paths_to_end(cave_system, &mut visited, visit_small_cave_twice, "start")
+fn is_small_cave(cave: Cave) -> bool {
+    cave[0].is_ascii_lowercase()
+}
+
+fn cave_system(input: &str) -> CaveSystem {
+    let mut cave_system = CaveSystem::new();
+    for line in input.lines() {
+        let (left, right) = line
+            .split_once('-')
+            .expect("line should contain two caves separated by a hyphen");
+        let (left, right) = (left.as_bytes(), right.as_bytes());
+        cave_system.entry(left).or_default().push(right);
+        cave_system.entry(right).or_default().push(left);
+    }
+    cave_system
 }
 
 #[cfg(test)]
 mod tests {
-    use infrastructure::{Input, Puzzle};
+    use infrastructure::{test, Input, Puzzle};
 
-    use crate::tests::test_on_input;
+    use crate::tests::{input, test_on_input};
+
+    use super::*;
 
     const DAY: usize = 12;
 
     #[test]
-    fn first_example() {
-        test_on_input(DAY, Puzzle::First, Input::Example(0), 226);
+    fn first_examples() {
+        let function = |example| {
+            let input = input(DAY, Input::Example(example));
+            let cave_system = cave_system(&input);
+            number_of_paths(&cave_system, b"start", AHashSet::new(), true)
+        };
+        let cases = [(0, 10), (1, 19), (2, 226)];
+        test::cases(function, cases);
     }
 
     #[test]
@@ -93,7 +84,13 @@ mod tests {
 
     #[test]
     fn second_example() {
-        test_on_input(DAY, Puzzle::Second, Input::Example(0), 3509);
+        let function = |example| {
+            let input = input(DAY, Input::Example(example));
+            let cave_system = cave_system(&input);
+            number_of_paths(&cave_system, b"start", AHashSet::new(), false)
+        };
+        let cases = [(0, 36), (1, 103), (2, 3509)];
+        test::cases(function, cases);
     }
 
     #[test]
