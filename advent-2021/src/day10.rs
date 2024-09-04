@@ -1,109 +1,139 @@
+use itertools::Itertools;
+
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-enum ParseResult {
-    Incomplete(Vec<char>),
-    Corrupted(char),
+enum LineStatus {
+    IllegalCharacter(Character),
+    CompletionString(Vec<Character>),
 }
 
+type Character = u8;
+type Score = usize;
+
 pub fn first(input: &str) -> String {
-    line_scores(input, |parse_result| {
-        if let ParseResult::Corrupted(closer) = parse_result {
-            Some(corruption_score(closer))
-        } else {
-            None
-        }
-    })
-    .into_iter()
-    .sum::<usize>()
-    .to_string()
+    total_syntax_score(input).to_string()
 }
 
 pub fn second(input: &str) -> String {
-    let mut scores = line_scores(input, |status| {
-        if let ParseResult::Incomplete(unmatched_openers) = status {
-            Some(autocomplete_score(&unmatched_openers))
-        } else {
-            None
+    let mut completion_string_scores = completion_string_scores(input);
+    completion_string_scores.sort_unstable();
+    middle(&completion_string_scores).to_string()
+}
+
+fn total_syntax_score(input: &str) -> Score {
+    let mut total_syntax_score = 0;
+    for line_status in lines(input).map(line_status) {
+        if let LineStatus::IllegalCharacter(illegal_character) = line_status {
+            total_syntax_score += syntax_error_score(illegal_character);
         }
-    });
-    scores.sort_unstable();
-    scores[scores.len() / 2].to_string()
+    }
+    total_syntax_score
 }
 
-fn line_scores(input: &str, line_score: impl Fn(ParseResult) -> Option<usize>) -> Vec<usize> {
-    input
-        .lines()
-        .map(parse_line)
-        .filter_map(line_score)
-        .collect()
+fn completion_string_scores(input: &str) -> Vec<usize> {
+    let mut completion_string_scores = vec![];
+    for line_status in lines(input).map(line_status) {
+        if let LineStatus::CompletionString(completion_string) = line_status {
+            if !completion_string.is_empty() {
+                completion_string_scores.push(completion_string_score(&completion_string));
+            }
+        }
+    }
+    completion_string_scores
 }
 
-fn parse_line(line: &str) -> ParseResult {
-    let mut unmatched_openers = Vec::new();
-    for char in line.chars() {
-        match char {
-            '(' | '[' | '{' | '<' => unmatched_openers.push(char),
-            ')' | ']' | '}' | '>' => {
-                if unmatched_openers
-                    .last()
-                    .is_some_and(|&opener| opener == matching_opener(char))
-                {
-                    unmatched_openers.pop();
-                } else {
-                    return ParseResult::Corrupted(char);
+fn line_status(line: &[Character]) -> LineStatus {
+    let mut unmatched_opening_characters = vec![];
+    for &character in line {
+        match character {
+            b'(' | b'[' | b'{' | b'<' => unmatched_opening_characters.push(character),
+            b')' | b']' | b'}' | b'>' => {
+                let Some(opening_character) = unmatched_opening_characters.pop() else {
+                    panic!("chunk should not contain more closing than opening characters")
+                };
+                if opening_character != opening_character_matching(character) {
+                    return LineStatus::IllegalCharacter(character);
                 }
             }
-            _ => unreachable!("only brackets should occur in input"),
+            _ => panic!("chunk should contain only opening and closing characters"),
         }
     }
-    debug_assert!(
-        !unmatched_openers.is_empty(),
-        "every line should be corrupted or incomplete"
-    );
-    ParseResult::Incomplete(unmatched_openers)
+    LineStatus::CompletionString(completion_string(unmatched_opening_characters))
 }
 
-fn corruption_score(closer: char) -> usize {
-    match closer {
-        ')' => 3,
-        ']' => 57,
-        '}' => 1197,
-        '>' => 25137,
-        _ => unreachable!("one of the four closing brackets should be used"),
+fn opening_character_matching(closing_character: Character) -> Character {
+    match closing_character {
+        b')' => b'(',
+        b']' => b'[',
+        b'}' => b'{',
+        b'>' => b'<',
+        _ => panic!(),
     }
 }
 
-fn autocomplete_score(unmatched_openers: &[char]) -> usize {
-    unmatched_openers
-        .iter()
+fn syntax_error_score(closing_character: Character) -> Score {
+    match closing_character {
+        b')' => 3,
+        b']' => 57,
+        b'}' => 1197,
+        b'>' => 25137,
+        _ => panic!(),
+    }
+}
+
+fn completion_string(unmatched_opening_characters: Vec<Character>) -> Vec<Character> {
+    unmatched_opening_characters
+        .into_iter()
         .rev()
-        .fold(0, |score, &opener| score * 5 + unmatched_score(opener))
+        .map(closing_character_matching)
+        .collect_vec()
 }
 
-fn unmatched_score(closer: char) -> usize {
-    match closer {
-        '(' => 1,
-        '[' => 2,
-        '{' => 3,
-        '<' => 4,
-        _ => unreachable!("one of the four closing brackets should be used"),
+fn closing_character_matching(opening_character: Character) -> Character {
+    match opening_character {
+        b'(' => b')',
+        b'[' => b']',
+        b'{' => b'}',
+        b'<' => b'>',
+        _ => panic!("character should be '(', '[', '{{', or '>'"),
     }
 }
 
-fn matching_opener(closer: char) -> char {
-    match closer {
-        ')' => '(',
-        ']' => '[',
-        '}' => '{',
-        '>' => '<',
-        _ => panic!("one of the four closing brackets should be used"),
+fn completion_string_score(string: &[Character]) -> Score {
+    let mut score = 0;
+    for &character in string {
+        score *= 5;
+        score += completion_string_point_value(character);
     }
+    score
+}
+
+fn completion_string_point_value(closing_character: Character) -> Score {
+    match closing_character {
+        b')' => 1,
+        b']' => 2,
+        b'}' => 3,
+        b'>' => 4,
+        _ => panic!("character should be ')', ']', '}}', or '>'"),
+    }
+}
+
+fn middle<T: Copy>(slice: &[T]) -> T {
+    debug_assert!(slice.len() % 2 == 1, "length of slice should be odd");
+    let index = slice.len() / 2;
+    slice[index]
+}
+
+fn lines(input: &str) -> impl Iterator<Item = &[Character]> {
+    input.lines().map(str::as_bytes)
 }
 
 #[cfg(test)]
 mod tests {
-    use infrastructure::{Input, Puzzle};
+    use infrastructure::{test, Input, Puzzle};
 
     use crate::tests::test_on_input;
+
+    use super::*;
 
     const DAY: usize = 10;
 
@@ -125,5 +155,17 @@ mod tests {
     #[test]
     fn second_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 3241238967usize);
+    }
+
+    #[test]
+    fn completion_string_score() {
+        let cases: [(&[Character], _); 5] = [
+            (b"}}]])})]", 288957),
+            (b")}>]})", 5566),
+            (b"}}>}>))))", 1480781),
+            (b"]]}}]}]}>", 995444),
+            (b"])}>", 294),
+        ];
+        test::cases(super::completion_string_score, cases);
     }
 }
