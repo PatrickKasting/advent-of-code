@@ -1,98 +1,86 @@
-use std::{
-    collections::{BTreeMap, BTreeSet},
-    mem,
-};
+use std::collections::HashMap;
 
-const AT_LEAST_ONE_ELEMENT: &str = "polymer should contain at least one element";
-const ELEMENT_IN_COUNT: &str = "every element should be present in every count";
+use itertools::Itertools;
 
-type Element = char;
-type Polymer<'input> = &'input str;
-type InsertionRules = BTreeMap<(Element, Element), Element>;
-type ElementCount = BTreeMap<Element, usize>;
-type InsertionCounts = BTreeMap<(Element, Element), ElementCount>;
+type PolymerTemplate<'input> = &'input [Element];
+type PairInsertionRules = HashMap<Pair, Element>;
+type PairCounts = HashMap<Pair, usize>;
+type Pair = [Element; 2];
+type Element = u8;
 
 pub fn first(input: &str) -> String {
-    polymer_score(input, 10).to_string()
+    let [minimum_count, maximum_count] = minimum_and_maximum_element_counts(input, 10);
+    (maximum_count - minimum_count).to_string()
 }
 
 pub fn second(input: &str) -> String {
-    polymer_score(input, 40).to_string()
+    let [minimum_count, maximum_count] = minimum_and_maximum_element_counts(input, 40);
+    (maximum_count - minimum_count).to_string()
 }
 
-fn parse_input(input: &str) -> (Polymer, InsertionRules) {
-    debug_assert!(input.is_ascii());
-    let mut lines = input.lines();
+fn minimum_and_maximum_element_counts(input: &str, number_of_steps: usize) -> [usize; 2] {
+    let (template, rules) = polymer_template_and_pair_insertion_rules(input);
+    let element_counts = elements_counts(template, &rules, number_of_steps);
+    let (&min_count, &max_count) = element_counts
+        .values()
+        .minmax()
+        .into_option()
+        .expect("at least one element should have been counted");
+    [min_count, max_count]
+}
 
-    let template = lines
-        .next()
-        .expect("input should contain a polymer template");
+fn elements_counts(
+    template: PolymerTemplate,
+    rules: &PairInsertionRules,
+    number_of_steps: usize,
+) -> HashMap<Element, usize> {
+    let &last_element = template.last().expect("template should not be empty");
 
-    lines.next().expect("input should contain an empty line");
-
-    let mut insertion_rules = InsertionRules::new();
-    for line in lines.map(str::as_bytes) {
-        insertion_rules.insert((line[0] as char, line[1] as char), line[6] as char);
+    let pair_counts = pair_counts(template, rules, number_of_steps);
+    let mut element_counts = HashMap::new();
+    for ([left, _], count) in pair_counts {
+        *element_counts.entry(left).or_default() += count;
     }
-
-    (template, insertion_rules)
+    *element_counts.entry(last_element).or_default() += 1;
+    element_counts
 }
 
-fn zero_count<'pairs>(pairs: impl Iterator<Item = &'pairs (Element, Element)>) -> ElementCount {
-    let elements: BTreeSet<Element> = pairs
-        .flat_map(|&(left, right)| [left, right].into_iter())
-        .collect();
-    elements.into_iter().map(|element| (element, 0)).collect()
+fn pair_counts(
+    template: PolymerTemplate,
+    rules: &PairInsertionRules,
+    number_of_steps: usize,
+) -> PairCounts {
+    let mut counts = template.windows(2).map(|pair| [pair[0], pair[1]]).counts();
+    for _ in 0..number_of_steps {
+        counts = pair_counts_after_one_step(rules, counts);
+    }
+    counts
 }
 
-fn zero_insertion_count(insertion_rules: &InsertionRules) -> InsertionCounts {
-    insertion_rules
-        .keys()
-        .map(|&pair| (pair, zero_count(insertion_rules.keys())))
+fn pair_counts_after_one_step(rules: &PairInsertionRules, pair_counts: PairCounts) -> PairCounts {
+    let mut result = PairCounts::default();
+    for (pair @ [left, right], count) in pair_counts {
+        let middle = rules[&pair];
+        *result.entry([left, middle]).or_default() += count;
+        *result.entry([middle, right]).or_default() += count;
+    }
+    result
+}
+
+fn polymer_template_and_pair_insertion_rules(input: &str) -> (PolymerTemplate, PairInsertionRules) {
+    let (template, rules) = input
+        .split_once("\n\n")
+        .expect("template and rules should be separated by an empty line");
+    (template.as_bytes(), pair_insertion_rules(rules))
+}
+
+fn pair_insertion_rules(str: &str) -> PairInsertionRules {
+    str.lines()
+        .map(|line| {
+            let bytes = line.as_bytes();
+            ([bytes[0], bytes[1]], bytes[6])
+        })
         .collect()
-}
-
-fn sum(left: &ElementCount, right: &ElementCount) -> ElementCount {
-    left.iter()
-        .map(|(&element, &left_count)| (element, left_count + right[&element]))
-        .collect()
-}
-
-fn insertion_counts(num_steps: usize, insertion_rules: &InsertionRules) -> InsertionCounts {
-    let mut current = zero_insertion_count(insertion_rules);
-    let mut next = InsertionCounts::new();
-    for _ in 0..num_steps {
-        for (&pair @ (left, right), &new) in insertion_rules {
-            let mut element_count = sum(&current[&(left, new)], &current[&(new, right)]);
-            *element_count.get_mut(&new).expect(ELEMENT_IN_COUNT) += 1;
-            next.insert(pair, element_count);
-        }
-        mem::swap(&mut current, &mut next);
-    }
-    current
-}
-
-fn element_count(insertion_counts: &InsertionCounts, polymer: Polymer) -> ElementCount {
-    let mut element_count = zero_count(insertion_counts.keys());
-    for element in polymer.chars() {
-        *element_count.get_mut(&element).expect(ELEMENT_IN_COUNT) += 1;
-    }
-    for pair in polymer.as_bytes().windows(2) {
-        element_count = sum(
-            &element_count,
-            &insertion_counts[&(pair[0] as char, pair[1] as char)],
-        );
-    }
-    element_count
-}
-
-fn polymer_score(input: &str, num_steps: usize) -> usize {
-    let (polymer, insertion_rules) = parse_input(input);
-    let insertion_counts = insertion_counts(num_steps, &insertion_rules);
-    let element_count = element_count(&insertion_counts, polymer);
-    let &max_count = element_count.values().max().expect(AT_LEAST_ONE_ELEMENT);
-    let &min_count = element_count.values().min().expect(AT_LEAST_ONE_ELEMENT);
-    max_count - min_count
 }
 
 #[cfg(test)]
