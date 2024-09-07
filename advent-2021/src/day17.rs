@@ -1,98 +1,84 @@
 use std::ops::RangeInclusive;
 
-use regex::Regex;
+use easy_cast::{Cast, CastFloat};
+use shared::{string::isizes, vector::Vector};
 
-const FOUR_COORDINATES: &str = "target area should be described by four coordinates";
-
+type Velocity = [Coordinate; 2];
+type TargetArea = [RangeInclusive<Coordinate>; 2];
 type Coordinate = isize;
-type Range = RangeInclusive<Coordinate>;
 
 pub fn first(input: &str) -> String {
-    let (x_target, y_target) = parse_target_area(input);
-    let greatest_y_velocity = hits(&x_target, &y_target)
-        .map(|(_, y_velocity)| y_velocity)
+    let target_area = target_area(input);
+    let probe_hit_velocities = probe_hit_velocities(&target_area);
+    let greatest_y_velocity = probe_hit_velocities
+        .into_iter()
+        .map(|[_, y_velocity]| y_velocity)
         .max()
-        .expect("at least one set of velocities should hit the target");
-    sum_of_first_naturals(greatest_y_velocity).to_string()
+        .expect("at least one velocity should hit the target");
+    let highest_y_position = (greatest_y_velocity * (greatest_y_velocity + 1)) / 2;
+    highest_y_position.to_string()
 }
 
 pub fn second(input: &str) -> String {
-    let (x_target, y_target) = parse_target_area(input);
-    hits(&x_target, &y_target).count().to_string()
+    let target_area = target_area(input);
+    probe_hit_velocities(&target_area).len().to_string()
 }
 
-fn parse_target_area(input: &str) -> (Range, Range) {
-    let coordinate = Regex::new(r"-?\d+").expect("regex should be correct");
-    let mut coordinates = coordinate.find_iter(input).map(|coordinate| {
-        coordinate
-            .as_str()
-            .parse()
-            .expect("every regex match should be parsed into an integer")
-    });
-    (
-        coordinates.next().expect(FOUR_COORDINATES)..=coordinates.next().expect(FOUR_COORDINATES),
-        coordinates.next().expect(FOUR_COORDINATES)..=coordinates.next().expect(FOUR_COORDINATES),
-    )
+fn probe_hit_velocities(
+    target_area @ [target_x_range, target_y_range]: &TargetArea,
+) -> Vec<Velocity> {
+    let mut hits = vec![];
+    for x_velocity in x_velocity_range(target_x_range) {
+        for y_velocity in y_velocity_range(target_y_range) {
+            let velocity = [x_velocity, y_velocity];
+            if probe_hits_target_area(target_area, velocity) {
+                hits.push(velocity);
+            }
+        }
+    }
+    hits
 }
 
-fn num_first_naturals_to_sum(sum: isize) -> isize {
-    let num_first_naturals = 1.0 / 2.0 * (-1.0 + (1.0 + 8.0 * sum as f64).sqrt());
-    num_first_naturals.ceil() as Coordinate
+fn x_velocity_range(target_x_range: &RangeInclusive<Coordinate>) -> RangeInclusive<Coordinate> {
+    let d: f64 = (1 + 8 * target_x_range.start()).cast();
+    let minimum_x_velocity = ((-1.0 + d.sqrt()) / 2.0).cast_ceil();
+    let &maximum_x_velocity = target_x_range.end();
+    minimum_x_velocity..=maximum_x_velocity
 }
 
-fn possible_x_velocities(x_target: &Range) -> Range {
-    num_first_naturals_to_sum(*x_target.start())..=*x_target.end()
+fn y_velocity_range(target_y_range: &RangeInclusive<Coordinate>) -> RangeInclusive<Coordinate> {
+    *target_y_range.start()..=-*target_y_range.start()
 }
 
-fn possible_y_velocities(y_target: &Range) -> Range {
-    *y_target.start()..=-*y_target.start()
-}
-
-fn probe_hits_target(
-    x_target: &Range,
-    y_target: &Range,
-    mut x_velocity: Coordinate,
-    mut y_velocity: Coordinate,
+fn probe_hits_target_area(
+    [target_x_range, target_y_range]: &TargetArea,
+    mut velocity: Velocity,
 ) -> bool {
-    let mut x_position = 0;
-    let mut y_position = 0;
-    loop {
-        if x_target.contains(&x_position) && y_target.contains(&y_position) {
+    let mut position = [0, 0];
+    while position[0] <= *target_x_range.end() && *target_y_range.start() <= position[1] {
+        if *target_x_range.start() <= position[0] && position[1] <= *target_y_range.end() {
             return true;
         }
-        if y_position < *y_target.start() || x_position > *x_target.end() {
-            return false;
-        }
-        x_position += x_velocity;
-        y_position += y_velocity;
-        x_velocity -= x_velocity.signum();
-        y_velocity -= 1;
+        position = position.add(velocity);
+        velocity[0] -= velocity[0].signum();
+        velocity[1] -= 1;
     }
+    false
 }
 
-fn hits<'target>(
-    x_target: &'target Range,
-    y_target: &'target Range,
-) -> impl Iterator<Item = (Coordinate, Coordinate)> + 'target {
-    possible_x_velocities(x_target)
-        .flat_map(|x_velocity| {
-            possible_y_velocities(y_target).map(move |y_velocity| (x_velocity, y_velocity))
-        })
-        .filter(|&(x_velocity, y_velocity)| {
-            probe_hits_target(x_target, y_target, x_velocity, y_velocity)
-        })
-}
-
-fn sum_of_first_naturals(num_naturals: isize) -> isize {
-    num_naturals * (num_naturals + 1) / 2
+fn target_area(input: &str) -> TargetArea {
+    let coordinates = isizes(input);
+    [
+        coordinates[0]..=coordinates[1],
+        coordinates[2]..=coordinates[3],
+    ]
 }
 
 #[cfg(test)]
 mod tests {
-    use infrastructure::{Input, Puzzle};
+    use infrastructure::{test, Input, Puzzle};
 
-    use super::*;
-    use crate::tests::{input, test_on_input};
+    use crate::tests::test_on_input;
 
     const DAY: usize = 17;
 
@@ -117,45 +103,29 @@ mod tests {
     }
 
     #[test]
-    fn parse() {
-        let input = input(DAY, Input::Example(0));
-        let (x_target, y_target) = parse_target_area(&input);
-        assert_eq!(*x_target.start(), 20);
-        assert_eq!(*x_target.end(), 30);
-        assert_eq!(*y_target.start(), -10);
-        assert_eq!(*y_target.end(), -5);
+    fn probe_hits_target_area() {
+        let target_area = [20..=30, -10..=-5];
+        let function = |velocity| super::probe_hits_target_area(&target_area, velocity);
+        let cases = [
+            ([7, 2], true),
+            ([6, 3], true),
+            ([9, 0], true),
+            ([17, -4], false),
+        ];
+        test::cases(function, cases);
     }
 
     #[test]
-    fn naturals_to_sum() {
-        let cases = [(0, 0), (1, 1), (3, 2), (6, 3), (10, 4), (15, 5), (21, 6)];
-        for (input, output) in cases {
-            assert_eq!(num_first_naturals_to_sum(input), output);
-            assert_eq!(num_first_naturals_to_sum(input + 1), output + 1);
-        }
+    fn x_velocity_range() {
+        let actual = super::x_velocity_range(&(20..=30));
+        let expected = 6..=30;
+        assert_eq!(actual, expected);
     }
 
     #[test]
-    fn x_velocities() {
-        let x_velocities = possible_x_velocities(&(20..=30));
-        assert_eq!(*x_velocities.start(), 6);
-        assert_eq!(*x_velocities.end(), 30);
-    }
-
-    #[test]
-    fn y_velocities() {
-        let y_velocities = possible_y_velocities(&(-10..=-5));
-        assert_eq!(*y_velocities.start(), -10);
-        assert_eq!(*y_velocities.end(), 10);
-    }
-
-    #[test]
-    fn probe_hits() {
-        let input = input(DAY, Input::Example(0));
-        let (x_target, y_target) = parse_target_area(&input);
-        assert!(probe_hits_target(&x_target, &y_target, 7, 2));
-        assert!(probe_hits_target(&x_target, &y_target, 6, 3));
-        assert!(probe_hits_target(&x_target, &y_target, 9, 0));
-        assert!(!probe_hits_target(&x_target, &y_target, 17, -4));
+    fn y_velocity_range() {
+        let actual = super::y_velocity_range(&(-10..=-5));
+        let expected = -10..=10;
+        assert_eq!(actual, expected);
     }
 }
