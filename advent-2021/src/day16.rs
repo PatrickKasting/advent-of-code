@@ -1,138 +1,138 @@
-const AT_LEAST_ONE_OPERAND: &str = "every operator should come with at least one operand";
+use core::str;
+use std::{
+    cmp,
+    ops::{Add, Mul},
+};
 
-type Value = usize;
-type Type = usize;
-type Version = usize;
+use bitvec::{field::BitField, order::Msb0, slice::BitSlice, vec::BitVec, view::BitView};
+
+type Packet = BitVec<usize, BitOrder>;
+type Bits<'bits> = &'bits BitSlice<usize, BitOrder>;
+type BitOrder = Msb0;
+type VersionNumber = Decimal;
+type Value = Decimal;
+type Decimal = usize;
 
 pub fn first(input: &str) -> String {
-    let bits = bits(input.trim());
-    parse_packet(&bits).1.to_string()
+    let packet = packet(input);
+    let (_, version_number_sum, _) = evaluation(&packet);
+    version_number_sum.to_string()
 }
 
 pub fn second(input: &str) -> String {
-    let bits = bits(input.trim());
-    parse_packet(&bits).2.to_string()
+    let packet = packet(input);
+    let (_, _, value) = evaluation(&packet);
+    value.to_string()
 }
 
-fn add_bits(bits: &mut Vec<bool>, hexadecimal: char) {
-    let digit = match hexadecimal {
-        'A'..='F' => hexadecimal as u32 - 'A' as u32 + 10,
-        _ => hexadecimal as u32 - '0' as u32,
+fn evaluation(packet: Bits) -> (Bits, VersionNumber, Value) {
+    match type_id(packet) {
+        0 => operation(packet, <Decimal as Add>::add),
+        1 => operation(packet, <Decimal as Mul>::mul),
+        2 => operation(packet, cmp::min),
+        3 => operation(packet, cmp::max),
+        4 => literal(packet),
+        5 => operation(packet, |left, right| (left > right).into()),
+        6 => operation(packet, |left, right| (left < right).into()),
+        7 => operation(packet, |left, right| (left == right).into()),
+        _ => panic!("type id should be between zero and seven"),
+    }
+}
+
+fn operation(
+    packet: Bits,
+    operator: impl Fn(Value, Value) -> Value,
+) -> (Bits, VersionNumber, Value) {
+    let length_type_id = packet[6];
+    let (remaining, version_number_sum, sub_values) = if !length_type_id {
+        sub_evaluations_total_length(packet)
+    } else {
+        sub_evaluations_number_of_sub_packets(packet)
     };
-    for index in (0..4).rev() {
-        bits.push((digit & (1 << index)) > 0);
+
+    let value = sub_values
+        .into_iter()
+        .reduce(operator)
+        .expect("number of sub-packets should be at least one");
+    (
+        remaining,
+        version_number(packet) + version_number_sum,
+        value,
+    )
+}
+
+fn sub_evaluations_total_length(packet: Bits) -> (Bits, VersionNumber, Vec<Value>) {
+    let total_number_of_bits = decimal(&packet[7..22]);
+    dbg!(total_number_of_bits);
+    let mut sub_packets = &packet[22..22 + total_number_of_bits];
+    let mut version_number_sum = 0;
+    let mut values = vec![];
+    while !sub_packets.is_empty() {
+        let (rest, sub_version_number_sum, value) = evaluation(sub_packets);
+        sub_packets = rest;
+        version_number_sum += sub_version_number_sum;
+        values.push(value);
     }
+    (
+        &packet[22 + total_number_of_bits..],
+        version_number_sum,
+        values,
+    )
 }
 
-fn bits(hexadecimals: &str) -> Vec<bool> {
-    let mut binary_data = Vec::new();
-    for hexadecimal in hexadecimals.chars() {
-        add_bits(&mut binary_data, hexadecimal)
+fn sub_evaluations_number_of_sub_packets(packet: Bits) -> (Bits, VersionNumber, Vec<Value>) {
+    let number_of_sub_packets = decimal(&packet[7..18]);
+    let mut remaining = &packet[18..];
+    let mut version_number_sum = 0;
+    let mut values = vec![];
+    for _ in 0..number_of_sub_packets {
+        let (rest, sub_version_number, value) = evaluation(remaining);
+        remaining = rest;
+        version_number_sum += sub_version_number;
+        values.push(value);
     }
-    binary_data
+    (remaining, version_number_sum, values)
 }
 
-fn number(bits: &[bool]) -> Value {
-    let mut number = 0;
-    for (index, &bit) in bits.iter().rev().enumerate() {
-        if bit {
-            number += 1 << index;
-        }
+fn literal(packet: Bits) -> (Bits, VersionNumber, Value) {
+    let mut remaining = &packet[6..];
+    let mut value_bits: BitVec<usize, BitOrder> = BitVec::new();
+    while remaining[0] {
+        value_bits.extend_from_bitslice(&remaining[1..5]);
+        remaining = &remaining[5..];
     }
-    number
+    value_bits.extend_from_bitslice(&remaining[1..5]);
+    remaining = &remaining[5..];
+    (remaining, version_number(packet), decimal(&value_bits))
 }
 
-fn parse_header(bits: &[bool]) -> (&[bool], Version, Type) {
-    let version = number(&bits[0..3]);
-    let type_id = number(&bits[3..6]);
-    (&bits[6..], version, type_id)
+fn version_number(packet: Bits) -> VersionNumber {
+    decimal(&packet[0..3])
 }
 
-fn parse_literal_value(mut bits: &[bool]) -> (&[bool], Version, Value) {
-    let mut value = 0;
-    loop {
-        value = (value << 4) + number(&bits[1..5]);
-        if !bits[0] {
-            break;
-        }
-        bits = &bits[5..];
+fn type_id(packet: Bits) -> Decimal {
+    decimal(&packet[3..6])
+}
+
+fn decimal(bits: Bits) -> Decimal {
+    bits.load_be()
+}
+
+fn packet(mut input: &str) -> Packet {
+    input = input.trim_end();
+
+    let mut packet = Packet::new();
+    for index in 0..input.len() {
+        let byte = u8::from_str_radix(&input[index..index + 1], 16)
+            .expect("hexidecimal digit should parse");
+        packet.extend_from_bitslice(&byte.view_bits::<BitOrder>()[4..]);
     }
-    (&bits[5..], 0, value)
-}
-
-fn parse_operands(mut bits: &[bool]) -> (&[bool], Version, Vec<Value>) {
-    let mut versions = Vec::new();
-    let mut operands = Vec::new();
-    match bits[0] {
-        true => {
-            let num_sub_packages = number(&bits[1..12]);
-            bits = &bits[12..];
-            for _ in 0..num_sub_packages {
-                let (remaining_bits, version, operand) = parse_packet(bits);
-                bits = remaining_bits;
-                versions.push(version);
-                operands.push(operand);
-            }
-        }
-        false => {
-            let total_length = number(&bits[1..16]);
-            let mut sub_bits = &bits[16..16 + total_length];
-            while !sub_bits.is_empty() {
-                let (remaining_bits, version, operand) = parse_packet(sub_bits);
-                sub_bits = remaining_bits;
-                versions.push(version);
-                operands.push(operand);
-            }
-            bits = &bits[16 + total_length..];
-        }
-    }
-    (bits, versions.into_iter().sum(), operands)
-}
-
-fn parse_operator(bits: &[bool], type_id: Type) -> (&[bool], Version, Value) {
-    let (remaining_bits, version_sum, operands) = parse_operands(bits);
-    let value = match type_id {
-        0 => operands.into_iter().sum(),
-        1 => operands.into_iter().product(),
-        2 => operands.into_iter().min().expect(AT_LEAST_ONE_OPERAND),
-        3 => operands.into_iter().max().expect(AT_LEAST_ONE_OPERAND),
-        5 => {
-            if operands[0] > operands[1] {
-                1
-            } else {
-                0
-            }
-        }
-        6 => {
-            if operands[0] < operands[1] {
-                1
-            } else {
-                0
-            }
-        }
-        7 => {
-            if operands[0] == operands[1] {
-                1
-            } else {
-                0
-            }
-        }
-        _ => panic!("every packet type should be between zero and seven but not four"),
-    };
-    (remaining_bits, version_sum, value)
-}
-
-fn parse_packet(bits: &[bool]) -> (&[bool], Version, Value) {
-    let (body, version, type_id) = parse_header(bits);
-    let (remaining_bits, version_sum, value) = match type_id {
-        4 => parse_literal_value(body),
-        _ => parse_operator(body, type_id),
-    };
-    (remaining_bits, version + version_sum, value)
+    packet
 }
 
 #[cfg(test)]
 mod tests {
+    use bitvec::bits;
     use infrastructure::{test, Input, Puzzle};
 
     use super::*;
@@ -142,9 +142,8 @@ mod tests {
 
     #[test]
     fn first_example() {
-        let function = |input| parse_packet(&bits(input)).1;
+        let function = |input| evaluation(&packet(input)).1;
         let cases = [
-            ("D2FE28", 6),
             ("8A004A801A8002F478", 16),
             ("620080001611562C8802118E34", 12),
             ("C0015000016115A2E0802F182340", 23),
@@ -159,10 +158,9 @@ mod tests {
     }
 
     #[test]
-    fn second_example() {
-        let function = |input| parse_packet(&bits(input)).2;
+    fn second_examples() {
+        let function = |input| evaluation(&packet(input)).2;
         let cases = [
-            ("D2FE28", 2021),
             ("C200B40A82", 3),
             ("04005AC33890", 54),
             ("880086C3E88112", 7),
@@ -172,11 +170,37 @@ mod tests {
             ("9C005AC2F8F0", 0),
             ("9C0141080250320F1802104A08", 1),
         ];
-        test::cases(function, cases);
+        test::cases(function, cases)
     }
 
     #[test]
     fn second_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 1922490999789usize);
+    }
+
+    #[test]
+    fn literal() {
+        let input = small_example_packet();
+        let actual = super::literal(&input);
+        let expected = (bits![usize, BitOrder; 0, 0, 0], 6, 2021);
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn version_number() {
+        let actual = super::version_number(&small_example_packet());
+        let expected = 6;
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn type_id() {
+        let actual = super::type_id(&small_example_packet());
+        let expected = 4;
+        assert_eq!(actual, expected);
+    }
+
+    fn small_example_packet() -> Packet {
+        packet("D2FE28")
     }
 }

@@ -13,6 +13,7 @@ ahash = { version = "0.8.11", default-features = false, features = [
     "no-rng",
 ] }
 anyhow = "1.0.75"
+bitvec = "1.0.1"
 clap = { version = "4.4.10", features = ["derive"] }
 easy-cast = "0.5.2"
 itertools = "0.12.0"
