@@ -1,6 +1,6 @@
-use std::array;
+use std::{array, ops::Neg};
 
-use num_traits::{NumCast, NumOps, Zero};
+use num_traits::{NumCast, NumOps, One, Zero};
 
 use crate::vector::Vector;
 
@@ -37,8 +37,37 @@ pub fn column<T: Copy, const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
     array::from_fn(|row| matrix[row][index])
 }
 
+#[must_use]
+pub fn quarter_rotation_around_x_axis<T: Zero + One + Neg<Output = T>>() -> Matrix<T, 3, 3> {
+    [
+        [T::one(), T::zero(), T::zero()],
+        [T::zero(), T::zero(), -T::one()],
+        [T::zero(), T::one(), T::zero()],
+    ]
+}
+
+#[must_use]
+pub fn quarter_rotation_around_y_axis<T: Zero + One + Neg<Output = T>>() -> Matrix<T, 3, 3> {
+    [
+        [T::zero(), T::zero(), T::one()],
+        [T::zero(), T::one(), T::zero()],
+        [-T::one(), T::zero(), T::zero()],
+    ]
+}
+
+#[must_use]
+pub fn quarter_rotation_around_z_axis<T: Zero + One + Neg<Output = T>>() -> Matrix<T, 3, 3> {
+    [
+        [T::zero(), -T::one(), T::zero()],
+        [T::one(), T::zero(), T::zero()],
+        [T::zero(), T::zero(), T::one()],
+    ]
+}
+
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
     fn vector_mul() {
         let matrix = [[1, -1, 2], [0, -3, 1]];
@@ -62,6 +91,30 @@ mod tests {
         let matrix = [[3, 7], [4, 9]];
         let actual = super::column(matrix, 1);
         let expected = [7, 9];
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn rotation_x_axis() {
+        let vector = [1, 2, 3];
+        let actual = super::vector_mul(quarter_rotation_around_x_axis(), vector);
+        let expected = [1, -3, 2];
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn rotation_y_axis() {
+        let vector = [1, 2, 3];
+        let actual = super::vector_mul(quarter_rotation_around_y_axis(), vector);
+        let expected = [3, 2, -1];
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn rotation_z_axis() {
+        let vector = [1, 2, 3];
+        let actual = super::vector_mul(quarter_rotation_around_z_axis(), vector);
+        let expected = [-2, 1, 3];
         assert_eq!(actual, expected);
     }
 }
