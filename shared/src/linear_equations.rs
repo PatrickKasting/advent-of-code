@@ -1,8 +1,9 @@
 use itertools::Itertools;
 
-use crate::floating_point::ApproxEq;
+use crate::{floating_point::ApproxEq, matrix};
 
-type Matrix<const NUM_ROWS: usize, const NUM_COLUMNS: usize> = [[Real; NUM_COLUMNS]; NUM_ROWS];
+type Matrix<const NUM_ROWS: usize, const NUM_COLUMNS: usize> =
+    matrix::Matrix<Real, NUM_ROWS, NUM_COLUMNS>;
 type SolutionSet = Option<(Origin, Vec<Direction>)>;
 type Origin = Vec<Real>;
 type Direction = Vec<Real>;
