@@ -38,6 +38,11 @@ pub fn column<T: Copy, const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
 }
 
 #[must_use]
+pub fn identity<T: Zero + One + From<bool>, const SIZE: usize>() -> Matrix<T, SIZE, SIZE> {
+    array::from_fn(|row| array::from_fn(|column| (row == column).into()))
+}
+
+#[must_use]
 pub fn quarter_rotation_around_x_axis<T: Zero + One + Neg<Output = T>>() -> Matrix<T, 3, 3> {
     [
         [T::one(), T::zero(), T::zero()],
@@ -91,6 +96,13 @@ mod tests {
         let matrix = [[3, 7], [4, 9]];
         let actual = super::column(matrix, 1);
         let expected = [7, 9];
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn identity() {
+        let actual = super::identity::<isize, 3>();
+        let expected = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
         assert_eq!(actual, expected);
     }
 

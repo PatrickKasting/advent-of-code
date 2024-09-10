@@ -4,7 +4,7 @@ use ahash::AHashSet;
 use easy_cast::Conv;
 use itertools::Itertools;
 
-use shared::string::isizes;
+use shared::{string::isizes, vector::ManhattanDistance};
 
 type Sensor = Position;
 type Beacon = Position;
@@ -171,15 +171,8 @@ fn distances_to_closest_beacons(sensors: &[Sensor], beacons: &[Beacon]) -> Vec<C
     sensors
         .iter()
         .zip_eq(beacons)
-        .map(|(&sensor, &beacon)| manhattan_distance(sensor, beacon))
+        .map(|(&sensor, &beacon)| sensor.manhattan(beacon))
         .collect_vec()
-}
-
-fn manhattan_distance(left: Position, right: Position) -> Coordinate {
-    left.into_iter()
-        .zip(right)
-        .map(|(left, right)| (left - right).abs())
-        .sum()
 }
 
 fn sensors_and_closest_beacons(input: &str) -> (Vec<Sensor>, Vec<Beacon>) {

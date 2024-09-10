@@ -1,6 +1,6 @@
 use std::{f64, ops::Neg};
 
-use num_traits::{NumCast, NumOps, Zero};
+use num_traits::{NumCast, NumOps, Signed, Zero};
 
 pub trait Vector {
     type Scalar;
@@ -151,6 +151,26 @@ where
     }
 }
 
+pub trait ManhattanDistance {
+    type Scalar;
+
+    fn manhattan(self, to: Self) -> Self::Scalar;
+}
+
+impl<T, const N: usize> ManhattanDistance for [T; N]
+where
+    T: Copy + Zero + NumOps + NumCast + Signed,
+{
+    type Scalar = T;
+
+    fn manhattan(self, to: Self) -> Self::Scalar {
+        self.sub(to)
+            .map(|diff| diff.abs())
+            .into_iter()
+            .fold(T::zero(), |sum, diff| sum + diff)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::f64::consts::*;
@@ -227,7 +247,7 @@ mod tests {
     }
 
     #[test]
-    fn angle_between_vectors() {
+    fn angle_in_two_dimensions() {
         let cases = [
             ([[1, 0], [3, 0]], 0.0),
             ([[2, 0], [4, 4]], FRAC_PI_4),
@@ -246,5 +266,14 @@ mod tests {
                 "actual angle {actual:.2}π from {from:?} to {to:?} should equal {expected:.2}π"
             );
         }
+    }
+
+    #[test]
+    fn manhattan_distance() {
+        let left = [0, 1, 2, 3, 4, 5];
+        let right = [10, 8, 6, 4, 2, 0];
+        let actual = left.manhattan(right);
+        let expected = 10 + 7 + 4 + 1 + 2 + 5;
+        assert_eq!(actual, expected);
     }
 }
