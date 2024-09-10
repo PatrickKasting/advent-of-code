@@ -1,6 +1,10 @@
 use itertools::Itertools;
 
-use crate::{floating_point::ApproxEq, matrix};
+use crate::{
+    floating_point::ApproxEq,
+    matrix::{self, column},
+    vector::Negation,
+};
 
 type Matrix<const NUM_ROWS: usize, const NUM_COLUMNS: usize> =
     matrix::Matrix<Real, NUM_ROWS, NUM_COLUMNS>;
@@ -48,7 +52,7 @@ fn row_with_max_abs_value<const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
         .map(|row| row[column].abs())
         .position_max_by(f64::total_cmp)
         .expect("first row should be within maxtrix");
-    row_with_max_abs_value + first_row
+    first_row + row_with_max_abs_value
 }
 
 fn subtract_pivot_row_from_other_rows<const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
@@ -113,20 +117,13 @@ fn solution_set_direction<const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
     pivot_column: usize,
     free_parameters: &[usize],
 ) -> Vec<f64> {
-    let mut direction = negated_column(&matrix[..pivot_row], pivot_column);
+    let mut direction: Vec<Real> = column(matrix, pivot_column).neg()[..pivot_row].into();
     for &parameter in free_parameters {
         direction.insert(parameter, 0.0);
     }
     direction.push(1.0);
     direction.resize(NUM_COLUMNS - 1, 0.0);
     direction
-}
-
-fn negated_column<const NUM_COLUMNS: usize>(
-    matrix: &[[Real; NUM_COLUMNS]],
-    column: usize,
-) -> Vec<Real> {
-    matrix.iter().map(|row| -row[column]).collect_vec()
 }
 
 #[cfg(test)]
