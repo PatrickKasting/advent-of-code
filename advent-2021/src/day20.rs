@@ -1,119 +1,99 @@
-use std::iter::{self, once};
+use std::iter;
 
+use easy_cast::Cast;
 use itertools::Itertools;
+use shared::grid::{Grid, Position};
 
-use shared::grid::{self, Grid, Position};
-
-type Pixel = bool;
-type EnhancementAlgorithm = Vec<Pixel>;
 type Image = Grid<Pixel>;
-
-const ENHANCEMENT_ALGORITHM_LEN: usize = 512;
-const ENHANCEMENT_ALGORITHM_STRING: &str = "enhancement algorithm string should not be empty";
+type EnhancementString<'input> = &'input [Pixel];
+type Pixel = u8;
 
 pub fn first(input: &str) -> String {
-    let enhanced_image = enhanced_image(input, 2);
-    num_light_pixels(&enhanced_image).to_string()
+    let (enhancement_string, image) = enhancement_string_and_image(input);
+    let enhanced_image = enhanced_image(enhancement_string, image, 2);
+    number_of_light_pixels(&enhanced_image).to_string()
 }
 
 pub fn second(input: &str) -> String {
-    let enhanced_image = enhanced_image(input, 50);
-    num_light_pixels(&enhanced_image).to_string()
+    let (enhancement_string, image) = enhancement_string_and_image(input);
+    let enhanced_image = enhanced_image(enhancement_string, image, 50);
+    number_of_light_pixels(&enhanced_image).to_string()
 }
 
-fn parse_pixel(char: char) -> Pixel {
-    char == '#'
-}
-
-fn parse_enhancement_algorithm(enhancement_algorithm: &str) -> EnhancementAlgorithm {
-    let enhancement_algorithm: EnhancementAlgorithm =
-        enhancement_algorithm.chars().map(parse_pixel).collect();
-    debug_assert_eq!(enhancement_algorithm.len(), ENHANCEMENT_ALGORITHM_LEN);
-    enhancement_algorithm
-}
-
-fn parse_image<'lines>(lines: impl Iterator<Item = &'lines str>, border: usize) -> Image {
-    let mut lines = lines.peekable();
-    let image_size = lines.peek().expect("image should not be empty").len() + 2 * border;
-    let mut image = Grid::new(image_size, image_size, |_| false);
-    for (row, line) in lines.enumerate() {
-        for (col, char) in line.chars().enumerate() {
-            let position = [(row + border) as isize, (col + border) as isize];
-            image[position] = parse_pixel(char);
-        }
+fn enhanced_image(
+    enhancement_string: EnhancementString,
+    mut image: Image,
+    number_of_enhancements: usize,
+) -> Image {
+    for outside_pixel in outside_pixels(enhancement_string).take(number_of_enhancements) {
+        image = enhanced_once(enhancement_string, &image, outside_pixel);
     }
     image
 }
 
-fn parse_input(input: &str, border: usize) -> (EnhancementAlgorithm, Image) {
-    let mut lines = input.lines();
-    let enhancement_algorithm = parse_enhancement_algorithm(
-        lines
-            .next()
-            .expect("first line should contain the enhancement algorithm"),
-    );
-    lines.next().expect("second line should be empty");
-    let image = parse_image(lines, border);
-    (enhancement_algorithm, image)
+fn outside_pixels(enhancement_string: &[u8]) -> Box<dyn Iterator<Item = Pixel>> {
+    let output_pixel_all_dark_pixels = enhancement_string[0];
+    let output_pixel_all_light_pixels = enhancement_string[512 - 1];
+    match [output_pixel_all_dark_pixels, output_pixel_all_light_pixels] {
+        [b'.', _] => Box::new(iter::repeat(b'.')),
+        [b'#', b'.'] => Box::new(iter::repeat(b'.').interleave(iter::repeat(b'#'))),
+        [b'#', b'#'] => Box::new(iter::once(b'.').chain(iter::repeat(b'#'))),
+        _ => panic!("enhancement string pixels should be '.' or '#'"),
+    }
 }
 
-fn outside_pixels(enhancement_algorithm: &[Pixel]) -> impl Iterator<Item = Pixel> {
-    let &all_dark = enhancement_algorithm
-        .first()
-        .expect(ENHANCEMENT_ALGORITHM_STRING);
-    let &all_light = enhancement_algorithm
-        .last()
-        .expect(ENHANCEMENT_ALGORITHM_STRING);
-    let repeating = match [all_dark, all_light] {
-        [false, _] => [false, false],
-        pattern @ [true, _] => pattern,
-    };
-    once(false).chain(repeating.into_iter().cycle())
+fn enhanced_once(
+    enhancement_string: EnhancementString,
+    image: &Image,
+    outside_pixel: Pixel,
+) -> Image {
+    let positions = (-1..=image.height().cast()).cartesian_product(-1..=image.width().cast());
+    let pixels = positions
+        .map(|(row, column)| output_pixel(enhancement_string, image, outside_pixel, [row, column]))
+        .collect_vec();
+    Image::from_elements(pixels, image.width() + 2)
 }
 
-fn pixel_value(outside_pixel: Pixel, image: &Image, position: Position) -> usize {
-    let mut value = 0;
-    for (index, pos) in (0..9)
-        .rev()
-        .zip_eq(iter::once(position).chain(grid::neighbors(position)))
-    {
-        let &pixel = image.get(pos).unwrap_or(&outside_pixel);
-        if pixel {
-            value += 1 << index;
+fn output_pixel(
+    enhancement_string: EnhancementString,
+    image: &Image,
+    outside_pixel: Pixel,
+    position: Position,
+) -> Pixel {
+    enhancement_string[output_pixel_index(image, outside_pixel, position)]
+}
+
+fn output_pixel_index(image: &Image, outside_pixel: Pixel, [row, column]: Position) -> usize {
+    let mut output_pixel_index = 0;
+    let positions = (row - 1..=row + 1).cartesian_product(column - 1..=column + 1);
+    for (row, column) in positions {
+        output_pixel_index <<= 1;
+        if *image.get([row, column]).unwrap_or(&outside_pixel) == b'#' {
+            output_pixel_index |= 1;
         }
     }
-    value
+    output_pixel_index
 }
 
-fn enhance(enhancement_algorithm: &[Pixel], outside_pixel: Pixel, image: &Image) -> Image {
-    let mut enhanced_image = Image::new(image.height(), image.width(), |_| false);
-    for row in 0..image.height() {
-        for col in 0..image.width() {
-            let position = [row as isize, col as isize];
-            enhanced_image[position] =
-                enhancement_algorithm[pixel_value(outside_pixel, image, position)];
-        }
-    }
-    enhanced_image
-}
-
-fn enhanced_image(input: &str, num_enhancements: usize) -> Image {
-    let (enhancement_algorithm, mut image) = parse_input(input, num_enhancements);
-    let mut outside_pixels = outside_pixels(&enhancement_algorithm);
-    for _ in 0..num_enhancements {
-        let outside_pixel = outside_pixels.next().expect("outside pixels should cycle");
-        image = enhance(&enhancement_algorithm, outside_pixel, &image);
-    }
+fn number_of_light_pixels(image: &Image) -> usize {
     image
+        .iter_row_major()
+        .filter(|(_, &pixel)| pixel == b'#')
+        .count()
 }
 
-fn num_light_pixels(image: &Image) -> usize {
-    image.iter_row_major().filter(|&(_, &pixel)| pixel).count()
+fn enhancement_string_and_image(input: &str) -> (EnhancementString, Image) {
+    let (enhancement_string, image) = input
+        .split_once("\n\n")
+        .expect("enhancement string and image should be separated by an empty line");
+    (enhancement_string.as_bytes(), Image::from(image))
 }
 
 #[cfg(test)]
 mod tests {
-    use infrastructure::{Input, Puzzle};
+    use std::array;
+
+    use infrastructure::{test, Input, Puzzle};
 
     use super::*;
     use crate::tests::{input, test_on_input};
@@ -141,44 +121,47 @@ mod tests {
     }
 
     #[test]
-    fn value() {
-        let (_, image) = parse_input(&input(DAY, Input::Example(0)), 0);
-        assert_eq!(pixel_value(false, &image, [2, 2]), 34);
-        assert_eq!(pixel_value(false, &image, [0, 0]), 18);
-        assert_eq!(pixel_value(false, &image, [4, 3]), 312);
-        assert_eq!(pixel_value(true, &image, [2, 2]), 34);
-        assert_eq!(pixel_value(true, &image, [0, 0]), 502);
-        assert_eq!(pixel_value(true, &image, [4, 3]), 319);
-    }
+    fn outside_pixels() {
+        let mut enhancement_string: [u8; 512] = array::from_fn(|_| b'.');
 
-    fn assert_first_outside_pixels(enhancement_algorithm: &[Pixel], expected: &[Pixel]) {
-        let pixels = outside_pixels(enhancement_algorithm);
-        assert_eq!(&pixels.take(expected.len()).collect::<Vec<_>>(), expected);
-    }
-
-    #[test]
-    fn outside() {
-        assert_first_outside_pixels(&[false, true], &[false, false, false, false, false]);
-        assert_first_outside_pixels(&[true, false], &[false, true, false, true, false]);
-        assert_first_outside_pixels(&[true, true], &[false, true, true, true, true]);
+        let function = |[all_dark_pixels, all_light_pixels]: [Pixel; 2]| {
+            enhancement_string[0] = all_dark_pixels;
+            enhancement_string[512 - 1] = all_light_pixels;
+            super::outside_pixels(&enhancement_string)
+                .take(6)
+                .collect_vec()
+        };
+        let cases = [
+            ([b'.', b'.'], vec![b'.', b'.', b'.', b'.', b'.', b'.']),
+            ([b'.', b'#'], vec![b'.', b'.', b'.', b'.', b'.', b'.']),
+            ([b'#', b'.'], vec![b'.', b'#', b'.', b'#', b'.', b'#']),
+            ([b'#', b'#'], vec![b'.', b'#', b'#', b'#', b'#', b'#']),
+        ];
+        test::cases(function, cases);
     }
 
     #[test]
-    fn enhancements() {
-        let actual = enhanced_image(&input(DAY, Input::Example(0)), 2)
-            .map(|_, &pixel| if pixel { '#' } else { '.' })
-            .to_string();
+    fn enhanced_once() {
+        let input = input(DAY, Input::Example(0));
+        let (enhancement_string, image) = enhancement_string_and_image(&input);
+        let actual = super::enhanced_once(enhancement_string, &image, b'.');
         let expected = "\
-            .......#.\n\
-            .#..#.#..\n\
-            #.#...###\n\
-            #...##.#.\n\
-            #.....#.#\n\
-            .#.#####.\n\
-            ..#.#####\n\
-            ...##.##.\n\
-            ....###..\n\
+            .##.##.\n\
+            #..#.#.\n\
+            ##.#..#\n\
+            ####..#\n\
+            .#..##.\n\
+            ..##..#\n\
+            ...#.#.\n\
         ";
+        assert_eq!(actual, Image::from(expected));
+    }
+
+    #[test]
+    fn output_pixel_index() {
+        let (_, image) = enhancement_string_and_image(&input(DAY, Input::Example(0)));
+        let actual = super::output_pixel_index(&image, b'.', [2, 2]);
+        let expected = 34;
         assert_eq!(actual, expected);
     }
 }

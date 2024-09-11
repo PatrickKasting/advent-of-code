@@ -32,6 +32,10 @@ impl<T> Grid<T> {
 
     #[must_use]
     pub fn from_elements(elements: Vec<T>, width: usize) -> Self {
+        debug_assert!(
+            elements.len() % width == 0,
+            "width should divide number of elements for rectangular grid"
+        );
         Self { elements, width }
     }
 
