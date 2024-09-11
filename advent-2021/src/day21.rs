@@ -1,123 +1,109 @@
-use regex::Regex;
+use std::array;
 
+use ahash::AHashMap;
+use itertools::Itertools;
+use shared::{string::usizes, vector::Vector};
+
+type Space = Number;
+type Score = Number;
 type Player = usize;
-type Position = u16;
-type Score = i16;
-type Result = usize;
+type Roll = Number;
+type Number = usize;
 
-const STARTING_POSITION: &str = "input should include starting positions";
+type State = ([Space; 2], [Score; 2], Player);
 
-const NUM_POSITIONS: Position = 10;
-const NUM_PLAYERS: Player = 2;
-const NUM_ROLLS_PER_TURN: usize = 3;
-const MAX_DETERMINISTIC_DIE_FACE: Position = 100;
-const DETERMINISTIC_GOAL: Score = 1000;
-const QUANTUM_GOAL: Score = 21;
-
-fn parse_starting_positions(input: &str) -> [Position; 2] {
-    let regex = Regex::new(r"\d+").expect("regex should be valid");
-    let mut lines = input.lines();
-    let mut next_position = || {
-        regex
-            .find_iter(
-                lines
-                    .next()
-                    .expect("input should contain exactly two lines"),
-            )
-            .nth(1)
-            .expect(STARTING_POSITION)
-            .as_str()
-            .parse()
-            .expect(STARTING_POSITION)
-    };
-    [next_position(), next_position()].map(|position: Position| position - 1)
-}
-
-fn next_player(current_player: Player) -> Player {
-    (current_player + 1) % NUM_PLAYERS
-}
-
-fn destination(current_position: Position, num_steps: Position) -> Position {
-    (current_position + num_steps) % NUM_POSITIONS
-}
-
-fn score(destination: Position) -> Score {
-    destination as Score + 1
-}
-
-fn deterministic_game(mut positions: [Position; 2]) -> Result {
-    let mut die = (1..=MAX_DETERMINISTIC_DIE_FACE).cycle();
-    let mut num_die_rolls = 0;
-    let mut roll_thrice = || {
-        num_die_rolls += NUM_ROLLS_PER_TURN;
-        (0..NUM_ROLLS_PER_TURN)
-            .map(|_| die.next().expect("the die should never run out"))
-            .sum()
-    };
-
-    let mut scores = [0, 0];
-    let mut current_player = 0;
-    loop {
-        positions[current_player] = destination(positions[current_player], roll_thrice());
-        scores[current_player] += score(positions[current_player]);
-        if scores[current_player] >= DETERMINISTIC_GOAL {
-            return scores[next_player(current_player)] as Result * num_die_rolls;
-        }
-        current_player = next_player(current_player);
-    }
-}
+const TRACK_SIZE: Roll = 10;
+const DETERMINISTIC_SCORE_TARGET: Score = 1000;
+const QUANTUM_SCORE_TARGET: Score = 21;
 
 pub fn first(input: &str) -> String {
-    let starting_positions = parse_starting_positions(input);
-    deterministic_game(starting_positions).to_string()
-}
-
-const NUM_QUANTUM_DIE_COMBINATIONS: [usize; 7] = [1, 3, 6, 7, 6, 3, 1];
-
-fn quantum_win_counts(
-    [current_player_score, other_player_score]: [Score; 2],
-    [current_player_position, other_player_position]: [Position; 2],
-) -> [usize; 2] {
-    debug_assert!(current_player_score < QUANTUM_GOAL);
-    if other_player_score >= QUANTUM_GOAL {
-        return [0, 1];
-    }
-
-    let mut before_move_counts = [0, 0];
-    for (sum, num_combinations) in NUM_QUANTUM_DIE_COMBINATIONS
-        .iter()
-        .enumerate()
-        .map(|(sum, &num_combinations)| ((sum + 3) as Position, num_combinations))
-    {
-        let current_player_position = destination(current_player_position, sum);
-        let current_player_score = current_player_score + score(current_player_position);
-        let after_move_counts = quantum_win_counts(
-            [other_player_score, current_player_score],
-            [other_player_position, current_player_position],
-        );
-        before_move_counts[0] += after_move_counts[1] * num_combinations;
-        before_move_counts[1] += after_move_counts[0] * num_combinations;
-    }
-    before_move_counts
-}
-
-fn quantum_game(positions: [Position; 2]) -> usize {
-    quantum_win_counts([0, 0], positions)
-        .into_iter()
-        .max()
-        .expect("two win counts should always be computed")
+    let starting_spaces = starting_spaces(input);
+    let (losing_score, number_of_rolls) = deterministic_game(starting_spaces);
+    (losing_score * number_of_rolls).to_string()
 }
 
 pub fn second(input: &str) -> String {
-    let starting_positions = parse_starting_positions(input);
-    quantum_game(starting_positions).to_string()
+    let starting_spaces = starting_spaces(input);
+    let number_of_wins = quantum_game(&mut AHashMap::new(), starting_spaces, [0, 0], 0);
+    number_of_wins
+        .into_iter()
+        .max()
+        .expect("two players should play")
+        .to_string()
+}
+
+fn deterministic_game(mut positions: [Space; 2]) -> (Score, usize) {
+    let mut die = (1..=100).cycle();
+    let mut number_of_rolls = 0;
+    let mut roll = || {
+        number_of_rolls += 1;
+        die.next().expect("die iterator should never deplete")
+    };
+
+    let mut scores = [0, 0];
+    for player in (0..=1).cycle() {
+        let number_of_spaces = roll() + roll() + roll();
+        mov(&mut positions, &mut scores, player, number_of_spaces);
+        if scores[player] >= DETERMINISTIC_SCORE_TARGET {
+            return (scores[player ^ 1], number_of_rolls);
+        }
+    }
+    unreachable!("game should continue until one player has enough points");
+}
+
+fn quantum_game(
+    cache: &mut AHashMap<State, [usize; 2]>,
+    positions: [Space; 2],
+    scores: [Score; 2],
+    player: Player,
+) -> [usize; 2] {
+    if scores[player ^ 1] >= QUANTUM_SCORE_TARGET {
+        return array::from_fn(|index| (index == player ^ 1).into());
+    }
+
+    let state = (positions, scores, player);
+    if let Some(&cached) = cache.get(&state) {
+        return cached;
+    }
+
+    let mut number_of_wins = [0, 0];
+    let rolls = (3..=9).zip_eq([1, 3, 6, 7, 6, 3, 1]);
+    for (sum, frequency) in rolls {
+        let (mut positions, mut scores) = (positions, scores);
+        mov(&mut positions, &mut scores, player, sum);
+        let number_of_wins_new_state =
+            quantum_game(cache, positions, scores, player ^ 1).mul(frequency);
+        number_of_wins = number_of_wins.add(number_of_wins_new_state);
+    }
+
+    let old_cached = cache.insert(state, number_of_wins);
+    debug_assert!(
+        old_cached.is_none(),
+        "state should not already exist in the cache"
+    );
+    number_of_wins
+}
+
+fn mov(
+    positions: &mut [usize; 2],
+    scores: &mut [Score; 2],
+    player: usize,
+    number_of_spaces: usize,
+) {
+    positions[player] += number_of_spaces;
+    positions[player] %= TRACK_SIZE;
+    scores[player] += positions[player] + 1;
+}
+
+fn starting_spaces(input: &str) -> [Space; 2] {
+    let mut lines = input.lines();
+    array::from_fn(|_| usizes(lines.next().expect("input should have two lines"))[1] - 1)
 }
 
 #[cfg(test)]
 mod tests {
     use infrastructure::{Input, Puzzle};
 
-    use super::*;
     use crate::tests::{input, test_on_input};
 
     const DAY: usize = 21;
@@ -148,69 +134,9 @@ mod tests {
     }
 
     #[test]
-    fn starting_positions() {
-        assert_starting_positions(Input::Example(0), 3, 7);
-        assert_starting_positions(Input::PuzzleInput, 4, 5);
-    }
-
-    #[test]
-    fn quantum_game_max_zero_moves() {
-        for first_player_score in 0..QUANTUM_GOAL {
-            for first_player_position in 0..NUM_POSITIONS {
-                for second_player_position in 0..NUM_POSITIONS {
-                    let win_counts = quantum_win_counts(
-                        [first_player_score, QUANTUM_GOAL],
-                        [first_player_position, second_player_position],
-                    );
-                    assert_eq!(win_counts, [0, 1]);
-                }
-            }
-        }
-    }
-
-    #[test]
-    fn quantum_game_max_one_move() {
-        for second_player_score in 0..QUANTUM_GOAL {
-            for first_player_position in 0..NUM_POSITIONS {
-                for second_player_position in 0..NUM_POSITIONS {
-                    let win_counts = quantum_win_counts(
-                        [QUANTUM_GOAL - 1, second_player_score],
-                        [first_player_position, second_player_position],
-                    );
-                    assert_eq!(win_counts, [27, 0]);
-                }
-            }
-        }
-    }
-
-    #[test]
-    fn quantum_game_max_two_moves() {
-        for first_player_position in [3, 5] {
-            for second_player_position in 0..NUM_POSITIONS {
-                let win_counts = quantum_win_counts(
-                    [QUANTUM_GOAL - 2, QUANTUM_GOAL - 1],
-                    [first_player_position, second_player_position],
-                );
-                assert_eq!(win_counts, [21, 6 * 27])
-            }
-        }
-    }
-
-    #[test]
-    fn quantum_game_max_three_moves() {
-        for first_player_position in [3, 5] {
-            for second_player_position in [1, 7] {
-                let win_counts = quantum_win_counts(
-                    [QUANTUM_GOAL - 2, QUANTUM_GOAL - 2],
-                    [first_player_position, second_player_position],
-                );
-                assert_eq!(win_counts, [21 + 6 * 27, 6 * 26])
-            }
-        }
-    }
-
-    fn assert_starting_positions(input: Input, player1: Position, player2: Position) {
-        let starting_positions = parse_starting_positions(&self::input(DAY, input));
-        assert_eq!(starting_positions, [player1, player2]);
+    fn starting_spaces() {
+        let actual = super::starting_spaces(&input(DAY, Input::Example(0)));
+        let expected = [3, 7];
+        assert_eq!(actual, expected);
     }
 }
