@@ -1,140 +1,163 @@
-use std::{
-    cmp::{max, min},
-    mem,
-};
+use std::{array, ops::Range};
 
-use regex::Regex;
+use itertools::Itertools;
+use shared::string::isizes;
 
-type Coordinate = i32;
-type Range = [Coordinate; 2];
-type Cuboid = [Range; 3];
-type Step = (bool, Cuboid);
+type RebootStep = (Switch, Cuboid);
+type Switch = bool;
+type Cuboid = [Range<Coordinate>; 3];
+type Coordinate = isize;
 
-fn parse_step(regex: &Regex, step: &str) -> (bool, Cuboid) {
-    let (enable, coordinates) = step
-        .split_once(' ')
-        .expect("each step should contain a space separating enabling and coordinates");
-    let enable = match enable {
-        "on" => true,
-        "off" => false,
-        _ => panic!("first part of each step should be 'on' or 'off'"),
-    };
-    let mut coordinates = regex.find_iter(coordinates).map(|mat| {
-        mat.as_str()
-            .parse()
-            .expect("regex should only match numbers")
-    });
-    let mut next_coordinate = || {
-        coordinates
-            .next()
-            .expect("every step should contain six coordinates")
-    };
-    (
-        enable,
-        [
-            [next_coordinate(), next_coordinate() + 1],
-            [next_coordinate(), next_coordinate() + 1],
-            [next_coordinate(), next_coordinate() + 1],
-        ],
-    )
-}
-
-fn parse_input(input: &str) -> Vec<Step> {
-    let regex = Regex::new(r"-?\d+").expect("regex should be valid");
-    input.lines().map(|step| parse_step(&regex, step)).collect()
-}
-
-fn intersection(left: Cuboid, right: Cuboid) -> Option<Cuboid> {
-    let intersection: Cuboid = left
-        .into_iter()
-        .zip(right)
-        .map(|(left, right)| [max(left[0], right[0]), min(left[1], right[1])])
-        .collect::<Vec<_>>()
-        .try_into()
-        .expect("an intersection should be represented by six coordinates");
-    intersection
-        .into_iter()
-        .all(|[start, end]| start < end)
-        .then_some(intersection)
-}
-
-fn difference(soft: Cuboid, solid: Cuboid) -> Vec<Cuboid> {
-    let Some(intersection) = intersection(soft, solid) else {
-        return vec![soft];
-    };
-    let boundaries: Vec<_> = soft
-        .into_iter()
-        .zip(intersection)
-        .map(|(soft, intersection)| {
-            let mut boundaries = vec![soft[0], intersection[0], intersection[1], soft[1]];
-            boundaries.dedup();
-            boundaries
-        })
-        .collect();
-    let mut pieces = Vec::new();
-    for x in boundaries[0].windows(2) {
-        for y in boundaries[1].windows(2) {
-            for z in boundaries[2].windows(2) {
-                let current = [x, y, z]
-                    .map(|range| range.try_into().expect("range should contain two values"));
-                if current != intersection {
-                    pieces.push(current);
-                }
-            }
-        }
-    }
-    pieces
-}
-
-fn volume(cuboid: Cuboid) -> usize {
-    cuboid
-        .map(|[start, end]| (end - start) as usize)
-        .into_iter()
-        .product()
-}
-
-fn reboot(steps: &[Step]) -> usize {
-    let mut current = Vec::new();
-    let mut next = Vec::new();
-    for &(enable, new) in steps {
-        for &existing in &current {
-            next.extend(difference(existing, new));
-        }
-        if enable {
-            next.push(new);
-        }
-        current.drain(..);
-        mem::swap(&mut current, &mut next);
-    }
-    current.into_iter().map(volume).sum()
-}
-
-fn trim_cuboids(volume: Cuboid, steps: &mut Vec<Step>) {
-    steps.retain_mut(|(_, cuboid)| match intersection(volume, *cuboid) {
-        Some(intersection) => {
-            *cuboid = intersection;
-            true
-        }
-        None => false,
-    });
-}
+type Direction = usize;
+const X: Direction = 0;
+const Y: Direction = 1;
+const Z: Direction = 2;
 
 pub fn first(input: &str) -> String {
-    let mut steps = parse_input(input);
-    let range = [-50, 51];
-    trim_cuboids([range, range, range], &mut steps);
-    reboot(&steps).to_string()
+    let initialization_procedure = initialization_procedure(input);
+    let cuboids = reboot(initialization_procedure);
+    number_of_cubes(&cuboids).to_string()
 }
 
 pub fn second(input: &str) -> String {
-    reboot(&parse_input(input)).to_string()
+    let reboot_steps = reboot_steps(input);
+    let cuboids = reboot(reboot_steps);
+    number_of_cubes(&cuboids).to_string()
+}
+
+fn reboot(reboot_steps: impl Iterator<Item = RebootStep>) -> Vec<Cuboid> {
+    let mut cuboids = vec![];
+    for (switch, cuboid) in reboot_steps {
+        cuboids = cuboids
+            .into_iter()
+            .flat_map(|existing| cuboid_difference(&existing, &cuboid))
+            .collect_vec();
+        if switch {
+            cuboids.push(cuboid);
+        }
+    }
+    cuboids
+}
+
+fn cuboid_difference(lhs: &Cuboid, rhs: &Cuboid) -> Vec<Cuboid> {
+    if !cuboids_intersect(lhs, rhs) {
+        return vec![lhs.clone()];
+    }
+
+    let mut lhs = lhs.clone();
+    let mut difference = vec![];
+    for direction in [X, Y, Z] {
+        let (range_difference, range_intersection) =
+            range_difference(&lhs[direction], &rhs[direction]);
+        debug_assert!(!range_intersection.is_empty(), "cuboids should intersect");
+
+        let differences = range_difference
+            .into_iter()
+            .map(|range| cuboid_with(&lhs, &range, direction));
+        difference.extend(differences);
+
+        lhs = cuboid_with(&lhs, &range_intersection, direction);
+    }
+    difference
+}
+
+fn cuboids_intersect(left: &Cuboid, right: &Cuboid) -> bool {
+    let x_ranges_intersect = ranges_intersect(&left[X], &right[X]);
+    let y_ranges_intersect = ranges_intersect(&left[Y], &right[Y]);
+    let z_ranges_intersect = ranges_intersect(&left[Z], &right[Z]);
+    x_ranges_intersect && y_ranges_intersect && z_ranges_intersect
+}
+
+fn ranges_intersect(left: &Range<Coordinate>, right: &Range<Coordinate>) -> bool {
+    left.start < right.end && right.start < left.end
+}
+
+fn range_difference(
+    lhs: &Range<Coordinate>,
+    rhs: &Range<Coordinate>,
+) -> (Vec<Range<Coordinate>>, Range<Coordinate>) {
+    if lhs.start < rhs.start && rhs.end < lhs.end {
+        let remaining = vec![lhs.start..rhs.start, rhs.end..lhs.end];
+        let subtracted = rhs.clone();
+        (remaining, subtracted)
+    } else if lhs.start < rhs.start && lhs.end <= rhs.end {
+        #[allow(clippy::single_range_in_vec_init)]
+        (vec![lhs.start..rhs.start], rhs.start..lhs.end)
+    } else if rhs.start <= lhs.start && rhs.end < lhs.end {
+        #[allow(clippy::single_range_in_vec_init)]
+        (vec![rhs.end..lhs.end], lhs.start..rhs.end)
+    } else if rhs.start <= lhs.start && lhs.end <= rhs.end {
+        (vec![], lhs.clone())
+    } else {
+        panic!("ranges should intersect");
+    }
+}
+
+fn cuboid_with(cuboid: &Cuboid, range: &Range<Coordinate>, direction: Direction) -> Cuboid {
+    array::from_fn(|index| {
+        if index == direction {
+            range.clone()
+        } else {
+            cuboid[index].clone()
+        }
+    })
+}
+
+fn number_of_cubes(cuboids: &[Cuboid]) -> usize {
+    cuboids.iter().map(volume).sum()
+}
+
+fn volume(cuboid: &Cuboid) -> usize {
+    cuboid.iter().map(ExactSizeIterator::len).product()
+}
+
+fn initialization_procedure(input: &str) -> impl Iterator<Item = RebootStep> + '_ {
+    reboot_steps(input).take_while(|(_, cuboid)| is_within_initialization_area(cuboid))
+}
+
+const INITIALIZATION_AREA_LIMIT: Coordinate = 50;
+
+fn is_within_initialization_area(cuboid: &Cuboid) -> bool {
+    cuboid.iter().all(|range| {
+        -INITIALIZATION_AREA_LIMIT <= range.start && range.end - 1 <= INITIALIZATION_AREA_LIMIT
+    })
+}
+
+fn reboot_steps(input: &str) -> impl Iterator<Item = RebootStep> + '_ {
+    input.lines().map(reboot_step)
+}
+
+fn reboot_step(line: &str) -> RebootStep {
+    let (switch, cuboid) = line
+        .split_once(' ')
+        .expect("switch and cuboid should be separated by a space");
+    let switch = match switch {
+        "on" => true,
+        "off" => false,
+        _ => panic!("switch should be 'on' or 'off'"),
+    };
+    (switch, self::cuboid(cuboid))
+}
+
+fn cuboid(str: &str) -> Cuboid {
+    let coordinates = isizes(str);
+    debug_assert_eq!(
+        coordinates.len(),
+        6,
+        "cuboid should be defined by six coordinates"
+    );
+    [
+        coordinates[0]..coordinates[1] + 1,
+        coordinates[2]..coordinates[3] + 1,
+        coordinates[4]..coordinates[5] + 1,
+    ]
 }
 
 #[cfg(test)]
 mod tests {
-    use std::collections::BTreeSet;
+    use std::ops::Range;
 
-    use infrastructure::{Input, Puzzle};
+    use infrastructure::{test, Input, Puzzle};
 
     use super::*;
     use crate::tests::test_on_input;
@@ -142,8 +165,9 @@ mod tests {
     const DAY: usize = 22;
 
     #[test]
-    fn first_example() {
-        assert_eq!(first(FIRST_EXAMPLE), 590784.to_string());
+    fn first_examples() {
+        test_on_input(DAY, Puzzle::First, Input::Example(0), 39);
+        test_on_input(DAY, Puzzle::First, Input::Example(1), 590784);
     }
 
     #[test]
@@ -153,7 +177,12 @@ mod tests {
 
     #[test]
     fn second_example() {
-        assert_eq!(second(SECOND_EXAMPLE), "2758514936282235");
+        test_on_input(
+            DAY,
+            Puzzle::Second,
+            Input::Example(2),
+            2758514936282235usize,
+        );
     }
 
     #[test]
@@ -167,209 +196,86 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_input() {
-        let input = "\
-            on x=-20..26,y=-36..17,z=-47..7\n\
-            off x=-20..33,y=-21..23,z=-26..28\n\
-            off x=-22..28,y=-29..23,z=-38..16\n\
-            on x=-46..7,y=-6..46,z=-50..-1\n\
-        ";
-        let actual = parse_input(input);
-        let expected = [
-            (true, [[-20, 27], [-36, 18], [-47, 8]]),
-            (false, [[-20, 34], [-21, 24], [-26, 29]]),
-            (false, [[-22, 29], [-29, 24], [-38, 17]]),
-            (true, [[-46, 8], [-6, 47], [-50, 0]]),
+    fn cuboid_difference() {
+        let lhs = [5..15, 5..15, 5..15];
+        let rhs = [0..20, 7..11, 1..8];
+        let difference = super::cuboid_difference(&lhs, &rhs);
+        let actual_number_of_cubes = number_of_cubes(&difference);
+        let expected_number_of_cubes = 1000 - 10 * 4 * 3;
+        assert_eq!(actual_number_of_cubes, expected_number_of_cubes);
+    }
+
+    #[test]
+    fn range_difference() {
+        let sample = 5..15;
+        let function = |rhs| super::range_difference(&sample, &rhs);
+        #[allow(clippy::single_range_in_vec_init)]
+        let cases = [
+            (6..14, (vec![5..6, 14..15], 6..14)),
+            (1..14, (vec![14..15], 5..14)),
+            (14..22, (vec![5..14], 14..15)),
+            (4..16, (vec![], 5..15)),
+            (5..15, (vec![], 5..15)),
         ];
-        assert_eq!(&actual, &expected);
-    }
-
-    fn assert_difference(soft: Cuboid, solid: Cuboid, expected: Vec<Cuboid>) {
-        let actual = difference(soft, solid);
-        let [actual, expected] = [actual, expected].map(BTreeSet::from_iter);
-        assert_eq!(actual, expected);
+        test::cases(function, cases);
     }
 
     #[test]
-    fn difference_no_overlap() {
-        let expected = vec![[[0, 3], [0, 3], [0, 3]]];
-        assert_difference(
-            [[0, 3], [0, 3], [0, 3]],
-            [[1, 4], [-3, 0], [1, 4]],
-            expected,
-        )
-    }
-
-    #[test]
-    fn difference_exact_overlap() {
-        let expected = vec![];
-        assert_difference([[0, 3], [0, 3], [0, 3]], [[0, 3], [0, 3], [0, 3]], expected);
-    }
-
-    #[test]
-    fn difference_split_into_two() {
-        let expected = vec![[[0, 1], [0, 3], [0, 3]]];
-        assert_difference(
-            [[0, 3], [0, 3], [0, 3]],
-            [[1, 5], [-1, 3], [-1, 5]],
-            expected,
-        );
-    }
-
-    #[test]
-    fn difference_split_into_eight() {
-        let expected = vec![
-            [[13, 14], [11, 13], [11, 13]],
-            [[11, 13], [13, 14], [11, 13]],
-            [[11, 13], [11, 13], [13, 14]],
-            [[11, 13], [13, 14], [13, 14]],
-            [[13, 14], [11, 13], [13, 14]],
-            [[13, 14], [13, 14], [11, 13]],
-            [[13, 14], [13, 14], [13, 14]],
+    fn cuboid_with() {
+        let sample = [5..15, 5..15, 5..15];
+        let function = |(range, direction)| super::cuboid_with(&sample, &range, direction);
+        let cases = [
+            ((7..9, X), [7..9, 5..15, 5..15]),
+            ((11..15, Y), [5..15, 11..15, 5..15]),
+            ((5..15, Z), [5..15, 5..15, 5..15]),
         ];
-        assert_difference(
-            [[11, 14], [11, 14], [11, 14]],
-            [[10, 13], [10, 13], [10, 13]],
-            expected,
-        );
+        test::cases(function, cases);
     }
 
     #[test]
-    fn difference_split_into_twelve() {
-        let expected = vec![
-            [[0, 2], [0, 1], [0, 1]],
-            [[0, 2], [0, 1], [1, 2]],
-            [[0, 2], [0, 1], [2, 3]],
-            [[0, 2], [1, 3], [0, 1]],
-            [[0, 2], [1, 3], [1, 2]],
-            [[0, 2], [1, 3], [2, 3]],
-            [[2, 3], [0, 1], [0, 1]],
-            [[2, 3], [0, 1], [2, 3]],
-            [[2, 3], [1, 3], [0, 1]],
-            [[2, 3], [1, 3], [1, 2]],
-            [[2, 3], [1, 3], [2, 3]],
+    fn cuboids_intersect() {
+        let function = |[left, right]: [Cuboid; 2]| super::cuboids_intersect(&left, &right);
+        let cases = [
+            ([[2..4, 2..4, 2..4], [2..4, 2..4, 2..4]], true),
+            ([[1..3, 1..3, 1..3], [2..4, 2..4, 2..4]], true),
+            ([[2..4, 2..4, 2..4], [4..6, 2..4, 2..4]], false),
+            ([[2..4, 2..4, 2..4], [2..4, 4..6, 2..4]], false),
+            ([[2..4, 2..4, 2..4], [2..4, 2..4, 4..6]], false),
         ];
-        assert_difference([[0, 3], [0, 3], [0, 3]], [[2, 3], [0, 1], [1, 2]], expected)
+        test::cases(function, cases);
     }
 
     #[test]
-    fn difference_split_into_eighteen() {
-        let expected = vec![
-            [[0, 1], [0, 1], [0, 2]],
-            [[0, 1], [0, 1], [2, 3]],
-            [[0, 1], [1, 2], [0, 2]],
-            [[0, 1], [1, 2], [2, 3]],
-            [[0, 1], [2, 3], [0, 2]],
-            [[0, 1], [2, 3], [2, 3]],
-            [[1, 2], [0, 1], [0, 2]],
-            [[1, 2], [0, 1], [2, 3]],
-            [[1, 2], [1, 2], [2, 3]],
-            [[1, 2], [2, 3], [0, 2]],
-            [[1, 2], [2, 3], [2, 3]],
-            [[2, 3], [0, 1], [0, 2]],
-            [[2, 3], [0, 1], [2, 3]],
-            [[2, 3], [1, 2], [0, 2]],
-            [[2, 3], [1, 2], [2, 3]],
-            [[2, 3], [2, 3], [0, 2]],
-            [[2, 3], [2, 3], [2, 3]],
+    fn ranges_intersect() {
+        let function =
+            |[left, right]: [Range<Coordinate>; 2]| super::ranges_intersect(&left, &right);
+        let cases = [
+            ([2..4, 4..6], false),
+            ([5..6, 2..5], false),
+            ([2..4, 3..7], true),
+            ([2..4, 0..3], true),
+            ([7..13, 7..13], true),
+            ([7..18, 7..13], true),
+            ([7..13, 7..14], true),
         ];
-        assert_difference(
-            [[0, 3], [0, 3], [0, 3]],
-            [[1, 2], [1, 2], [-1, 2]],
-            expected,
-        )
+        test::cases(function, cases);
     }
 
-    const FIRST_EXAMPLE: &str = "\
-        on x=-20..26,y=-36..17,z=-47..7\n\
-        on x=-20..33,y=-21..23,z=-26..28\n\
-        on x=-22..28,y=-29..23,z=-38..16\n\
-        on x=-46..7,y=-6..46,z=-50..-1\n\
-        on x=-49..1,y=-3..46,z=-24..28\n\
-        on x=2..47,y=-22..22,z=-23..27\n\
-        on x=-27..23,y=-28..26,z=-21..29\n\
-        on x=-39..5,y=-6..47,z=-3..44\n\
-        on x=-30..21,y=-8..43,z=-13..34\n\
-        on x=-22..26,y=-27..20,z=-29..19\n\
-        off x=-48..-32,y=26..41,z=-47..-37\n\
-        on x=-12..35,y=6..50,z=-50..-2\n\
-        off x=-48..-32,y=-32..-16,z=-15..-5\n\
-        on x=-18..26,y=-33..15,z=-7..46\n\
-        off x=-40..-22,y=-38..-28,z=23..41\n\
-        on x=-16..35,y=-41..10,z=-47..6\n\
-        off x=-32..-23,y=11..30,z=-14..3\n\
-        on x=-49..-5,y=-3..45,z=-29..18\n\
-        off x=18..30,y=-20..-8,z=-3..13\n\
-        on x=-41..9,y=-7..43,z=-33..15\n\
-        on x=-54112..-39298,y=-85059..-49293,z=-27449..7877\n\
-        on x=967..23432,y=45373..81175,z=27513..53682\n\
-    ";
-
-    const SECOND_EXAMPLE: &str = "\
-        on x=-5..47,y=-31..22,z=-19..33\n\
-        on x=-44..5,y=-27..21,z=-14..35\n\
-        on x=-49..-1,y=-11..42,z=-10..38\n\
-        on x=-20..34,y=-40..6,z=-44..1\n\
-        off x=26..39,y=40..50,z=-2..11\n\
-        on x=-41..5,y=-41..6,z=-36..8\n\
-        off x=-43..-33,y=-45..-28,z=7..25\n\
-        on x=-33..15,y=-32..19,z=-34..11\n\
-        off x=35..47,y=-46..-34,z=-11..5\n\
-        on x=-14..36,y=-6..44,z=-16..29\n\
-        on x=-57795..-6158,y=29564..72030,z=20435..90618\n\
-        on x=36731..105352,y=-21140..28532,z=16094..90401\n\
-        on x=30999..107136,y=-53464..15513,z=8553..71215\n\
-        on x=13528..83982,y=-99403..-27377,z=-24141..23996\n\
-        on x=-72682..-12347,y=18159..111354,z=7391..80950\n\
-        on x=-1060..80757,y=-65301..-20884,z=-103788..-16709\n\
-        on x=-83015..-9461,y=-72160..-8347,z=-81239..-26856\n\
-        on x=-52752..22273,y=-49450..9096,z=54442..119054\n\
-        on x=-29982..40483,y=-108474..-28371,z=-24328..38471\n\
-        on x=-4958..62750,y=40422..118853,z=-7672..65583\n\
-        on x=55694..108686,y=-43367..46958,z=-26781..48729\n\
-        on x=-98497..-18186,y=-63569..3412,z=1232..88485\n\
-        on x=-726..56291,y=-62629..13224,z=18033..85226\n\
-        on x=-110886..-34664,y=-81338..-8658,z=8914..63723\n\
-        on x=-55829..24974,y=-16897..54165,z=-121762..-28058\n\
-        on x=-65152..-11147,y=22489..91432,z=-58782..1780\n\
-        on x=-120100..-32970,y=-46592..27473,z=-11695..61039\n\
-        on x=-18631..37533,y=-124565..-50804,z=-35667..28308\n\
-        on x=-57817..18248,y=49321..117703,z=5745..55881\n\
-        on x=14781..98692,y=-1341..70827,z=15753..70151\n\
-        on x=-34419..55919,y=-19626..40991,z=39015..114138\n\
-        on x=-60785..11593,y=-56135..2999,z=-95368..-26915\n\
-        on x=-32178..58085,y=17647..101866,z=-91405..-8878\n\
-        on x=-53655..12091,y=50097..105568,z=-75335..-4862\n\
-        on x=-111166..-40997,y=-71714..2688,z=5609..50954\n\
-        on x=-16602..70118,y=-98693..-44401,z=5197..76897\n\
-        on x=16383..101554,y=4615..83635,z=-44907..18747\n\
-        off x=-95822..-15171,y=-19987..48940,z=10804..104439\n\
-        on x=-89813..-14614,y=16069..88491,z=-3297..45228\n\
-        on x=41075..99376,y=-20427..49978,z=-52012..13762\n\
-        on x=-21330..50085,y=-17944..62733,z=-112280..-30197\n\
-        on x=-16478..35915,y=36008..118594,z=-7885..47086\n\
-        off x=-98156..-27851,y=-49952..43171,z=-99005..-8456\n\
-        off x=2032..69770,y=-71013..4824,z=7471..94418\n\
-        on x=43670..120875,y=-42068..12382,z=-24787..38892\n\
-        off x=37514..111226,y=-45862..25743,z=-16714..54663\n\
-        off x=25699..97951,y=-30668..59918,z=-15349..69697\n\
-        off x=-44271..17935,y=-9516..60759,z=49131..112598\n\
-        on x=-61695..-5813,y=40978..94975,z=8655..80240\n\
-        off x=-101086..-9439,y=-7088..67543,z=33935..83858\n\
-        off x=18020..114017,y=-48931..32606,z=21474..89843\n\
-        off x=-77139..10506,y=-89994..-18797,z=-80..59318\n\
-        off x=8476..79288,y=-75520..11602,z=-96624..-24783\n\
-        on x=-47488..-1262,y=24338..100707,z=16292..72967\n\
-        off x=-84341..13987,y=2429..92914,z=-90671..-1318\n\
-        off x=-37810..49457,y=-71013..-7894,z=-105357..-13188\n\
-        off x=-27365..46395,y=31009..98017,z=15428..76570\n\
-        off x=-70369..-16548,y=22648..78696,z=-1892..86821\n\
-        on x=-53470..21291,y=-120233..-33476,z=-44150..38147\n\
-        off x=-93533..-4276,y=-16170..68771,z=-104985..-24507\n\
-    ";
-
     #[test]
-    fn second_example_initialization() {
-        assert_eq!(first(SECOND_EXAMPLE), "474140");
+    fn is_within_initialization_area() {
+        let function = |cuboid| super::is_within_initialization_area(&cuboid);
+        let cases = [
+            ([-20..26, -36..17, -47..7], true),
+            ([-20..33, -21..23, -26..28], true),
+            ([-22..28, -29..23, -38..16], true),
+            ([-46..7, -6..46, -50..-1], true),
+            ([-49..1, -3..46, -24..28], true),
+            ([-57795..-6158, 29564..72030, 20435..90618], false),
+            ([36731..105352, -21140..28532, 16094..90401], false),
+            ([30999..107136, -53464..15513, 8553..71215], false),
+            ([13528..83982, -99403..-27377, -24141..23996], false),
+            ([-72682..-12347, 18159..111354, 7391..80950], false),
+        ];
+        test::cases(function, cases);
     }
 }
