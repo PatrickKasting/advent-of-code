@@ -136,7 +136,7 @@ where
     distances
 }
 
-pub fn cheapest_path_cost<State, Cost, Successors>(
+pub fn minimum_path_cost<State, Cost, Successors>(
     source: State,
     mut successors: impl FnMut(State) -> Successors,
     mut target: impl FnMut(State) -> bool,

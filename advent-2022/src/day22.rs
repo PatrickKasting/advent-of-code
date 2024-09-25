@@ -256,7 +256,7 @@ fn path(line: &str) -> impl Iterator<Item = Instruction> + '_ {
             b'R' => Instruction::Right,
             digit if digit.is_ascii_digit() => {
                 let number_of_steps = str::from_utf8(instruction)
-                    .expect("slice should still be UTF-8")
+                    .expect("slice should still be utf8")
                     .parse()
                     .expect("slice should contain only digits");
                 Instruction::Forward(number_of_steps)

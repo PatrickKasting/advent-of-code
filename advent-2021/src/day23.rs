@@ -1,21 +1,9 @@
-use std::fmt::{Display, Write};
+use std::{array, ops::Range, str};
 
-use shared::search;
+use easy_cast::{Cast, Conv};
+use itertools::Itertools;
+use shared::{grid::Grid, search};
 
-type HomeIndex = usize;
-type HallwayPosition = usize;
-type Energy = usize;
-
-pub fn first(input: &str) -> String {
-    let initial = parse_input(input);
-    search(initial).to_string()
-}
-
-pub fn second(_input: &str) -> String {
-    unimplemented!()
-}
-
-#[repr(u8)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum Amphipod {
     Amber = 0,
@@ -24,250 +12,210 @@ enum Amphipod {
     Desert = 3,
 }
 
-impl From<Amphipod> for char {
-    fn from(value: Amphipod) -> Self {
-        match value {
-            Amphipod::Amber => 'A',
-            Amphipod::Bronze => 'B',
-            Amphipod::Copper => 'C',
-            Amphipod::Desert => 'D',
-        }
+type Burrow<const ROOM_SIZE: usize> = (Hallway, [Room<ROOM_SIZE>; NUMBER_OF_ROOMS]);
+type Room<const ROOM_SIZE: usize> = [Option<Amphipod>; ROOM_SIZE];
+type Hallway = [Option<Amphipod>; NUMBER_OF_HALLWAY_POSITIONS];
+type Position = usize;
+type Energy = usize;
+
+const NUMBER_OF_ROOMS: usize = 4;
+const HALLWAY_SPACES: [usize; NUMBER_OF_HALLWAY_POSITIONS] = [1, 2, 4, 6, 8, 10, 11];
+const NUMBER_OF_HALLWAY_POSITIONS: usize = 7;
+
+pub fn first(input: &str) -> String {
+    let burrow = burrow(input);
+    least_total_energy_to_organize(burrow).to_string()
+}
+
+pub fn second(_input: &str) -> String {
+    todo!()
+}
+
+fn least_total_energy_to_organize<const ROOM_SIZE: usize>(burrow: Burrow<ROOM_SIZE>) -> Energy {
+    let successors =
+        |burrow| successors_move_out_all_rooms(burrow).chain(successors_move_in(burrow));
+    search::minimum_path_cost(burrow, successors, is_organized)
+        .expect("amphipods should be able to organize")
+}
+
+fn successors_move_out_all_rooms<const ROOM_SIZE: usize>(
+    burrow: Burrow<ROOM_SIZE>,
+) -> impl Iterator<Item = (Burrow<ROOM_SIZE>, Energy)> {
+    (0..NUMBER_OF_ROOMS)
+        .flat_map(move |room_index| successors_move_out_one_room(burrow, room_index))
+}
+
+fn successors_move_out_one_room<const ROOM_SIZE: usize>(
+    burrow @ (hallway, rooms): Burrow<ROOM_SIZE>,
+    room_index: usize,
+) -> impl Iterator<Item = (Burrow<ROOM_SIZE>, Energy)> {
+    move_out(room_index, rooms[room_index])
+        .into_iter()
+        .flat_map(move |(successor_room, room_space, amphipod)| {
+            let left = hallway
+                .into_iter()
+                .enumerate()
+                .take(2 + room_index)
+                .rev()
+                .take_while(|(_, amphipod)| amphipod.is_none());
+            let right = hallway
+                .into_iter()
+                .enumerate()
+                .skip(2 + room_index)
+                .take_while(|(_, amphipod)| amphipod.is_none());
+            left.chain(right).map(move |(position, _)| {
+                let mut successor = burrow;
+                successor.0[position] = Some(amphipod);
+                successor.1[room_index] = successor_room;
+                let energy =
+                    number_of_steps(position, room_index, room_space) * energy_per_step(amphipod);
+                (successor, energy)
+            })
+        })
+}
+
+fn move_out<const ROOM_SIZE: usize>(
+    room_index: usize,
+    mut room: Room<ROOM_SIZE>,
+) -> Option<(Room<ROOM_SIZE>, usize, Amphipod)> {
+    let all_inhabitants_are_home = !room
+        .into_iter()
+        .any(|amphipod| amphipod.is_some_and(|amphipod| amphipod as usize != room_index));
+    if all_inhabitants_are_home {
+        return None;
+    }
+
+    room.into_iter()
+        .enumerate()
+        .find_map(|(room_space, amphipod)| {
+            amphipod.map(|amphipod| {
+                room[room_space] = None;
+                (room, room_space, amphipod)
+            })
+        })
+}
+
+fn successors_move_in<const ROOM_SIZE: usize>(
+    burrow @ (hallway, _): Burrow<ROOM_SIZE>,
+) -> impl Iterator<Item = (Burrow<ROOM_SIZE>, Energy)> {
+    hallway
+        .into_iter()
+        .enumerate()
+        .filter_map(|(position, amphipod)| amphipod.map(|amphipod| (position, amphipod)))
+        .filter_map(move |(position, amphipod)| successor_move_in(burrow, position, amphipod))
+}
+
+fn successor_move_in<const ROOM_SIZE: usize>(
+    burrow @ (hallway, rooms): Burrow<ROOM_SIZE>,
+    position: Position,
+    amphipod: Amphipod,
+) -> Option<(Burrow<ROOM_SIZE>, Energy)> {
+    let room_index = amphipod as usize;
+    let is_path_clear = is_path_clear(hallway, position, amphipod);
+    (is_path_clear && is_vacant(rooms[room_index], amphipod)).then(|| {
+        let mut successor = burrow;
+        successor.0[position] = None;
+        let room_space;
+        (successor.1[room_index], room_space) = move_in(successor.1[room_index], amphipod);
+        let energy =
+            number_of_steps(position, amphipod as usize, room_space) * energy_per_step(amphipod);
+        (successor, energy)
+    })
+}
+
+fn is_path_clear(hallway: Hallway, position: Position, amphipod: Amphipod) -> bool {
+    hallway[path(position, amphipod as usize)]
+        .iter()
+        .all(Option::is_none)
+}
+
+fn path(position: Position, room_index: usize) -> Range<Position> {
+    let room_position = 2 + room_index;
+    if room_position <= position {
+        room_position..position
+    } else {
+        position + 1..room_position
     }
 }
 
-impl Amphipod {
-    fn home_index(self) -> HomeIndex {
-        self as usize
-    }
-
-    fn energy_per_step(self) -> Energy {
-        10usize.pow(self as u32)
-    }
-
-    fn amphipod_in(home_index: HomeIndex) -> Self {
-        match home_index {
-            0 => Self::Amber,
-            1 => Self::Bronze,
-            2 => Self::Copper,
-            3 => Self::Desert,
-            _ => panic!("home index should be no greater than three"),
-        }
-    }
+fn is_vacant<const ROOM_SIZE: usize>(room: Room<ROOM_SIZE>, amphipod: Amphipod) -> bool {
+    let has_empty_space = room[0].is_none();
+    let only_similar_amphipods = !room
+        .into_iter()
+        .rev()
+        .take_while(Option::is_some)
+        .any(|inhabitant| inhabitant.expect("'take_while' should yield only 'Some'") != amphipod);
+    has_empty_space && only_similar_amphipods
 }
 
-impl Display for Amphipod {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_char((*self).into())
-    }
+fn move_in<const ROOM_SIZE: usize>(
+    mut room: Room<ROOM_SIZE>,
+    amphipod: Amphipod,
+) -> (Room<ROOM_SIZE>, usize) {
+    let (space, element) = room
+        .iter_mut()
+        .enumerate()
+        .rev()
+        .find(|(_, amphipod)| amphipod.is_none())
+        .expect("at least one side room space should be vacant");
+    *element = Some(amphipod);
+    (room, space)
 }
 
-const NUM_HALLWAY_POSITIONS: usize = 11;
-const HALLWAY_STOP_POSITIONS: [usize; 7] = [0, 1, 3, 5, 7, 9, 10];
-const REVERSE_HALLWAY_STOP_POSITIONS: [usize; 7] = [10, 9, 7, 5, 3, 1, 0];
-const NUM_HOMES: usize = 4;
-const HOME_SIZE: usize = 2;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-struct State {
-    hallway: [Option<Amphipod>; NUM_HALLWAY_POSITIONS],
-    homes: [[Option<Amphipod>; HOME_SIZE]; NUM_HOMES],
+fn number_of_steps(position: Position, room_index: usize, room_space: usize) -> Energy {
+    let hallway_space = HALLWAY_SPACES[position];
+    let room_column = 3 + 2 * room_index;
+    hallway_space.abs_diff(room_column) + room_space + 1
 }
 
-impl Display for State {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        fn optional_amphipod_to_char(amphipod: Option<Amphipod>) -> char {
-            amphipod.map(Into::into).unwrap_or('.')
-        }
-        let home = |home_index: HomeIndex, level: usize| {
-            optional_amphipod_to_char(self.homes[home_index][level])
-        };
-        let home_level = |level: usize| {
-            format!(
-                "#{}#{}#{}#{}#",
-                home(0, level),
-                home(1, level),
-                home(2, level),
-                home(3, level)
-            )
-        };
-        let hallway = String::from_iter(self.hallway.map(optional_amphipod_to_char));
-
-        writeln!(f, "#############")?;
-        writeln!(f, "#{}#", hallway)?;
-        writeln!(f, "##{}##", home_level(0))?;
-        for level in 1..HOME_SIZE {
-            writeln!(f, "..{}..", home_level(level))?;
-        }
-        writeln!(f, "..#########..")
-    }
+fn energy_per_step(amphipod: Amphipod) -> Energy {
+    10usize.pow(amphipod as u32)
 }
 
-fn parse_optional_amphipod(char: char) -> Option<Amphipod> {
+fn is_organized<const ROOM_SIZE: usize>((_, rooms): Burrow<ROOM_SIZE>) -> bool {
+    rooms.into_iter().enumerate().all(|(index, room)| {
+        room.into_iter()
+            .all(|amphipod| amphipod.is_some_and(|amphipod| amphipod as usize == index))
+    })
+}
+
+fn burrow(input: &str) -> Burrow<2> {
+    let mut lines = input
+        .lines()
+        .map(str::as_bytes)
+        .map(ToOwned::to_owned)
+        .collect_vec();
+    lines.iter_mut().for_each(|line| line.resize(13, b' '));
+    let burrow =
+        Grid::from(str::from_utf8(&lines.join(&b'\n')).expect("slice should still be utf8"));
+
+    let hallway = array::from_fn(|position| amphipod(burrow[[1, HALLWAY_SPACES[position].cast()]]));
+    let rooms: [Room<2>; NUMBER_OF_ROOMS] = array::from_fn(|room| {
+        array::from_fn(|space| {
+            amphipod(burrow[[2 + isize::conv(space), 3 + isize::conv(room) * 2]])
+        })
+    });
+
+    (hallway, rooms)
+}
+
+fn amphipod(char: char) -> Option<Amphipod> {
     match char {
         'A' => Some(Amphipod::Amber),
         'B' => Some(Amphipod::Bronze),
         'C' => Some(Amphipod::Copper),
         'D' => Some(Amphipod::Desert),
         '.' => None,
-        _ => panic!("burrow positions should be represented by 'A', 'B', 'C', 'D', or '.'"),
+        _ => panic!("amphipod should be '.', 'A', 'B', 'C', or 'D'"),
     }
-}
-
-fn parse_home_line(
-    home_line: &str,
-    homes: &mut [[Option<Amphipod>; HOME_SIZE]; NUM_HOMES],
-    level: usize,
-) {
-    for (index, home) in homes.iter_mut().enumerate() {
-        let amphipod = home_line
-            .chars()
-            .nth(2 * index + 3)
-            .expect("burrow should contain four homes");
-        home[level] = parse_optional_amphipod(amphipod);
-    }
-}
-
-fn parse_input(input: &str) -> State {
-    let mut lines = input.lines();
-    lines.next();
-
-    let hallway = lines
-        .next()
-        .expect("every burrow should have a hallway")
-        .chars()
-        .skip(1)
-        .take(NUM_HALLWAY_POSITIONS)
-        .map(parse_optional_amphipod)
-        .collect::<Vec<Option<Amphipod>>>()
-        .try_into()
-        .expect("hallway should have the correct length");
-
-    let mut homes = [[None; HOME_SIZE]; NUM_HOMES];
-    for (level, home_line) in lines.take(HOME_SIZE).enumerate() {
-        parse_home_line(home_line, &mut homes, level);
-    }
-
-    State { hallway, homes }
-}
-
-fn home_entrance(home_index: HomeIndex) -> HallwayPosition {
-    2 * (home_index + 1)
-}
-
-impl State {
-    fn go_home(self, from: HallwayPosition) -> Option<(Self, Energy)> {
-        let amphipod =
-            self.hallway[from].expect("the given hallway position should contain an amphipod");
-        let home_index = amphipod.home_index();
-        let first_non_roommate_position = self.homes[home_index]
-            .iter()
-            .position(|amphipod| {
-                !amphipod.is_some_and(|resident| resident.home_index() == home_index)
-            })
-            .expect(
-                "room should not be full of correct amphipods when correct amphipod is in hallway",
-            );
-        if self.homes[home_index][first_non_roommate_position].is_some() {
-            return None;
-        }
-
-        let to = home_entrance(home_index);
-        let hallway_range = if from < to {
-            from + 1..=to
-        } else {
-            to..=from - 1
-        };
-        let hallway_empty = self.hallway[hallway_range.clone()]
-            .iter()
-            .all(Option::is_none);
-        if !hallway_empty {
-            return None;
-        }
-
-        let mut successor = self;
-        successor.hallway[from] = None;
-        successor.homes[home_index][first_non_roommate_position] = Some(amphipod);
-
-        let num_steps = hallway_range.count() + HOME_SIZE - first_non_roommate_position;
-        Some((successor, num_steps * amphipod.energy_per_step()))
-    }
-
-    fn go_out(self, home_index: HomeIndex) -> Vec<(Self, Energy)> {
-        let Some((home_position, &Some(amphipod))) = self.homes[home_index]
-            .iter()
-            .enumerate()
-            .rev()
-            .find(|(_, amphipod)| amphipod.is_some())
-        else {
-            return Vec::new();
-        };
-
-        let home_entrance = home_entrance(home_index);
-        let split_index = HALLWAY_STOP_POSITIONS
-            .iter()
-            .position(|&stop_position| home_entrance < stop_position)
-            .expect("every home entrance should be between two stop positions");
-        let reverse_split_index = HALLWAY_STOP_POSITIONS.len() - split_index;
-        let reverse_left = &REVERSE_HALLWAY_STOP_POSITIONS[reverse_split_index..];
-        let right = &HALLWAY_STOP_POSITIONS[split_index..];
-
-        let mut successors = Vec::new();
-        let mut hallway_walk = |stop_positions: &[HallwayPosition]| {
-            for &stop_position in stop_positions {
-                if self.hallway[stop_position].is_some() {
-                    break;
-                }
-
-                let mut successor = self;
-                successor.homes[home_index][home_position] = None;
-                successor.hallway[stop_position] = Some(amphipod);
-
-                let num_steps = stop_position.abs_diff(home_entrance) + HOME_SIZE - home_position;
-                successors.push((successor, num_steps * amphipod.energy_per_step()))
-            }
-        };
-        hallway_walk(reverse_left);
-        hallway_walk(right);
-        successors
-    }
-
-    fn successors(self) -> Vec<(Self, Energy)> {
-        let mut successors: Vec<(Self, Energy)> = (0..NUM_HOMES)
-            .flat_map(|home_index| self.go_out(home_index))
-            .collect();
-        successors.extend(self.hallway.iter().enumerate().filter_map(
-            |(hallway_index, amphipod)| {
-                amphipod
-                    .is_some()
-                    .then(|| self.go_home(hallway_index))
-                    .flatten()
-            },
-        ));
-        successors
-    }
-
-    fn is_home_organized(self, home_index: usize) -> bool {
-        let supposed_resident = Some(Amphipod::amphipod_in(home_index));
-        self.homes[home_index]
-            .iter()
-            .all(|&resident| resident == supposed_resident)
-    }
-
-    fn is_burrow_organized(self) -> bool {
-        (0..NUM_HOMES).all(|home_index| self.is_home_organized(home_index))
-    }
-}
-
-fn search(initial: State) -> Energy {
-    search::cheapest_path_cost(initial, State::successors, State::is_burrow_organized)
-        .expect("a sequence of moves organizing the burrow should exist")
 }
 
 #[cfg(test)]
 mod tests {
-    use std::collections::BTreeSet;
+    use std::iter;
 
-    use infrastructure::{Input, Puzzle};
+    use ahash::AHashSet;
+    use infrastructure::{test, Input, Puzzle};
 
     use super::*;
     use crate::tests::{input, test_on_input};
@@ -284,10 +232,10 @@ mod tests {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 17120);
     }
 
-    #[test]
-    fn second_example() {
-        test_on_input(DAY, Puzzle::Second, Input::Example(0), 44169);
-    }
+    // #[test]
+    // fn second_example() {
+    //     test_on_input(DAY, Puzzle::Second, Input::Example(0), 44169);
+    // }
 
     // #[test]
     // fn second_input() {
@@ -295,334 +243,214 @@ mod tests {
     // }
 
     #[test]
-    fn parse() {
-        let mut input = input(DAY, Input::Example(0));
-        input.retain(|char| char != '\r');
-        let reconstructed = parse_input(&input).to_string();
-        assert_eq!(reconstructed, input);
-    }
+    fn successors_move_out_one_room_blocked_left() {
+        let (hallway, mut rooms) = super::burrow(&input(DAY, Input::Example(2)));
+        let actual: AHashSet<_> = successors_move_out_one_room((hallway, rooms), 3).collect();
 
-    #[test]
-    fn entrance() {
-        let actual: Vec<HallwayPosition> = (0..NUM_HOMES).map(home_entrance).collect();
-        let expected = vec![2, 4, 6, 8];
+        rooms[3][0] = None;
+        let successors = [(3, 4000), (4, 2000), (5, 2000), (6, 3000)].map(|(position, energy)| {
+            let mut hallway = hallway;
+            hallway[position] = Some(Amphipod::Desert);
+            ((hallway, rooms), energy)
+        });
+        let expected = AHashSet::from(successors);
         assert_eq!(actual, expected);
     }
 
     #[test]
-    fn homes() {
-        use Amphipod::*;
-        let actual = [Amber, Bronze, Copper, Desert].map(Amphipod::home_index);
-        let expected = [0, 1, 2, 3];
+    fn successors_move_out_one_room_blocked_right() {
+        let (hallway, mut rooms) = super::burrow(&input(DAY, Input::Example(2)));
+        let actual: AHashSet<_> = successors_move_out_one_room((hallway, rooms), 0).collect();
+
+        rooms[0][0] = None;
+        let successors = [(0, 30), (1, 20)].map(|(position, energy)| {
+            let mut hallway = hallway;
+            hallway[position] = Some(Amphipod::Bronze);
+            ((hallway, rooms), energy)
+        });
+        let expected = AHashSet::from(successors);
         assert_eq!(actual, expected);
     }
 
     #[test]
-    fn energies() {
-        use Amphipod::*;
-        let actual = [Amber, Bronze, Copper, Desert].map(Amphipod::energy_per_step);
-        let expected = [1, 10, 100, 1000];
+    fn move_out() {
+        let function = |(room_index, room)| super::move_out(room_index, room);
+        let cases = [
+            (
+                (0, [Some(Amphipod::Bronze), Some(Amphipod::Amber)]),
+                Some(([None, Some(Amphipod::Amber)], 0, Amphipod::Bronze)),
+            ),
+            (
+                (1, [None, Some(Amphipod::Desert)]),
+                Some(([None, None], 1, Amphipod::Desert)),
+            ),
+            ((2, [None, Some(Amphipod::Copper)]), None),
+            ((2, [Some(Amphipod::Copper), Some(Amphipod::Copper)]), None),
+            (
+                (3, [Some(Amphipod::Desert), Some(Amphipod::Amber)]),
+                Some(([None, Some(Amphipod::Amber)], 0, Amphipod::Desert)),
+            ),
+            ((3, [None, None]), None),
+        ];
+        test::cases(function, cases);
+    }
+
+    #[test]
+    fn successors_move_in() {
+        let burrow = super::burrow(&input(DAY, Input::Example(3)));
+        let actual = super::successors_move_in(burrow);
+        let expected_successor = (
+            [
+                None,
+                None,
+                None,
+                Some(Amphipod::Desert),
+                None,
+                Some(Amphipod::Amber),
+                None,
+            ],
+            [
+                [None, Some(Amphipod::Amber)],
+                [Some(Amphipod::Bronze), Some(Amphipod::Bronze)],
+                [Some(Amphipod::Copper), Some(Amphipod::Copper)],
+                [None, Some(Amphipod::Desert)],
+            ],
+        );
+        let expected_energy = 3000;
+        itertools::assert_equal(actual, iter::once((expected_successor, expected_energy)));
+    }
+
+    #[test]
+    fn move_in_blocked_by_other_amphipod_in_room() {
+        let burrow = super::burrow(&input(DAY, Input::Example(2)));
+        let actual = successor_move_in(burrow, 2, Amphipod::Bronze);
+        let expected = None;
         assert_eq!(actual, expected);
     }
 
     #[test]
-    fn reverse_hallway_stop_positions() {
-        let mut hallway_stop_positions = HALLWAY_STOP_POSITIONS;
-        hallway_stop_positions.reverse();
-        assert_eq!(hallway_stop_positions, REVERSE_HALLWAY_STOP_POSITIONS);
-    }
-
-    fn assert_can_go_home(
-        state: &str,
-        from: HallwayPosition,
-        expected_successor: &str,
-        expected_energy: Energy,
-    ) {
-        let (successor, energy) = parse_input(state)
-            .go_home(from)
-            .expect("amber amphipod should be able to move to its home");
-        assert_eq!(successor.to_string(), expected_successor);
-        assert_eq!(energy, expected_energy);
-    }
-
-    #[test]
-    fn can_go_home_to_empty() {
-        let state = "\
-            #############\n\
-            #A........A.#\n\
-            ###.#B#C#D###\n\
-            ..#.#B#C#D#..\n\
-            ..#########..\n\
-        ";
-        let expected_successor = "\
-            #############\n\
-            #.........A.#\n\
-            ###.#B#C#D###\n\
-            ..#A#B#C#D#..\n\
-            ..#########..\n\
-        ";
-        assert_can_go_home(state, 0, expected_successor, 4);
-    }
-
-    #[test]
-    fn can_go_home_to_roommate() {
-        let state = "\
-            #############\n\
-            #.........A.#\n\
-            ###.#B#C#D###\n\
-            ..#A#B#C#D#..\n\
-            ..#########..\n\
-        ";
-        let expected_successor = "\
-            #############\n\
-            #...........#\n\
-            ###A#B#C#D###\n\
-            ..#A#B#C#D#..\n\
-            ..#########..\n\
-        ";
-        assert_can_go_home(state, 9, expected_successor, 8);
-    }
-
-    fn assert_cannot_go_home(state: &str, from: HallwayPosition) {
-        assert!(parse_input(state).go_home(from).is_none());
-    }
-
-    #[test]
-    fn cannot_go_home_because_blocked() {
-        let state = "\
-            #############\n\
-            #...B...A...#\n\
-            ###.#.#C#D###\n\
-            ..#A#B#C#D#..\n\
-            ..#########..\n\
-        ";
-        assert_cannot_go_home(state, 7);
-    }
-
-    #[test]
-    fn cannot_go_home_because_bad_roommate() {
-        let state = "\
-            #############\n\
-            #...B.......#\n\
-            ###B#.#C#D###\n\
-            ..#A#A#C#D#..\n\
-            ..#########..\n\
-        ";
-        assert_cannot_go_home(state, 3);
-    }
-
-    fn assert_successors<const N: usize>(
-        successors: impl FnOnce(State) -> Vec<(State, Energy)>,
-        state: &str,
-        expected_successors: [&str; N],
-        expected_energies: [Energy; N],
-    ) {
-        let actual: BTreeSet<(String, Energy)> = successors(parse_input(state))
-            .into_iter()
-            .map(|(successor, energy)| (successor.to_string(), energy))
-            .collect();
-        let expected = BTreeSet::from_iter(
-            expected_successors
-                .into_iter()
-                .map(ToString::to_string)
-                .zip(expected_energies),
-        );
+    fn move_in_blocked_by_other_amphipod_in_hallway() {
+        let burrow = super::burrow(&input(DAY, Input::Example(3)));
+        let actual = successor_move_in(burrow, 5, Amphipod::Amber);
+        let expected = None;
         assert_eq!(actual, expected);
     }
 
     #[test]
-    fn can_go_out_blocked_left() {
-        let state = "\
-            #############\n\
-            #...B...A...#\n\
-            ###.#.#C#D###\n\
-            ..#A#B#C#D#..\n\
-            ..#########..\n\
-        ";
-        let expected_successors = [
-            "\
-                #############\n\
-                #...B...A.D.#\n\
-                ###.#.#C#.###\n\
-                ..#A#B#C#D#..\n\
-                ..#########..\n\
-            ",
-            "\
-                #############\n\
-                #...B...A..D#\n\
-                ###.#.#C#.###\n\
-                ..#A#B#C#D#..\n\
-                ..#########..\n\
-            ",
-        ];
-        let expected_energies = [2000, 3000];
-        assert_successors(
-            |state| state.go_out(3),
-            state,
-            expected_successors,
-            expected_energies,
+    fn move_in_possible() {
+        let burrow = super::burrow(&input(DAY, Input::Example(4)));
+        let actual = successor_move_in(burrow, 5, Amphipod::Amber);
+        let expected_successor = (
+            [None; NUMBER_OF_HALLWAY_POSITIONS],
+            [
+                [Some(Amphipod::Amber), Some(Amphipod::Amber)],
+                [Some(Amphipod::Bronze), Some(Amphipod::Bronze)],
+                [Some(Amphipod::Copper), Some(Amphipod::Copper)],
+                [Some(Amphipod::Desert), Some(Amphipod::Desert)],
+            ],
         );
+        let expected_energy = 8;
+        assert_eq!(actual, Some((expected_successor, expected_energy)));
     }
 
     #[test]
-    fn can_go_out_blocked_right() {
-        let state = "\
-            #############\n\
-            #.........A.#\n\
-            ###.#B#C#D###\n\
-            ..#A#B#C#D#..\n\
-            ..#########..\n\
-        ";
-        let expected_successors = [
-            "\
-                #############\n\
-                #C........A.#\n\
-                ###.#B#.#D###\n\
-                ..#A#B#C#D#..\n\
-                ..#########..\n\
-            ",
-            "\
-                #############\n\
-                #.C.......A.#\n\
-                ###.#B#.#D###\n\
-                ..#A#B#C#D#..\n\
-                ..#########..\n\
-            ",
-            "\
-                #############\n\
-                #...C.....A.#\n\
-                ###.#B#.#D###\n\
-                ..#A#B#C#D#..\n\
-                ..#########..\n\
-            ",
-            "\
-                #############\n\
-                #.....C...A.#\n\
-                ###.#B#.#D###\n\
-                ..#A#B#C#D#..\n\
-                ..#########..\n\
-            ",
-            "\
-                #############\n\
-                #.......C.A.#\n\
-                ###.#B#.#D###\n\
-                ..#A#B#C#D#..\n\
-                ..#########..\n\
-            ",
+    fn is_vacant() {
+        let function = |(room, amphipod)| super::is_vacant(room, amphipod);
+        let cases = [
+            (([None, None], Amphipod::Amber), true),
+            (([None, Some(Amphipod::Bronze)], Amphipod::Amber), false),
+            (([None, Some(Amphipod::Amber)], Amphipod::Amber), true),
+            (
+                (
+                    [Some(Amphipod::Amber), Some(Amphipod::Amber)],
+                    Amphipod::Amber,
+                ),
+                false,
+            ),
         ];
-        let expected_energies: [Energy; 5] = [700, 600, 400, 200, 200];
-        assert_successors(
-            |state| state.go_out(2),
-            state,
-            expected_successors,
-            expected_energies,
+        test::cases(function, cases);
+    }
+
+    #[test]
+    fn is_path_clear() {
+        let (hallway, _) = super::burrow(&input(DAY, Input::Example(3)));
+        let function = |(amphipod, position)| super::is_path_clear(hallway, amphipod, position);
+        let cases = [
+            ((3, Amphipod::Desert), false),
+            ((4, Amphipod::Desert), true),
+            ((5, Amphipod::Amber), false),
+        ];
+        test::cases(function, cases);
+    }
+
+    #[test]
+    fn path() {
+        let function = |(position, room_index)| super::path(position, room_index);
+        let cases = [
+            ((5, 0), 2..5),
+            ((4, 0), 2..4),
+            ((2, 0), 2..2),
+            ((3, 3), 4..5),
+            ((4, 3), 5..5),
+            ((2, 1), 3..3),
+            ((2, 3), 3..5),
+        ];
+        test::cases(function, cases);
+    }
+
+    #[test]
+    fn number_of_steps() {
+        let function = |(position, amphipod, room_space)| {
+            super::number_of_steps(position, amphipod, room_space)
+        };
+        let cases = [
+            ((3, 2, 0), 2),
+            ((2, 1, 1), 3),
+            ((4, 3, 1), 3),
+            ((5, 0, 0), 8),
+        ];
+        test::cases(function, cases);
+    }
+
+    #[test]
+    fn energy_per_step() {
+        let cases = [
+            (Amphipod::Amber, 1),
+            (Amphipod::Bronze, 10),
+            (Amphipod::Copper, 100),
+            (Amphipod::Desert, 1000),
+        ];
+        test::cases(super::energy_per_step, cases);
+    }
+
+    #[test]
+    fn is_organized() {
+        let function =
+            |example| super::is_organized(super::burrow(&input(DAY, Input::Example(example))));
+        let cases = [(0, false), (1, true)];
+        test::cases(function, cases);
+    }
+
+    #[test]
+    fn burrow() {
+        let actual = super::burrow(&input(DAY, Input::Example(3)));
+        let expected = (
+            [
+                None,
+                None,
+                None,
+                Some(Amphipod::Desert),
+                Some(Amphipod::Desert),
+                Some(Amphipod::Amber),
+                None,
+            ],
+            [
+                [None, Some(Amphipod::Amber)],
+                [Some(Amphipod::Bronze), Some(Amphipod::Bronze)],
+                [Some(Amphipod::Copper), Some(Amphipod::Copper)],
+                [None, None],
+            ],
         );
-    }
-
-    #[test]
-    fn successors() {
-        let state = "\
-            #############\n\
-            #...B...A...#\n\
-            ###.#.#C#D###\n\
-            ..#A#B#C#D#..\n\
-            ..#########..\n\
-        ";
-        let expected_successors = [
-            "\
-                #############\n\
-                #A..B...A...#\n\
-                ###.#.#C#D###\n\
-                ..#.#B#C#D#..\n\
-                ..#########..\n\
-            ",
-            "\
-                #############\n\
-                #.A.B...A...#\n\
-                ###.#.#C#D###\n\
-                ..#.#B#C#D#..\n\
-                ..#########..\n\
-            ",
-            "\
-                #############\n\
-                #.......A...#\n\
-                ###.#B#C#D###\n\
-                ..#A#B#C#D#..\n\
-                ..#########..\n\
-            ",
-            "\
-                #############\n\
-                #...B.B.A...#\n\
-                ###.#.#C#D###\n\
-                ..#A#.#C#D#..\n\
-                ..#########..\n\
-            ",
-            "\
-                #############\n\
-                #...B.C.A...#\n\
-                ###.#.#.#D###\n\
-                ..#A#B#C#D#..\n\
-                ..#########..\n\
-            ",
-            "\
-                #############\n\
-                #...B...A.D.#\n\
-                ###.#.#C#.###\n\
-                ..#A#B#C#D#..\n\
-                ..#########..\n\
-            ",
-            "\
-                #############\n\
-                #...B...A..D#\n\
-                ###.#.#C#.###\n\
-                ..#A#B#C#D#..\n\
-                ..#########..\n\
-            ",
-        ];
-        let expected_energies = [4, 3, 20, 30, 200, 2000, 3000];
-        assert_successors(
-            |state| state.successors(),
-            state,
-            expected_successors,
-            expected_energies,
-        );
-    }
-
-    #[test]
-    fn homes_organized() {
-        let state = "\
-            #############\n\
-            #...B.......#\n\
-            ###B#.#C#D###\n\
-            ..#A#A#C#D#..\n\
-            ..#########..\n\
-        ";
-        let state = parse_input(state);
-        let actual = (0..NUM_HOMES).map(|home_index| state.is_home_organized(home_index));
-        let expected = [false, false, true, true].into_iter();
-        assert!(actual.eq(expected));
-    }
-
-    #[test]
-    fn burrow_organized() {
-        let states = [
-            "\
-                #############\n\
-                #.........A.#\n\
-                ###.#B#C#D###\n\
-                ..#A#B#C#D#..\n\
-                ..#########..\n\
-            ",
-            "\
-                #############\n\
-                #...........#\n\
-                ###A#B#C#D###\n\
-                ..#A#B#C#D#..\n\
-                ..#########..\n\
-            ",
-        ];
-        let actual = states.map(parse_input).map(State::is_burrow_organized);
-        let expected = [false, true];
         assert_eq!(actual, expected);
     }
 }

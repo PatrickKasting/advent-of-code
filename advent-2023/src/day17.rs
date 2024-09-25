@@ -4,7 +4,7 @@ use easy_cast::Conv;
 
 use shared::{
     grid::{self, Coordinate, Direction, Grid, Position},
-    search::cheapest_path_cost,
+    search::minimum_path_cost,
     vector::{RotationInTwoDimensions, Vector},
 };
 
@@ -27,7 +27,7 @@ fn minimum_heat_loss(map: &Map, number_of_steps: RangeInclusive<usize>) -> HeatL
         Coordinate::conv(map.width()) - 1,
     ];
     let is_machine_parts_factory = |(_, position)| position == machine_parts_factory;
-    cheapest_path_cost(
+    minimum_path_cost(
         starting_point,
         |mov| moves(map, mov, number_of_steps.clone()),
         is_machine_parts_factory,
