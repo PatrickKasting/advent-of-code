@@ -27,8 +27,9 @@ pub fn first(input: &str) -> String {
     least_total_energy_to_organize(burrow).to_string()
 }
 
-pub fn second(_input: &str) -> String {
-    todo!()
+pub fn second(input: &str) -> String {
+    let burrow = unfold(burrow(input));
+    least_total_energy_to_organize(burrow).to_string()
 }
 
 fn least_total_energy_to_organize<const ROOM_SIZE: usize>(burrow: Burrow<ROOM_SIZE>) -> Energy {
@@ -179,6 +180,19 @@ fn is_organized<const ROOM_SIZE: usize>((_, rooms): Burrow<ROOM_SIZE>) -> bool {
     })
 }
 
+fn unfold((hallway, rooms): Burrow<2>) -> Burrow<4> {
+    let extras = [['D', 'D'], ['C', 'B'], ['B', 'A'], ['A', 'C']].map(|room| room.map(amphipod));
+    let unfolded_rooms = array::from_fn(|index| {
+        [
+            rooms[index][0],
+            extras[index][0],
+            extras[index][1],
+            rooms[index][1],
+        ]
+    });
+    (hallway, unfolded_rooms)
+}
+
 fn burrow(input: &str) -> Burrow<2> {
     let mut lines = input
         .lines()
@@ -232,15 +246,15 @@ mod tests {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 17120);
     }
 
-    // #[test]
-    // fn second_example() {
-    //     test_on_input(DAY, Puzzle::Second, Input::Example(0), 44169);
-    // }
+    #[test]
+    fn second_example() {
+        test_on_input(DAY, Puzzle::Second, Input::Example(0), 44169);
+    }
 
-    // #[test]
-    // fn second_input() {
-    //     test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 150004);
-    // }
+    #[test]
+    fn second_input() {
+        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 47234);
+    }
 
     #[test]
     fn successors_move_out_one_room_blocked_left() {
@@ -429,6 +443,41 @@ mod tests {
             |example| super::is_organized(super::burrow(&input(DAY, Input::Example(example))));
         let cases = [(0, false), (1, true)];
         test::cases(function, cases);
+    }
+
+    #[test]
+    fn unfold() {
+        let actual = super::unfold(super::burrow(&input(DAY, Input::Example(0))));
+        let expected = (
+            [None; 7],
+            [
+                [
+                    Some(Amphipod::Bronze),
+                    Some(Amphipod::Desert),
+                    Some(Amphipod::Desert),
+                    Some(Amphipod::Amber),
+                ],
+                [
+                    Some(Amphipod::Copper),
+                    Some(Amphipod::Copper),
+                    Some(Amphipod::Bronze),
+                    Some(Amphipod::Desert),
+                ],
+                [
+                    Some(Amphipod::Bronze),
+                    Some(Amphipod::Bronze),
+                    Some(Amphipod::Amber),
+                    Some(Amphipod::Copper),
+                ],
+                [
+                    Some(Amphipod::Desert),
+                    Some(Amphipod::Amber),
+                    Some(Amphipod::Copper),
+                    Some(Amphipod::Amber),
+                ],
+            ],
+        );
+        assert_eq!(actual, expected);
     }
 
     #[test]
