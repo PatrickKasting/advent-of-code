@@ -1,111 +1,87 @@
-use shared::grid::{self, Direction, Grid, Position};
+use easy_cast::Conv;
+use shared::{
+    grid::{Coordinate, Direction, Grid, Position},
+    vector::Vector,
+};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-enum SeaCucumber {
-    None,
-    East,
-    South,
-}
-
-type Seafloor = Grid<SeaCucumber>;
-type Moved = bool;
+type Seafloor = Grid<Cucumber>;
+type Cucumber = u8;
 
 pub fn first(input: &str) -> String {
-    let seafloor = parse_input(input);
-    movement(seafloor).to_string()
+    let seafloor = Seafloor::from(input);
+    number_of_steps_before_no_cucumber_moves(seafloor).to_string()
 }
 
 pub fn second(_input: &str) -> String {
-    todo!()
+    panic!("there is no second part on the 25th");
 }
 
-fn parse_sea_cucumber(char: char) -> SeaCucumber {
-    match char {
-        '.' => SeaCucumber::None,
-        '>' => SeaCucumber::East,
-        'v' => SeaCucumber::South,
-        _ => panic!("locations should be only '.', '>', or 'v'"),
+fn number_of_steps_before_no_cucumber_moves(mut seafloor: Seafloor) -> usize {
+    for number_of_steps in 1.. {
+        let at_least_one_cucumber_moves;
+        (seafloor, at_least_one_cucumber_moves) = step_all(seafloor);
+        if !at_least_one_cucumber_moves {
+            return number_of_steps;
+        }
     }
+    unreachable!("loop should only break because no cucumber moves");
 }
 
-fn parse_input(input: &str) -> Seafloor {
-    let width = input
-        .lines()
-        .next()
-        .expect("input should not be empty")
-        .chars()
-        .count();
-    let elements = input
-        .chars()
-        .filter(|char| !char.is_ascii_whitespace())
-        .map(parse_sea_cucumber)
-        .collect();
-    Grid::from_elements(elements, width)
+fn step_all(mut seafloor: Seafloor) -> (Seafloor, bool) {
+    let [east_facing_cucumber_moves, south_facing_cucumber_moves];
+    (seafloor, east_facing_cucumber_moves) = step_kind(seafloor, b'>');
+    (seafloor, south_facing_cucumber_moves) = step_kind(seafloor, b'v');
+    let at_least_one_cucumber_moves = east_facing_cucumber_moves || south_facing_cucumber_moves;
+    (seafloor, at_least_one_cucumber_moves)
 }
 
-fn move_one_direction(
-    seafloor: Seafloor,
-    kind: SeaCucumber,
-    direction: Direction,
-) -> (Seafloor, Moved) {
-    let mut next = seafloor.clone();
-    let mut moved = false;
-    for (position, &sea_cucumber) in seafloor.iter_row_major() {
-        if sea_cucumber != kind {
+fn step_kind(seafloor: Seafloor, kind: Cucumber) -> (Seafloor, bool) {
+    let direction = direction(kind);
+    let mut new = seafloor.clone();
+    let mut at_least_one_cucumber_moves = false;
+    for (position, &cucumber) in seafloor.iter_row_major() {
+        if cucumber != kind {
             continue;
         }
-        let neighbor = wrapping_neighbor(&seafloor, position, direction);
-        if seafloor[neighbor] == SeaCucumber::None {
-            next[position] = SeaCucumber::None;
-            next[neighbor] = kind;
-            moved |= true;
+
+        let next_position = next_position(&seafloor, position, direction);
+        if seafloor[next_position] == b'.' {
+            new[position] = b'.';
+            new[next_position] = kind;
+            at_least_one_cucumber_moves = true;
         }
     }
-    (next, moved)
+    (new, at_least_one_cucumber_moves)
 }
 
-fn wrapping_neighbor(seafloor: &Seafloor, position: Position, direction: Direction) -> Position {
-    let row = (position[0] + direction[0]).rem_euclid(seafloor.height() as isize);
-    let column = (position[1] + direction[1]).rem_euclid(seafloor.width() as isize);
-    [row, column]
-}
-
-fn move_both_directions(seafloor: Seafloor) -> (Seafloor, Moved) {
-    let (after_east, moved_east) = move_one_direction(seafloor, SeaCucumber::East, grid::EAST);
-    let (after_south, moved_south) =
-        move_one_direction(after_east, SeaCucumber::South, grid::SOUTH);
-    (after_south, moved_east | moved_south)
-}
-
-fn movement(mut seafloor: Seafloor) -> usize {
-    let mut moved;
-    for step in 0.. {
-        (seafloor, moved) = move_both_directions(seafloor);
-        if !moved {
-            return step + 1;
-        }
+fn next_position(seafloor: &Seafloor, position: Position, direction: Direction) -> Position {
+    let mut next_position = position.add(direction);
+    let is_outside_grid = seafloor.get(next_position).is_none();
+    if is_outside_grid {
+        next_position = [
+            next_position[0] % Coordinate::conv(seafloor.height()),
+            next_position[1] % Coordinate::conv(seafloor.width()),
+        ]
     }
-    panic!("sea cucumber movement should stop at one point");
+    next_position
+}
+
+fn direction(cucumber: u8) -> Direction {
+    match cucumber {
+        b'>' => [0, 1],
+        b'v' => [1, 0],
+        _ => panic!("cucumber should be '>' or 'v'"),
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use infrastructure::{Input, Puzzle};
+    use infrastructure::{test, Input, Puzzle};
 
     use super::*;
     use crate::tests::{input, test_on_input};
 
     const DAY: usize = 25;
-
-    impl SeaCucumber {
-        fn to_char(self) -> char {
-            match self {
-                SeaCucumber::None => '.',
-                SeaCucumber::East => '>',
-                SeaCucumber::South => 'v',
-            }
-        }
-    }
 
     #[test]
     fn first_example() {
@@ -117,38 +93,10 @@ mod tests {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 560);
     }
 
-    fn assert_seafloor(actual: Seafloor, expected: &str) {
-        let actual = actual.map(|_, cucumber| cucumber.to_char()).to_string();
-        assert_eq!(actual, expected);
-    }
-
     #[test]
-    fn parse() {
-        let actual = parse_input(&input(DAY, Input::Example(0)));
-        let expected = "\
-            v...>>.vv>\n\
-            .vv>>.vv..\n\
-            >>.>v>...v\n\
-            >>v>>.>.v.\n\
-            v>v.vv.v..\n\
-            >.>>..v...\n\
-            .vv..>.>v.\n\
-            v.v..>>v.v\n\
-            ....v..v.>\n\
-        ";
-        assert_seafloor(actual, expected);
-    }
-
-    fn assert_example_seafloor_after_steps(num_steps: usize, expected: &str) {
-        let mut seafloor = parse_input(&input(DAY, Input::Example(0)));
-        for _ in 0..num_steps {
-            (seafloor, _) = move_both_directions(seafloor);
-        }
-        assert_seafloor(seafloor, expected);
-    }
-
-    #[test]
-    fn one_step() {
+    fn step_all() {
+        let seafloor = Seafloor::from(&input(DAY, Input::Example(0)));
+        let (actual, at_least_one_cucumber_moves) = super::step_all(seafloor);
         let expected = "\
             ....>.>v.>\n\
             v.v>.>v.v.\n\
@@ -160,38 +108,22 @@ mod tests {
             vv...>>vv.\n\
             >.v.v..v.v\n\
         ";
-        assert_example_seafloor_after_steps(1, expected);
+        let expected = Seafloor::from(expected);
+        assert_eq!(actual, expected);
+        assert!(at_least_one_cucumber_moves);
     }
 
     #[test]
-    fn ten_steps() {
-        let expected = "\
-            ..>..>>vv.\n\
-            v.....>>.v\n\
-            ..v.v>>>v>\n\
-            v>.>v.>>>.\n\
-            ..v>v.vv.v\n\
-            .v.>>>.v..\n\
-            v.v..>v>..\n\
-            ..v...>v.>\n\
-            .vv..v>vv.\n\
-        ";
-        assert_example_seafloor_after_steps(10, expected);
-    }
-
-    #[test]
-    fn fifty_eight_steps() {
-        let expected = "\
-            ..>>v>vv..\n\
-            ..v.>>vv..\n\
-            ..>>v>>vv.\n\
-            ..>>>>>vv.\n\
-            v......>vv\n\
-            v>v....>>v\n\
-            vvv.....>>\n\
-            >vv......>\n\
-            .>v.vv.v..\n\
-        ";
-        assert_example_seafloor_after_steps(58, expected);
+    fn next_position() {
+        let seafloor = Seafloor::from(&input(DAY, Input::Example(0)));
+        let function =
+            |(position, kind)| super::next_position(&seafloor, position, direction(kind));
+        let cases = [
+            (([7, 2], b'v'), [8, 2]),
+            (([3, 8], b'>'), [3, 9]),
+            (([8, 4], b'v'), [0, 4]),
+            (([5, 9], b'>'), [5, 0]),
+        ];
+        test::cases(function, cases);
     }
 }
