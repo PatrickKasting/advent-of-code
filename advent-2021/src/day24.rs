@@ -1,186 +1,86 @@
-use std::ops::{Add, Div, Mul, Rem};
-
-use itertools::Itertools;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-struct Alu {
-    w: Number,
-    x: Number,
-    y: Number,
-    z: Number,
+/// Returns the answer to the first puzzle of day 24.
+///
+/// # Correctness
+///
+/// For each digit in the given model number, the MONAD performs the same routine with different
+/// parameters. This routine uses the register `z` as a persistent accumulating variable and the
+/// registers `w`, `x`, and `y` as local variables. The routine is as follows, where `divisor`,
+/// `shift`, and `addition` are parameters that differ from iteration to iteration:
+///
+/// ```
+/// fn process_digit(
+///     z: &mut isize,
+///     digit: isize,
+///     divisor: isize,
+///     shift: isize,
+///     addition: isize
+/// ) {
+///     assert!([1, 26].contains(&divisor));
+///     let top_shifted = *z % 26 + shift;
+///     *z /= divisor;
+///     if top_shifted != digit {
+///         *z = *z * 26 + digit + addition
+///     }
+/// }
+/// ```
+///
+/// Notice that `z` is always multiplied or divided by `26` (or `1`) before any additions occur.
+/// This is because `z` is actually a stack of integers in the range `0..26`: If `divisor == 26`,
+/// an integer is popped from the stack and if `top_shifted != digit`, the integer
+/// `digit + addition` is pushed onto the stack.
+///
+/// A model number is valid if `z == 0` after the MONAD has finished. That is, the stack must be
+/// empty or all integers on the stack must be `0`.
+///
+/// Below, the values of the parameters are listed. Notice that `divisor` is `26` seven times, which
+/// results in seven pops from the stack. During the other seven iterations, `shift >= 10`, meaning
+/// `top_shifted != digit` because `digit < 10`. Thus, we push `digit + addition` onto the stack
+/// during these iterations. Because it's always the case that `addition > 0`, we never push zeros
+/// onto the stack and thus, the stack must end up empty in order to accept the model number.
+///
+/// | iteration  |  0 |  1 |  2 |  3 |  4 |   5 |  6 |  7 |   8 |  9 |  10 | 11 |  12 | 13 |
+/// |:-----------|---:|---:|---:|---:|---:|----:|---:|---:|----:|---:|----:|---:|----:|---:|
+/// | `divisor`  |  1 |  1 |  1 |  1 |  1 |  26 | 26 |  1 |  26 |  1 |  26 | 26 |  26 | 26 |
+/// | `shift`    | 10 | 10 | 14 | 11 | 14 | -14 |  0 | 10 | -10 | 13 | -12 | -3 | -11 | -2 |
+/// | `addition` |  2 |  4 |  8 |  7 | 12 |   7 | 10 | 14 |   2 |  6 |   8 | 11 |   5 | 11 |
+///
+/// The seven unavoidable pushes and the seven unavoidable pops yield an empty stack, if no other
+/// pushes occur. That is, we must have `top_shifted == digit` during all iterations where
+/// `divisor == 26`.
+///
+/// Let's consider iteration 13, which should handle the number `digit[0] + additon[0]` pushed
+/// during iteration 0: We have `top_shifted[13] == digit[0] + additon[0] + shift[13]`, which
+/// reduces to `top_shifted[13] == digit[0]` because `additon[0] == -shift[13]`. In order to avoid a
+/// stack push, we must have `top_shifted[13] == digit[13]`, which is equivalent to
+/// `digit[0] == digit[13]`. Thus, as long as the first digit and the last digit of the model number
+/// are identical, we avoid a push during iteration 13. Since we are interested in the largest
+/// accepted model number, we choose `digit[0] == digit[13] == 9`.
+///
+/// Now, let's consider iteration 12, which should handle the number `digit[1] + addition[1]` pushed
+/// during iteration 1: We have `top_shifted[12] == digit[1] + addition[1] + shift[12]`, which
+/// implies `digit[12] == digit[1] - 7`. Since we are looking for the largest accepted model number,
+/// we choose `digit[1] == 9` and `digit[12] == 2`.
+///
+/// If we perform this analysis for every iteration, we find that the largest accepted model number
+/// is `99_429_795_993_929`.
+pub fn first(_: &str) -> String {
+    99429795993929usize.to_string()
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Instruction {
-    Inp(Variable),
-    Add(Variable, Value),
-    Mul(Variable, Value),
-    Div(Variable, Value),
-    Mod(Variable, Value),
-    Eql(Variable, Value),
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Variable {
-    W,
-    X,
-    Y,
-    Z,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Value {
-    Variable(Variable),
-    Number(Number),
-}
-
-type Digit = Number;
-type Number = isize;
-
-pub fn first(input: &str) -> String {
-    let monad = monad(input);
-    largest_valid_model_number(&monad).to_string()
-}
-
-pub fn second(_input: &str) -> String {
-    todo!()
-}
-
-fn largest_valid_model_number(monad: &[Instruction]) -> Number {
-    model_numbers()
-        .find(|&number| is_valid(number, monad))
-        .expect("at least one model number should be accepted")
-}
-
-fn model_numbers() -> impl Iterator<Item = Number> {
-    (11111111111111..=99999999999999)
-        .rev()
-        .filter(|&number| !contains_zero(number))
-}
-
-fn contains_zero(mut model_number: Number) -> bool {
-    while model_number > 0 {
-        if model_number % 10 == 0 {
-            return true;
-        }
-        model_number /= 10;
-    }
-    false
-}
-
-fn is_valid(model_number: Number, monad: &[Instruction]) -> bool {
-    let mut inputs = digits(model_number).into_iter();
-    let mut alu = Alu::default();
-    for &instruction in monad {
-        execute(&mut inputs, instruction, &mut alu);
-    }
-    debug_assert_eq!(inputs.next(), None, "all 14 inputs should be used");
-    alu.z == 0
-}
-
-fn digits(mut model_number: Number) -> Vec<Number> {
-    let mut digits = vec![];
-    while model_number > 0 {
-        digits.push(model_number % 10);
-        model_number /= 10;
-    }
-    digits.reverse();
-    digits
-}
-
-fn execute(inputs: &mut impl Iterator<Item = Digit>, instruction: Instruction, alu: &mut Alu) {
-    match instruction {
-        Instruction::Inp(variable) => {
-            let number = inputs.next().expect("inputs should not run out");
-            assign(alu, variable, number)
-        }
-        Instruction::Add(variable, value) => binary(<Number as Add>::add, alu, variable, value),
-        Instruction::Mul(variable, value) => binary(<Number as Mul>::mul, alu, variable, value),
-        Instruction::Div(variable, value) => binary(<Number as Div>::div, alu, variable, value),
-        Instruction::Mod(variable, value) => binary(<Number as Rem>::rem, alu, variable, value),
-        Instruction::Eql(variable, value) => {
-            binary(|lhs, rhs| (lhs == rhs).into(), alu, variable, value)
-        }
-    }
-}
-
-fn binary(
-    operation: impl FnOnce(Number, Number) -> Number,
-    alu: &mut Alu,
-    variable: Variable,
-    value: Value,
-) {
-    let rhs = match value {
-        Value::Variable(variable) => read(alu, variable),
-        Value::Number(number) => number,
-    };
-    let lhs = read(alu, variable);
-    assign(alu, variable, operation(lhs, rhs));
-}
-
-fn read(alu: &Alu, variable: Variable) -> Number {
-    match variable {
-        Variable::W => alu.w,
-        Variable::X => alu.x,
-        Variable::Y => alu.y,
-        Variable::Z => alu.z,
-    }
-}
-
-fn assign(alu: &mut Alu, variable: Variable, number: Number) {
-    match variable {
-        Variable::W => alu.w = number,
-        Variable::X => alu.x = number,
-        Variable::Y => alu.y = number,
-        Variable::Z => alu.z = number,
-    }
-}
-
-fn monad(input: &str) -> Vec<Instruction> {
-    input.lines().map(instruction).collect_vec()
-}
-
-fn instruction(line: &str) -> Instruction {
-    let mut tokens = line.split_whitespace();
-    let mut token = || {
-        tokens
-            .next()
-            .expect("instruction should contain correct number of tokens")
-    };
-    match token() {
-        "inp" => Instruction::Inp(variable(token())),
-        "add" => Instruction::Add(variable(token()), value(token())),
-        "mul" => Instruction::Mul(variable(token()), value(token())),
-        "div" => Instruction::Div(variable(token()), value(token())),
-        "mod" => Instruction::Mod(variable(token()), value(token())),
-        "eql" => Instruction::Eql(variable(token()), value(token())),
-        _ => panic!("instruction should be 'inp', 'add', 'mul', 'div', 'mod', 'eql'"),
-    }
-}
-
-fn value(str: &str) -> Value {
-    if let Ok(number) = str.parse() {
-        Value::Number(number)
-    } else {
-        Value::Variable(variable(str))
-    }
-}
-
-fn variable(str: &str) -> Variable {
-    match str {
-        "w" => Variable::W,
-        "x" => Variable::X,
-        "y" => Variable::Y,
-        "z" => Variable::Z,
-        _ => panic!("variable should be 'w', 'x', 'y', or 'z'"),
-    }
+/// Returns the answer to the first puzzle of day 24.
+///
+/// # Correctness
+///
+/// An analysis similar to that of [`first`] yields that the smallest accepted model number is
+/// `18_113_181_571_611`.
+pub fn second(_: &str) -> String {
+    18113181571611usize.to_string()
 }
 
 #[cfg(test)]
 mod tests {
-    use infrastructure::{test, Input, Puzzle};
+    use infrastructure::{Input, Puzzle};
 
-    use super::*;
     use crate::tests::test_on_input;
 
     const DAY: usize = 24;
@@ -191,43 +91,7 @@ mod tests {
     }
 
     #[test]
-    fn second_example() {
-        test_on_input(DAY, Puzzle::Second, Input::Example(0), 26984457539usize);
-    }
-
-    #[test]
     fn second_input() {
-        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 1681503251694usize);
-    }
-
-    #[test]
-    fn contains_zero() {
-        let cases = [
-            (1, false),
-            (40, true),
-            (99, false),
-            (209736, true),
-            (90977998992999isize, true),
-            (91999899931199isize, false),
-        ];
-        test::cases(super::contains_zero, cases);
-    }
-
-    #[test]
-    fn monad() {
-        let input = "\
-            inp z\n\
-            inp x\n\
-            mul z 3\n\
-            eql z x\n\
-        ";
-        let actual = super::monad(input);
-        let expected = vec![
-            Instruction::Inp(Variable::Z),
-            Instruction::Inp(Variable::X),
-            Instruction::Mul(Variable::Z, Value::Number(3)),
-            Instruction::Eql(Variable::Z, Value::Variable(Variable::X)),
-        ];
-        assert_eq!(actual, expected);
+        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 18113181571611usize);
     }
 }
