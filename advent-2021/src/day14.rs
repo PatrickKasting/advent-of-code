@@ -103,11 +103,21 @@ mod tests {
 
     #[test]
     fn second_example() {
-        test_on_input(DAY, Puzzle::Second, Input::Example(0), 2188189693529usize);
+        test_on_input(
+            DAY,
+            Puzzle::Second,
+            Input::Example(0),
+            2_188_189_693_529_usize,
+        );
     }
 
     #[test]
     fn second_input() {
-        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 3459822539451usize);
+        test_on_input(
+            DAY,
+            Puzzle::Second,
+            Input::PuzzleInput,
+            3_459_822_539_451_usize,
+        );
     }
 }

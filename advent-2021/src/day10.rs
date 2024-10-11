@@ -144,26 +144,26 @@ mod tests {
 
     #[test]
     fn first_input() {
-        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 344193);
+        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 344_193);
     }
 
     #[test]
     fn second_example() {
-        test_on_input(DAY, Puzzle::Second, Input::Example(0), 288957);
+        test_on_input(DAY, Puzzle::Second, Input::Example(0), 288_957);
     }
 
     #[test]
     fn second_input() {
-        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 3241238967usize);
+        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 3_241_238_967_usize);
     }
 
     #[test]
     fn completion_string_score() {
         let cases: [(&[Character], _); 5] = [
-            (b"}}]])})]", 288957),
+            (b"}}]])})]", 288_957),
             (b")}>]})", 5566),
-            (b"}}>}>))))", 1480781),
-            (b"]]}}]}]}>", 995444),
+            (b"}}>}>))))", 1_480_781),
+            (b"]]}}]}]}>", 995_444),
             (b"])}>", 294),
         ];
         test::cases(super::completion_string_score, cases);

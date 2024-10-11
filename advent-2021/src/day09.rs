@@ -90,6 +90,6 @@ mod tests {
 
     #[test]
     fn second_input() {
-        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 931200);
+        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 931_200);
     }
 }

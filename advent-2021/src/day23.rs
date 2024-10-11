@@ -170,7 +170,7 @@ fn number_of_steps(position: Position, room_index: usize, room_space: usize) -> 
 }
 
 fn energy_per_step(amphipod: Amphipod) -> Energy {
-    10usize.pow(amphipod as u32)
+    10_usize.pow(amphipod as u32)
 }
 
 fn is_organized<const ROOM_SIZE: usize>((_, rooms): Burrow<ROOM_SIZE>) -> bool {

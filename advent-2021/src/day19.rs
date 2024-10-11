@@ -192,7 +192,7 @@ mod tests {
         let scanners = scanners(&input(DAY, Input::Example(0)));
         let actual = super::overlap(&scanners[0], &scanners[1]);
         let expected = Some(([[-1, 0, 0], [0, 1, 0], [0, 0, -1]], [68, -1246, -43]));
-        assert_eq!(actual, expected)
+        assert_eq!(actual, expected);
     }
 
     #[test]

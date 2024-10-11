@@ -44,10 +44,10 @@ fn operation(
     operator: impl Fn(Value, Value) -> Value,
 ) -> (Bits, VersionNumber, Value) {
     let length_type_id = packet[6];
-    let (remaining, version_number_sum, sub_values) = if !length_type_id {
-        sub_evaluations_total_length(packet)
-    } else {
+    let (remaining, version_number_sum, sub_values) = if length_type_id {
         sub_evaluations_number_of_sub_packets(packet)
+    } else {
+        sub_evaluations_total_length(packet)
     };
 
     let value = sub_values
@@ -63,7 +63,6 @@ fn operation(
 
 fn sub_evaluations_total_length(packet: Bits) -> (Bits, VersionNumber, Vec<Value>) {
     let total_number_of_bits = decimal(&packet[7..22]);
-    dbg!(total_number_of_bits);
     let mut sub_packets = &packet[22..22 + total_number_of_bits];
     let mut version_number_sum = 0;
     let mut values = vec![];
@@ -123,8 +122,8 @@ fn packet(mut input: &str) -> Packet {
 
     let mut packet = Packet::new();
     for index in 0..input.len() {
-        let byte = u8::from_str_radix(&input[index..index + 1], 16)
-            .expect("hexidecimal digit should parse");
+        let byte =
+            u8::from_str_radix(&input[index..=index], 16).expect("hexidecimal digit should parse");
         packet.extend_from_bitslice(&byte.view_bits::<BitOrder>()[4..]);
     }
     packet
@@ -170,12 +169,17 @@ mod tests {
             ("9C005AC2F8F0", 0),
             ("9C0141080250320F1802104A08", 1),
         ];
-        test::cases(function, cases)
+        test::cases(function, cases);
     }
 
     #[test]
     fn second_input() {
-        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 1922490999789usize);
+        test_on_input(
+            DAY,
+            Puzzle::Second,
+            Input::PuzzleInput,
+            1_922_490_999_789_usize,
+        );
     }
 
     #[test]

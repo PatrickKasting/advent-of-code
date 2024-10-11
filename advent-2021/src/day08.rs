@@ -106,7 +106,7 @@ fn entry(line: &str) -> Entry {
 }
 
 fn seven_segment_digit(str: &str) -> SevenSegmentDigit {
-    SevenSegmentDigit::from_iter(str.chars())
+    str.chars().collect()
 }
 
 #[cfg(test)]
@@ -134,6 +134,6 @@ mod tests {
 
     #[test]
     fn second_input() {
-        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 1070188);
+        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 1_070_188);
     }
 }

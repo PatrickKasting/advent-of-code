@@ -64,7 +64,7 @@
 /// If we perform this analysis for every iteration, we find that the largest accepted model number
 /// is `99_429_795_993_929`.
 pub fn first(_: &str) -> String {
-    99429795993929usize.to_string()
+    99_429_795_993_929_isize.to_string()
 }
 
 /// Returns the answer to the first puzzle of day 24.
@@ -74,7 +74,7 @@ pub fn first(_: &str) -> String {
 /// An analysis similar to that of [`first`] yields that the smallest accepted model number is
 /// `18_113_181_571_611`.
 pub fn second(_: &str) -> String {
-    18113181571611usize.to_string()
+    18_113_181_571_611_isize.to_string()
 }
 
 #[cfg(test)]
@@ -87,11 +87,21 @@ mod tests {
 
     #[test]
     fn first_input() {
-        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 99429795993929isize);
+        test_on_input(
+            DAY,
+            Puzzle::First,
+            Input::PuzzleInput,
+            99_429_795_993_929_isize,
+        );
     }
 
     #[test]
     fn second_input() {
-        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 18113181571611usize);
+        test_on_input(
+            DAY,
+            Puzzle::Second,
+            Input::PuzzleInput,
+            18_113_181_571_611_isize,
+        );
     }
 }

@@ -52,16 +52,21 @@ mod tests {
 
     #[test]
     fn first_input() {
-        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 372984);
+        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 372_984);
     }
 
     #[test]
     fn second_example() {
-        test_on_input(DAY, Puzzle::Second, Input::Example(0), 26984457539usize);
+        test_on_input(DAY, Puzzle::Second, Input::Example(0), 26_984_457_539_usize);
     }
 
     #[test]
     fn second_input() {
-        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 1681503251694usize);
+        test_on_input(
+            DAY,
+            Puzzle::Second,
+            Input::PuzzleInput,
+            1_681_503_251_694_usize,
+        );
     }
 }

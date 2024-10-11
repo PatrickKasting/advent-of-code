@@ -50,13 +50,10 @@ fn y_velocity_range(target_y_range: &RangeInclusive<Coordinate>) -> RangeInclusi
     *target_y_range.start()..=-*target_y_range.start()
 }
 
-fn probe_hits_target_area(
-    [target_x_range, target_y_range]: &TargetArea,
-    mut velocity: Velocity,
-) -> bool {
+fn probe_hits_target_area([x_range, y_range]: &TargetArea, mut velocity: Velocity) -> bool {
     let mut position = [0, 0];
-    while position[0] <= *target_x_range.end() && *target_y_range.start() <= position[1] {
-        if *target_x_range.start() <= position[0] && position[1] <= *target_y_range.end() {
+    while position[0] <= *x_range.end() && *y_range.start() <= position[1] {
+        if *x_range.start() <= position[0] && position[1] <= *y_range.end() {
             return true;
         }
         position = position.add(velocity);

@@ -29,13 +29,13 @@ fn number_of_steps_before_no_cucumber_moves(mut seafloor: Seafloor) -> usize {
 
 fn step_all(mut seafloor: Seafloor) -> (Seafloor, bool) {
     let [east_facing_cucumber_moves, south_facing_cucumber_moves];
-    (seafloor, east_facing_cucumber_moves) = step_kind(seafloor, b'>');
-    (seafloor, south_facing_cucumber_moves) = step_kind(seafloor, b'v');
+    (seafloor, east_facing_cucumber_moves) = step_kind(&seafloor, b'>');
+    (seafloor, south_facing_cucumber_moves) = step_kind(&seafloor, b'v');
     let at_least_one_cucumber_moves = east_facing_cucumber_moves || south_facing_cucumber_moves;
     (seafloor, at_least_one_cucumber_moves)
 }
 
-fn step_kind(seafloor: Seafloor, kind: Cucumber) -> (Seafloor, bool) {
+fn step_kind(seafloor: &Seafloor, kind: Cucumber) -> (Seafloor, bool) {
     let direction = direction(kind);
     let mut new = seafloor.clone();
     let mut at_least_one_cucumber_moves = false;
@@ -44,7 +44,7 @@ fn step_kind(seafloor: Seafloor, kind: Cucumber) -> (Seafloor, bool) {
             continue;
         }
 
-        let next_position = next_position(&seafloor, position, direction);
+        let next_position = next_position(seafloor, position, direction);
         if seafloor[next_position] == b'.' {
             new[position] = b'.';
             new[next_position] = kind;
@@ -61,7 +61,7 @@ fn next_position(seafloor: &Seafloor, position: Position, direction: Direction) 
         next_position = [
             next_position[0] % Coordinate::conv(seafloor.height()),
             next_position[1] % Coordinate::conv(seafloor.width()),
-        ]
+        ];
     }
     next_position
 }

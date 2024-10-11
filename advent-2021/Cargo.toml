@@ -19,4 +19,4 @@ infrastructure = { path = "../infrastructure" }
 shared = { path = "../shared" }
 
 [lints]
-# workspace = true
+workspace = true

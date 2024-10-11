@@ -110,17 +110,22 @@ mod tests {
 
     #[test]
     fn first_example() {
-        test_on_input(DAY, Puzzle::First, Input::Example(0), 739785);
+        test_on_input(DAY, Puzzle::First, Input::Example(0), 739_785);
     }
 
     #[test]
     fn first_input() {
-        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 1002474);
+        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 1_002_474);
     }
 
     #[test]
     fn second_example() {
-        test_on_input(DAY, Puzzle::Second, Input::Example(0), 444356092776315usize);
+        test_on_input(
+            DAY,
+            Puzzle::Second,
+            Input::Example(0),
+            444_356_092_776_315_usize,
+        );
     }
 
     #[test]
@@ -129,7 +134,7 @@ mod tests {
             DAY,
             Puzzle::Second,
             Input::PuzzleInput,
-            919758187195363usize,
+            919_758_187_195_363_usize,
         );
     }
 

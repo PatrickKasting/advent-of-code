@@ -139,6 +139,7 @@ fn reboot_step(line: &str) -> RebootStep {
     (switch, self::cuboid(cuboid))
 }
 
+#[allow(clippy::range_plus_one)]
 fn cuboid(str: &str) -> Cuboid {
     let coordinates = isizes(str);
     debug_assert_eq!(
@@ -167,12 +168,12 @@ mod tests {
     #[test]
     fn first_examples() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 39);
-        test_on_input(DAY, Puzzle::First, Input::Example(1), 590784);
+        test_on_input(DAY, Puzzle::First, Input::Example(1), 590_784);
     }
 
     #[test]
     fn first_input() {
-        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 570915);
+        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 570_915);
     }
 
     #[test]
@@ -181,7 +182,7 @@ mod tests {
             DAY,
             Puzzle::Second,
             Input::Example(2),
-            2758514936282235usize,
+            2_758_514_936_282_235_usize,
         );
     }
 
@@ -191,7 +192,7 @@ mod tests {
             DAY,
             Puzzle::Second,
             Input::PuzzleInput,
-            1268313839428137usize,
+            1_268_313_839_428_137_usize,
         );
     }
 
@@ -271,10 +272,10 @@ mod tests {
             ([-46..7, -6..46, -50..-1], true),
             ([-49..1, -3..46, -24..28], true),
             ([-57795..-6158, 29564..72030, 20435..90618], false),
-            ([36731..105352, -21140..28532, 16094..90401], false),
-            ([30999..107136, -53464..15513, 8553..71215], false),
+            ([36731..105_352, -21140..28532, 16094..90401], false),
+            ([30999..107_136, -53464..15513, 8553..71215], false),
             ([13528..83982, -99403..-27377, -24141..23996], false),
-            ([-72682..-12347, 18159..111354, 7391..80950], false),
+            ([-72682..-12347, 18159..111_354, 7391..80950], false),
         ];
         test::cases(function, cases);
     }
