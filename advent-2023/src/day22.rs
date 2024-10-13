@@ -1,94 +1,156 @@
+use std::array;
+
+use easy_cast::Cast;
 use itertools::Itertools;
 
-use shared::string::usizes;
+use shared::{grid::Grid, string::isizes};
 
-type Brick = [Position; 2];
-type Position = [Coordinate; 3];
-type Coordinate = usize;
+type Brick = [RangeInclusive; 3];
+type RangeInclusive = [Coordinate; 2];
+type Coordinate = isize;
 
 pub fn first(input: &str) -> String {
-    let bricks = bricks(input);
-    let (settled_bricks, _) = settled_bricks(bricks);
-    number_of_disintegrable_bricks(&settled_bricks).to_string()
-}
-
-pub fn second(_input: &str) -> String {
-    unimplemented!();
-}
-
-fn number_of_disintegrable_bricks(settled_bricks: &[Brick]) -> usize {
-    (0..settled_bricks.len())
-        .filter(|&missing_brick_index| disintegrable(settled_bricks, missing_brick_index))
+    let mut bricks = sorted_bricks(input);
+    number_of_falls(&mut bricks);
+    bricks.sort_unstable_by_key(|&[_, _, [z_min, _]]| z_min);
+    number_of_falls_for_each_disintegrated_brick(&bricks)
+        .filter(|&number_of_falls| number_of_falls == 0)
         .count()
+        .to_string()
 }
 
-fn disintegrable(settled_bricks: &[Brick], index: usize) -> bool {
-    let without_brick = settled_bricks
-        .iter()
-        .enumerate()
-        .filter(|&(other_index, _)| other_index != index)
-        .map(|(_, brick)| *brick);
-    let (_, number_of_fallen_bricks) = self::settled_bricks(without_brick);
-    number_of_fallen_bricks == 0
+pub fn second(input: &str) -> String {
+    let mut bricks = sorted_bricks(input);
+    number_of_falls(&mut bricks);
+    bricks.sort_unstable_by_key(|&[_, _, [z_min, _]]| z_min);
+    number_of_falls_for_each_disintegrated_brick(&bricks)
+        .sum::<usize>()
+        .to_string()
 }
 
-fn settled_bricks(bricks: impl IntoIterator<Item = Brick>) -> (Vec<Brick>, usize) {
-    let mut settled_bricks = vec![];
-    let mut number_of_fallen_bricks = 0;
-    for mut brick in bricks {
-        let mut distance = brick[0][2] - 1;
-        for &settled_brick in settled_bricks.iter().rev() {
-            if shadows_intersect(brick, settled_brick) {
-                distance -= settled_brick[1][2];
-                break;
-            }
+fn number_of_falls(sorted_bricks: &mut [Brick]) -> usize {
+    let [height, width] = bounding_rectangle(sorted_bricks);
+
+    let mut number_of_falls = 0;
+    let mut heightmap = Grid::new(height, width, |_| 0);
+    for brick in sorted_bricks {
+        let fall_distance = fall_distance(&heightmap, *brick);
+        if fall_distance != 0 {
+            number_of_falls += 1;
+            brick[2][0] -= fall_distance;
+            brick[2][1] -= fall_distance;
         }
-        brick[0][2] -= distance;
-        brick[1][2] -= distance;
-        settled_bricks.push(brick);
-        if distance > 0 {
-            number_of_fallen_bricks += 1;
+        for (x, y) in brick_shadow(*brick) {
+            *heightmap
+                .get_mut([x, y])
+                .expect("brick shadow should be within heightmap") = brick[2][1];
         }
     }
-    (settled_bricks, number_of_fallen_bricks)
+    number_of_falls
 }
 
-fn shadows_intersect(left: Brick, right: Brick) -> bool {
-    let not_intersecting = left[1][1] < right[0][1]
-        || left[0][1] > right[1][1]
-        || left[1][0] < right[0][0]
-        || left[0][0] > right[1][0];
-    !not_intersecting
+fn bounding_rectangle(bricks: &mut [Brick]) -> [usize; 2] {
+    let [x_mins, x_maxes, y_mins, y_maxes] = [
+        |&[[x_min, _], _, _]: &Brick| x_min,
+        |&[[_, x_max], _, _]: &Brick| x_max,
+        |&[_, [y_min, _], _]: &Brick| y_min,
+        |&[_, [_, y_max], _]: &Brick| y_max,
+    ]
+    .map(|extractor| bricks.iter().map(extractor));
+    let x_range = [x_mins.min(), x_maxes.max()]
+        .map(|extremum| extremum.expect("at least one brick should exist"));
+    let y_range = [y_mins.min(), y_maxes.max()]
+        .map(|extremum| extremum.expect("at least one brick should exist"));
+
+    for [[x_min, x_max], [y_min, y_max], _] in bricks {
+        *x_min -= x_range[0];
+        *x_max -= x_range[0];
+        *y_min -= y_range[0];
+        *y_max -= y_range[0];
+    }
+    [x_range[1] - x_range[0] + 1, y_range[1] - y_range[0] + 1].cast()
 }
 
-fn bricks(input: &str) -> Vec<Brick> {
-    let mut bricks = input.lines().map(brick).collect_vec();
-    bricks.sort_unstable_by(|left, right| left[0][2].cmp(&right[0][2]));
-    bricks
+fn number_of_falls_for_each_disintegrated_brick(
+    sorted_settled_bricks: &[Brick],
+) -> impl Iterator<Item = usize> + '_ {
+    (0..sorted_settled_bricks.len()).map(move |index| {
+        let mut bricks = Vec::from(sorted_settled_bricks);
+        bricks.remove(index);
+        number_of_falls(&mut bricks)
+    })
+}
+
+fn fall_distance(heightmap: &Grid<Coordinate>, brick @ [_, _, [z_min, _]]: Brick) -> Coordinate {
+    let resting_height = brick_shadow(brick)
+        .map(|(x, y)| heightmap[[x, y]])
+        .max()
+        .expect("brick shadow should be at least 1x1");
+    z_min - resting_height - 1
+}
+
+fn brick_shadow(
+    [[x_min, x_max], [y_min, y_max], _]: Brick,
+) -> impl Iterator<Item = (Coordinate, Coordinate)> {
+    (x_min..=x_max).cartesian_product(y_min..=y_max)
+}
+
+fn sorted_bricks(input: &str) -> Vec<Brick> {
+    input
+        .lines()
+        .map(brick)
+        .sorted_unstable_by_key(|&[_, _, [z_min, _]]| z_min)
+        .collect_vec()
 }
 
 fn brick(line: &str) -> Brick {
-    let coordinates = usizes(line);
-    let mut ends = [
-        [0, 1, 2].map(|index| coordinates[index]),
-        [3, 4, 5].map(|index| coordinates[index]),
-    ];
-    ends.sort_unstable();
-    ends
+    let coordinates = isizes(line);
+    array::from_fn(|index| [coordinates[index], coordinates[index + 3]])
 }
 
 #[cfg(test)]
 mod tests {
     use infrastructure::{Input, Puzzle};
 
-    use crate::tests::test_on_input;
+    use super::*;
+    use crate::tests::{input, test_on_input};
 
     const DAY: usize = 22;
 
     #[test]
     fn first_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 5);
-        test_on_input(DAY, Puzzle::First, Input::Example(1), 3);
-        test_on_input(DAY, Puzzle::First, Input::Example(2), 2);
+    }
+
+    #[test]
+    fn first_input() {
+        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 488);
+    }
+
+    #[test]
+    fn second_example() {
+        test_on_input(DAY, Puzzle::Second, Input::Example(0), 7);
+    }
+
+    #[test]
+    fn second_input() {
+        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 79465);
+    }
+
+    #[test]
+    fn number_of_falls() {
+        let mut bricks = sorted_bricks(&input(DAY, Input::Example(0)));
+        let actual = super::number_of_falls(&mut bricks);
+        let expected = vec![
+            [[1, 1], [0, 2], [1, 1]],
+            [[0, 2], [0, 0], [2, 2]],
+            [[0, 2], [2, 2], [2, 2]],
+            [[0, 0], [0, 2], [3, 3]],
+            [[2, 2], [0, 2], [3, 3]],
+            [[0, 2], [1, 1], [4, 4]],
+            [[1, 1], [1, 1], [5, 6]],
+        ];
+        assert_eq!(actual, 5);
+        assert_eq!(bricks, expected);
     }
 }
