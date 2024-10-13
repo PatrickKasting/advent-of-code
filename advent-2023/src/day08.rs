@@ -110,14 +110,14 @@ mod tests {
         test_on_input(DAY, Puzzle::Second, Input::Example(2), 6);
     }
 
-    // #[test]
-    // fn second_input() {
-    //     // This takes roughly three minutes with the 'dev' compilation profile
-    //     test_on_input(
-    //         DAY,
-    //         Puzzle::Second,
-    //         Input::PuzzleInput,
-    //         17_972_669_116_327_usize,
-    //     );
-    // }
+    #[test]
+    #[ignore = "this takes roughly three minutes with the 'dev' compilation profile"]
+    fn second_input() {
+        test_on_input(
+            DAY,
+            Puzzle::Second,
+            Input::PuzzleInput,
+            17_972_669_116_327_usize,
+        );
+    }
 }

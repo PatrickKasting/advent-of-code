@@ -157,7 +157,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
+    #[ignore = "this takes several minutes"]
     fn first_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 449);
     }
@@ -168,7 +168,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
+    #[ignore = "this takes several minutes"]
     fn second_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 13128);
     }

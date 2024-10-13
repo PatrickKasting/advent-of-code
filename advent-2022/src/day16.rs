@@ -134,11 +134,11 @@ mod tests {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 1707);
     }
 
-    // #[test]
-    // fn second_input() {
-    //     // This takes several minutes with the 'dev' compilation profile
-    //     test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 2052);
-    // }
+    #[test]
+    #[ignore = "this takes several minutes with the 'dev' compilation profile"]
+    fn second_input() {
+        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 2052);
+    }
 
     #[test]
     fn farther_agent_should_not_close_last_valve() {
