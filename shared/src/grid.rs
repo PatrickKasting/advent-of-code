@@ -115,7 +115,22 @@ impl<T> Grid<T> {
             [self.height() - 1, self.width() - 1],
             [self.height() - 1, 0],
         ];
-        corners.map(|[row, column]| [row.cast(), column.cast()])
+        corners.cast()
+    }
+
+    #[must_use]
+    pub fn edge_midpoints_clockwise(&self) -> [Position; 4] {
+        debug_assert!(
+            self.height() % 2 == 1 && self.width() % 2 == 1,
+            "width and height should be odd"
+        );
+        let midpoints = [
+            [self.height() - 1, self.width() / 2],
+            [self.height() / 2, 0],
+            [0, self.width() / 2],
+            [self.height() / 2, self.width() - 1],
+        ];
+        midpoints.cast()
     }
 
     #[must_use]
