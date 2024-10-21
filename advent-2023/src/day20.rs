@@ -2,6 +2,7 @@ use std::collections::VecDeque;
 
 use ahash::AHashMap;
 use itertools::Itertools;
+use shared::arithmetic::least_common_multiple;
 
 type Configuration<'input> = AHashMap<&'input str, (Module<'input>, Vec<&'input str>)>;
 
@@ -22,8 +23,56 @@ pub fn first(input: &str) -> String {
     (total_number_of_low_pulses * total_number_of_high_pulses).to_string()
 }
 
+/// Returns the fewest number of button presses required to deliver a single low pulse to the module
+/// named `rx`.
+///
+/// # Correctness
+///
+/// The module `rx` receives pulses from the conjunction `nc`, which is the only source of `rx`.
+/// Thus, we need to determine, when `nc` remembers all high pulses from its four sources `fh`,
+/// `lk`, `hh`, and `fn`, which are all conjunctions with a single source each. A conjunction with a
+/// single source acts as an inverter, so we must find out when the sources of these four modules
+/// send low pulses simultaneously. These sources are `gl`, `gk`, `hr`, and `nr`, which are all
+/// conjunctions and each can be viewed as the output component of a cluster of components.
+///
+/// Each cluster contains 12 chained flip-flops, where the first flip-flop receives low pulses from
+/// the broadcaster. Because a flip-flop emits a low pulse on every second low pulse received, the
+/// chain acts as a 12-bit integer that increases by one on every button press. Some flip-flops in
+/// the chain are linked to the output conjunction, meaning that these bits must be `1`
+/// simultaneously for the conjunction to send a low pulse.
+///
+/// The output conjunction sends pulses to some of the flip-flops in the chain. Most of the time,
+/// these will be high pulses and because these are ignored by the flip-flops, these pulses don't
+/// interfere with the incrementation of the 12-bit integer. However, when the correct bits are `1`,
+/// the conjunction sends low pulses, toggling the bits to which it's connected. This effectively
+/// increases the 12-bit integer by a number given by the connected bits. Notice that the first
+/// flip-flop and the output conjunction are always mutually connected, so after a low pulse from
+/// the conjunction, the first flip-flop flips, sending a high pulse to the conjunction, which then
+/// goes back to sending high pulses until the relevant bits are `1`.
+///
+/// Now, consider the cluster to which `gl` belongs: The connections to `gl` yield that
+/// `gl` outputs a low pulse when the chain matches the bit pattern `0b1111_xxxx_1x11`. This will
+/// happen after `0b1111_0000_1011 == 3851` button presses. Then, the low pulses from `gl` will
+/// increase the interger by `0b0000_1111_0101 == 245` causing it to overflow to exactly zero, and
+/// then the process will repeat. Thus, `gl` emits low pulses every `3851` button presses.
+///
+/// Similar analyses for `gk`, `hr`, and `nr` show that they emit low pulses every `4003`, `4027`,
+/// and `3847`, respectively. The least common multiple of these four cycle lengths is
+/// `238_815_727_638_557`, which is the number of button presses it takes for `gl`, `gk`, `hr`, and
+/// `nr` to emit low pulses simultaneously. That is, it's the number of button presses it takes for
+/// `rx` to receive a single low pulse.
 pub fn second(_input: &str) -> String {
-    unimplemented!()
+    let cycle_lengths = [
+        0b1111_0000_1011,
+        0b1111_1010_0011,
+        0b1111_1011_1011,
+        0b1111_0000_0111,
+    ];
+    cycle_lengths
+        .into_iter()
+        .reduce(least_common_multiple)
+        .expect("list of cycle lengths should not be empty")
+        .to_string()
 }
 
 fn total_number_of_low_and_high_pulses(configuration: &mut Configuration) -> (usize, usize) {
@@ -130,5 +179,15 @@ mod tests {
     #[test]
     fn first_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 1_020_211_150);
+    }
+
+    #[test]
+    fn second_input() {
+        test_on_input(
+            DAY,
+            Puzzle::Second,
+            Input::PuzzleInput,
+            238_815_727_638_557_usize,
+        );
     }
 }

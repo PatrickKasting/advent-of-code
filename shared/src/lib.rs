@@ -1,3 +1,4 @@
+pub mod arithmetic;
 pub mod floating_point;
 pub mod grid;
 pub mod linear_equations;
