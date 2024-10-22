@@ -10,9 +10,14 @@ use infrastructure::{
 fn main() -> anyhow::Result<()> {
     let CommandLineArguments { year, day, puzzle } = CommandLineArguments::parse();
 
-    let &answer = [advent21::answer, advent22::answer, advent23::answer]
-        .get(year - 2021)
-        .context("year should be 2021, 2022, or 2023")?;
+    let &answer = [
+        advent20::answer,
+        advent21::answer,
+        advent22::answer,
+        advent23::answer,
+    ]
+    .get(year - 2020)
+    .context("year should be 2020, 2021, 2022, or 2023")?;
     let answer = answer(day, puzzle)?;
     println!("{answer}");
 
@@ -37,5 +42,5 @@ struct CommandLineArguments {
 }
 
 fn year(str: &str) -> anyhow::Result<Year> {
-    usize_within(2021..=2023, str)
+    usize_within(2020..=2023, str)
 }

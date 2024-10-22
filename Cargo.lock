@@ -6,12 +6,29 @@ version = 3
 name = "advent-of-code"
 version = "0.1.0"
 dependencies = [
+ "advent20",
  "advent21",
  "advent22",
  "advent23",
  "anyhow",
  "clap",
  "infrastructure",
+]
+
+[[package]]
+name = "advent20"
+version = "0.1.0"
+dependencies = [
+ "ahash",
+ "anyhow",
+ "bitvec",
+ "easy-cast",
+ "infrastructure",
+ "itertools",
+ "num-traits",
+ "rand",
+ "regex",
+ "shared",
 ]
 
 [[package]]

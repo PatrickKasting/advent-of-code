@@ -79,6 +79,7 @@ anyhow.workspace = true
 clap.workspace = true
 
 infrastructure = { path = "infrastructure" }
+advent20 = { path = "advent20" }
 advent21 = { path = "advent21" }
 advent22 = { path = "advent22" }
 advent23 = { path = "advent23" }
