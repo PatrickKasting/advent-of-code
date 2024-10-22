@@ -1,6 +1,6 @@
 mod day01;
 
-const SOLUTIONS: &[[infrastructure::Solution; 2]] = &[];
+const SOLUTIONS: &[[infrastructure::Solution; 2]] = &[[day01::first_answer, day01::second_answer]];
 
 /// # Errors
 ///
