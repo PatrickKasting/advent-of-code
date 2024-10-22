@@ -3,63 +3,63 @@
 version = 3
 
 [[package]]
-name = "advent-2021"
-version = "0.1.0"
-dependencies = [
- "ahash",
- "anyhow",
- "bitvec",
- "easy-cast",
- "infrastructure",
- "itertools",
- "num-traits",
- "rand",
- "regex",
- "shared",
-]
-
-[[package]]
-name = "advent-2022"
-version = "0.1.0"
-dependencies = [
- "ahash",
- "anyhow",
- "bitvec",
- "easy-cast",
- "infrastructure",
- "itertools",
- "num-traits",
- "rand",
- "regex",
- "shared",
-]
-
-[[package]]
-name = "advent-2023"
-version = "0.1.0"
-dependencies = [
- "ahash",
- "anyhow",
- "bitvec",
- "easy-cast",
- "infrastructure",
- "itertools",
- "num-traits",
- "rand",
- "regex",
- "shared",
-]
-
-[[package]]
 name = "advent-of-code"
 version = "0.1.0"
 dependencies = [
- "advent-2021",
- "advent-2022",
- "advent-2023",
+ "advent21",
+ "advent22",
+ "advent23",
  "anyhow",
  "clap",
  "infrastructure",
+]
+
+[[package]]
+name = "advent21"
+version = "0.1.0"
+dependencies = [
+ "ahash",
+ "anyhow",
+ "bitvec",
+ "easy-cast",
+ "infrastructure",
+ "itertools",
+ "num-traits",
+ "rand",
+ "regex",
+ "shared",
+]
+
+[[package]]
+name = "advent22"
+version = "0.1.0"
+dependencies = [
+ "ahash",
+ "anyhow",
+ "bitvec",
+ "easy-cast",
+ "infrastructure",
+ "itertools",
+ "num-traits",
+ "rand",
+ "regex",
+ "shared",
+]
+
+[[package]]
+name = "advent23"
+version = "0.1.0"
+dependencies = [
+ "ahash",
+ "anyhow",
+ "bitvec",
+ "easy-cast",
+ "infrastructure",
+ "itertools",
+ "num-traits",
+ "rand",
+ "regex",
+ "shared",
 ]
 
 [[package]]

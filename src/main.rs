@@ -10,13 +10,9 @@ use infrastructure::{
 fn main() -> anyhow::Result<()> {
     let CommandLineArguments { year, day, puzzle } = CommandLineArguments::parse();
 
-    let &answer = [
-        advent_2021::answer,
-        advent_2022::answer,
-        advent_2023::answer,
-    ]
-    .get(year - 2021)
-    .context("year should be 2021, 2022, or 2023")?;
+    let &answer = [advent21::answer, advent22::answer, advent23::answer]
+        .get(year - 2021)
+        .context("year should be 2021, 2022, or 2023")?;
     let answer = answer(day, puzzle)?;
     println!("{answer}");
 

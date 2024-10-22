@@ -1,5 +1,5 @@
 [workspace]
-members = ["advent-*", "infrastructure", "shared"]
+members = ["advent*", "infrastructure", "shared"]
 
 [workspace.package]
 version = "0.1.0"
@@ -79,9 +79,9 @@ anyhow.workspace = true
 clap.workspace = true
 
 infrastructure = { path = "infrastructure" }
-advent-2021 = { path = "advent-2021" }
-advent-2022 = { path = "advent-2022" }
-advent-2023 = { path = "advent-2023" }
+advent21 = { path = "advent21" }
+advent22 = { path = "advent22" }
+advent23 = { path = "advent23" }
 
 [lints]
 workspace = true
