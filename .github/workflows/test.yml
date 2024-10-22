@@ -33,4 +33,4 @@ jobs:
       - name: Building
         run: cargo build
       - name: Testing
-        run: cargo test
+        run: cargo test -p advent21 -p advent22 -p advent23
