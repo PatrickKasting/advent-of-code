@@ -12,11 +12,11 @@ type Move = (Option<Direction>, Position);
 type Map = Grid<HeatLoss>;
 type HeatLoss = usize;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     minimum_heat_loss(&Map::from(input), 1..=3).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     minimum_heat_loss(&Map::from(input), 4..=10).to_string()
 }
 
@@ -79,12 +79,12 @@ mod tests {
     const DAY: usize = 17;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 102);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 953);
     }
 
@@ -95,7 +95,7 @@ mod tests {
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 1180);
     }
 }

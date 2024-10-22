@@ -8,13 +8,13 @@ use shared::{
 
 type Platform = Grid<char>;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let mut platform = Platform::from(input);
     tilt(&mut platform, grid::NORTH);
     total_load(&platform).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let mut platform = Platform::from(input);
     let (cycle_start, cycle_length) = cycle_start_and_length(&mut platform);
     let number_of_missing_cycles = (1_000_000_000 - cycle_start) % cycle_length;
@@ -89,12 +89,12 @@ mod tests {
     const DAY: usize = 14;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 136);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 108_759);
     }
 
@@ -163,12 +163,12 @@ mod tests {
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 64);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 89089);
     }
 }

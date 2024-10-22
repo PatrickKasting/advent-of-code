@@ -8,12 +8,12 @@ const BOARD_SIZE: usize = 5;
 type Board = (Grid<Number>, Grid<bool>);
 type Number = usize;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let (numbers, mut boards) = numbers_and_boards(input);
     winning_board_score(numbers, &mut boards).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let (numbers, mut boards) = numbers_and_boards(input);
     losing_board_score(numbers, &mut boards).to_string()
 }
@@ -101,22 +101,22 @@ mod tests {
     const DAY: usize = 4;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 4512);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 34506);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 1924);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 7686);
     }
 }

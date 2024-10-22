@@ -7,7 +7,7 @@ type Entry = ([SevenSegmentDigit; 10], [SevenSegmentDigit; 4]);
 type SevenSegmentDigit = BTreeSet<char>;
 type Number = usize;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let entries = entries(input);
     entries
         .flat_map(|(_, output)| output)
@@ -16,7 +16,7 @@ pub fn first(input: &str) -> String {
         .to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let entries = entries(input);
     entries
         .map(|entry| output_value(&entry))
@@ -118,12 +118,12 @@ mod tests {
     const DAY: usize = 8;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 26);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 534);
     }
 
@@ -133,7 +133,7 @@ mod tests {
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 1_070_188);
     }
 }

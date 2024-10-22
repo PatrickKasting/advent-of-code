@@ -10,12 +10,12 @@ type BoundingBox = [Position; 2];
 type Position = [Coordinate; 3];
 type Coordinate = isize;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let cubes = cubes(input);
     area(&cubes).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let cubes = cubes(input);
     exterior_area(&cubes).to_string()
 }
@@ -106,22 +106,22 @@ mod tests {
     const DAY: usize = 18;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 64);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 4400);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 58);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 2522);
     }
 }

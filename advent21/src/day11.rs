@@ -6,12 +6,12 @@ type EnergyLevel = usize;
 
 const FLASHING_ENERGY_LEVEL: EnergyLevel = 10;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let mut octopusses = Octopusses::from(input);
     total_number_of_flashes(&mut octopusses, 100).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let mut octopusses = Octopusses::from(input);
     number_of_steps_until_all_flash_simultaneously(&mut octopusses).to_string()
 }
@@ -94,22 +94,22 @@ mod tests {
     const DAY: usize = 11;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 1656);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 1644);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 195);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 229);
     }
 }

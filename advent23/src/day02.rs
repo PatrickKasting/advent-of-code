@@ -9,13 +9,13 @@ type Count = usize;
 
 const NUMBER_OF_COLORS: usize = 3;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     ids_of_possible_games(games(input))
         .sum::<usize>()
         .to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     games(input)
         .map(power_of_minimum_set)
         .sum::<Count>()
@@ -97,22 +97,22 @@ mod tests {
     const DAY: usize = 2;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 8);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 2149);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 2286);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 71274);
     }
 }

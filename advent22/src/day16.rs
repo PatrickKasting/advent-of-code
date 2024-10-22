@@ -13,11 +13,11 @@ type Pressure = usize;
 type Time = usize;
 type Distance = usize;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     maximum_release_from_input::<1>(input, "AA", 30).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     maximum_release_from_input::<2>(input, "AA", 26).to_string()
 }
 
@@ -120,23 +120,23 @@ mod tests {
     const DAY: usize = 16;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 1651);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 1584);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 1707);
     }
 
     #[test]
     #[ignore = "this takes several minutes with the 'dev' compilation profile"]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 2052);
     }
 

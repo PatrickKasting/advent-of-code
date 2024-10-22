@@ -20,14 +20,14 @@ type Rotation = Matrix<Coordinate, 3, 3>;
 
 const NUMBER_OF_BEACONS_IN_OVERLAP: usize = 12;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let mut scanners = scanners(input);
     scanner_positions(&mut scanners);
     let beacons: AHashSet<Beacon> = scanners.into_iter().flatten().collect();
     beacons.len().to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let mut scanners = scanners(input);
     let scanner_positions = scanner_positions(&mut scanners);
     maximum_manhattan_distance(&scanner_positions).to_string()
@@ -152,24 +152,24 @@ mod tests {
     const DAY: usize = 19;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 79);
     }
 
     #[test]
     #[ignore = "this takes several minutes"]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 449);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 3621);
     }
 
     #[test]
     #[ignore = "this takes several minutes"]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 13128);
     }
 

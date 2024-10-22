@@ -8,11 +8,11 @@ use shared::{
 type Height = isize;
 type ScenicScore = usize;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     number_of_visible_trees_from_edges(&Grid::from(input)).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     max_scenic_score(&Grid::from(input)).to_string()
 }
 
@@ -102,22 +102,22 @@ mod tests {
     const DAY: usize = 8;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 21);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 1695);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 8);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 287_040);
     }
 }

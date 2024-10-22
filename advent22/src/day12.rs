@@ -6,13 +6,13 @@ use shared::{
 type Heightmap = Grid<Height>;
 type Height = usize;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let (heightmap, current_position, best_signal) = heightmap(input);
     let from = |position| position == current_position;
     number_of_steps(&heightmap, from, best_signal).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let (heightmap, _, best_signal) = heightmap(input);
     let from = |position| heightmap[position] == height('a');
     number_of_steps(&heightmap, from, best_signal).to_string()
@@ -57,22 +57,22 @@ mod tests {
     const DAY: usize = 12;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 31);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 472);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 29);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 465);
     }
 }

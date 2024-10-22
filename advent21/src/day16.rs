@@ -13,13 +13,13 @@ type VersionNumber = Decimal;
 type Value = Decimal;
 type Decimal = usize;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let packet = packet(input);
     let (_, version_number_sum, _) = evaluation(&packet);
     version_number_sum.to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let packet = packet(input);
     let (_, _, value) = evaluation(&packet);
     value.to_string()
@@ -140,7 +140,7 @@ mod tests {
     const DAY: usize = 16;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         let function = |input| evaluation(&packet(input)).1;
         let cases = [
             ("8A004A801A8002F478", 16),
@@ -152,7 +152,7 @@ mod tests {
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 1014);
     }
 
@@ -173,7 +173,7 @@ mod tests {
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(
             DAY,
             Puzzle::Second,

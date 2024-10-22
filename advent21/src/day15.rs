@@ -8,12 +8,12 @@ use shared::{
 type Cave = Grid<RiskLevel>;
 type RiskLevel = isize;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let cave = Cave::from(input);
     lowest_total_risk(&cave, 1).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let cave = Cave::from(input);
     lowest_total_risk(&cave, 5).to_string()
 }
@@ -60,22 +60,22 @@ mod tests {
     const DAY: usize = 15;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 40);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 652);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 315);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 2938);
     }
 }

@@ -63,7 +63,7 @@
 ///
 /// If we perform this analysis for every iteration, we find that the largest accepted model number
 /// is `99_429_795_993_929`.
-pub fn first(_: &str) -> String {
+pub fn first_answer(_: &str) -> String {
     99_429_795_993_929_isize.to_string()
 }
 
@@ -73,7 +73,7 @@ pub fn first(_: &str) -> String {
 ///
 /// An analysis similar to that of [`first`] yields that the smallest accepted model number is
 /// `18_113_181_571_611`.
-pub fn second(_: &str) -> String {
+pub fn second_answer(_: &str) -> String {
     18_113_181_571_611_isize.to_string()
 }
 
@@ -86,7 +86,7 @@ mod tests {
     const DAY: usize = 24;
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(
             DAY,
             Puzzle::First,
@@ -96,7 +96,7 @@ mod tests {
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(
             DAY,
             Puzzle::Second,

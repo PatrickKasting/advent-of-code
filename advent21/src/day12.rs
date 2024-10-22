@@ -3,12 +3,12 @@ use ahash::{AHashMap, AHashSet};
 type CaveSystem<'input> = AHashMap<Cave<'input>, Vec<Cave<'input>>>;
 type Cave<'input> = &'input [u8];
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let cave_system = cave_system(input);
     number_of_paths(&cave_system, b"start", AHashSet::new(), true).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let cave_system = cave_system(input);
     number_of_paths(&cave_system, b"start", AHashSet::new(), false).to_string()
 }
@@ -78,12 +78,12 @@ mod tests {
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 4912);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         let function = |example| {
             let input = input(DAY, Input::Example(example));
             let cave_system = cave_system(&input);
@@ -94,7 +94,7 @@ mod tests {
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 150_004);
     }
 }

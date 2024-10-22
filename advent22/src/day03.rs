@@ -5,12 +5,12 @@ type Set = AHashSet<Item>;
 type Item = char;
 type Priority = u32;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let compartments = compartments(input);
     sum_of_priorities(compartments).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let groups = groups(input);
     sum_of_priorities(groups).to_string()
 }
@@ -73,22 +73,22 @@ mod tests {
     const DAY: usize = 3;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 157);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 7763);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 70);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 2569);
     }
 }

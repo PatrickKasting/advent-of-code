@@ -16,11 +16,11 @@ type Tile = char;
 
 const START: Position = [0, 1];
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     longest_hike(input, true).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     longest_hike(input, false).to_string()
 }
 
@@ -159,22 +159,22 @@ mod tests {
     const DAY: usize = 23;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 94);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 2202);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 154);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 6226);
     }
 }

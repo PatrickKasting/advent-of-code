@@ -16,7 +16,7 @@ type RobotCounts = [Count; NUMBER_OF_RESOURCES];
 type Time = Count;
 type Count = i32;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let blueprints = blueprints(input);
     (1..)
         .zip(blueprints)
@@ -25,7 +25,7 @@ pub fn first(input: &str) -> String {
         .to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let blueprints = blueprints(input).take(3);
     blueprints
         .map(|blueprint| maximum_geodes(32, blueprint))
@@ -211,17 +211,17 @@ mod tests {
     const DAY: usize = 19;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 33);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 1725);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 15510);
     }
 

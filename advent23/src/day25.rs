@@ -7,7 +7,7 @@ type Apparatus<'input> = AHashMap<Component<'input>, AHashSet<Component<'input>>
 type Connection<'input> = [Component<'input>; 2];
 type Component<'input> = &'input str;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let apparatus = apparatus(input);
     disconnected_group_sizes(&apparatus)
         .into_iter()
@@ -15,7 +15,7 @@ pub fn first(input: &str) -> String {
         .to_string()
 }
 
-pub fn second(_input: &str) -> String {
+pub fn second_answer(_input: &str) -> String {
     panic!("there is no second part on the 25th");
 }
 
@@ -97,12 +97,12 @@ mod tests {
     const DAY: usize = 25;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 54);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 562_912);
     }
 }

@@ -8,11 +8,11 @@ type Map = BTreeMap<Number, Offset>;
 type Number = isize;
 type Offset = isize;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     minimum_location_from_input(input, singleton_seed_ranges).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     minimum_location_from_input(input, seed_ranges).to_string()
 }
 
@@ -112,22 +112,22 @@ mod tests {
     const DAY: usize = 5;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 35);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 265_018_614);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 46);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 63_179_500);
     }
 }

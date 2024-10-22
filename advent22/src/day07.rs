@@ -11,7 +11,7 @@ struct Directory<'input> {
 
 type Size = usize;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let total_sizes = total_sizes(&root(input));
     total_sizes
         .into_iter()
@@ -20,7 +20,7 @@ pub fn first(input: &str) -> String {
         .to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let mut total_sizes = total_sizes(&root(input));
     let space_to_be_freed = total_sizes[0] - (70_000_000 - 30_000_000);
     total_sizes.sort_unstable();
@@ -107,22 +107,22 @@ mod tests {
     const DAY: usize = 7;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 95437);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 1_444_896);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 24_933_642);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 404_395);
     }
 }

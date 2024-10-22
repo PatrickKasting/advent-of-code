@@ -32,11 +32,11 @@ const APPEARING_ROCK_BOTTOM_MARGIN: Coordinate = 3;
 type Surface = Vec<Direction>;
 type Direction = [isize; 2];
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     tower_height(input.trim(), 2022).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     tower_height(input.trim(), 1_000_000_000_000_usize).to_string()
 }
 
@@ -238,17 +238,17 @@ mod tests {
     const DAY: usize = 17;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 3068);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 3081);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(
             DAY,
             Puzzle::Second,
@@ -258,7 +258,7 @@ mod tests {
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(
             DAY,
             Puzzle::Second,

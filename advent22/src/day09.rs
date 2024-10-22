@@ -6,11 +6,11 @@ use shared::{
 
 type Motion = (Direction, usize);
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     tail_positions::<2>(motions(input)).len().to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     tail_positions::<10>(motions(input)).len().to_string()
 }
 
@@ -76,12 +76,12 @@ mod tests {
     const DAY: usize = 9;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 13);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 6087);
     }
 
@@ -92,7 +92,7 @@ mod tests {
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 2493);
     }
 }

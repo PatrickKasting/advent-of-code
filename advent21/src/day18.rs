@@ -23,12 +23,12 @@ impl Display for SnailfishNumber {
 type RegularNumber = usize;
 type Magnitude = usize;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let snailfish_numbers = snailfish_numbers(input);
     magnitude(&sum(snailfish_numbers)).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let snailfish_numbers = snailfish_numbers(input);
     magnitudes_all_pairs(snailfish_numbers)
         .max()
@@ -202,22 +202,22 @@ mod tests {
     const DAY: usize = 18;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 4140);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 2501);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 3993);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 4935);
     }
 

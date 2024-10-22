@@ -16,7 +16,7 @@ enum Module<'input> {
 type Pulse = bool;
 const LOW: Pulse = false;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let mut configuration = configuration(input);
     let (total_number_of_low_pulses, total_number_of_high_pulses) =
         total_number_of_low_and_high_pulses(&mut configuration);
@@ -61,7 +61,7 @@ pub fn first(input: &str) -> String {
 /// `238_815_727_638_557`, which is the number of button presses it takes for `gl`, `gk`, `hr`, and
 /// `nr` to emit low pulses simultaneously. That is, it's the number of button presses it takes for
 /// `rx` to receive a single low pulse.
-pub fn second(_input: &str) -> String {
+pub fn second_answer(_input: &str) -> String {
     let cycle_lengths = [
         0b1111_0000_1011,
         0b1111_1010_0011,
@@ -177,12 +177,12 @@ mod tests {
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 1_020_211_150);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(
             DAY,
             Puzzle::Second,

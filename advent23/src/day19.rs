@@ -17,7 +17,7 @@ type Part = [Rating; 4];
 type RatingRanges = [RatingRange; 4];
 type RatingRange = Range<Rating>;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let (workflows, parts) = input
         .split_once("\n\n")
         .expect("input should contain workflows and parts separated by an empty line");
@@ -27,7 +27,7 @@ pub fn first(input: &str) -> String {
     sum_of_ratings(acceptable_parts).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let (workflows, _) = input
         .split_once("\n\n")
         .expect("input should contain workflows and parts separated by an empty line");
@@ -178,17 +178,17 @@ mod tests {
     const DAY: usize = 19;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 19114);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 332_145);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(
             DAY,
             Puzzle::Second,
@@ -198,7 +198,7 @@ mod tests {
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(
             DAY,
             Puzzle::Second,

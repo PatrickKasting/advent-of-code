@@ -8,11 +8,11 @@ use shared::string::usizes;
 type Spring = u8;
 type GroupSize = usize;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     sum_of_number_of_arrangements(input, 1)
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     sum_of_number_of_arrangements(input, 5)
 }
 
@@ -95,7 +95,7 @@ mod tests {
     const DAY: usize = 12;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         let input = input(DAY, Input::Example(0));
         test::cases(
             |line| number_of_arrangements(line, 1),
@@ -104,12 +104,12 @@ mod tests {
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 7694);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         let input = input(DAY, Input::Example(0));
         test::cases(
             |line| number_of_arrangements(line, 5),
@@ -118,7 +118,7 @@ mod tests {
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(
             DAY,
             Puzzle::Second,

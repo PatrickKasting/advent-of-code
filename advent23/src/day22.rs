@@ -9,7 +9,7 @@ type Brick = [RangeInclusive; 3];
 type RangeInclusive = [Coordinate; 2];
 type Coordinate = isize;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let mut bricks = sorted_bricks(input);
     number_of_falls(&mut bricks);
     bricks.sort_unstable_by_key(|&[_, _, [z_min, _]]| z_min);
@@ -19,7 +19,7 @@ pub fn first(input: &str) -> String {
         .to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let mut bricks = sorted_bricks(input);
     number_of_falls(&mut bricks);
     bricks.sort_unstable_by_key(|&[_, _, [z_min, _]]| z_min);
@@ -118,22 +118,22 @@ mod tests {
     const DAY: usize = 22;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 5);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 488);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 7);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 79465);
     }
 

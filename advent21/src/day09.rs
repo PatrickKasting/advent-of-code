@@ -9,7 +9,7 @@ type RiskLevel = isize;
 type Heightmap = Grid<Height>;
 type Height = isize;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let heightmap = Heightmap::from(input);
     low_points(&heightmap)
         .map(|low_point| risk_level(&heightmap, low_point))
@@ -17,7 +17,7 @@ pub fn first(input: &str) -> String {
         .to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let heightmap = Heightmap::from(input);
     descending_basin_sizes(&heightmap)[0..3]
         .iter()
@@ -74,22 +74,22 @@ mod tests {
     const DAY: usize = 9;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 15);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 506);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 1134);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 931_200);
     }
 }

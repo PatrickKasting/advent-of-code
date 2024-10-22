@@ -16,13 +16,13 @@ const TRACK_SIZE: Roll = 10;
 const DETERMINISTIC_SCORE_TARGET: Score = 1000;
 const QUANTUM_SCORE_TARGET: Score = 21;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let starting_spaces = starting_spaces(input);
     let (losing_score, number_of_rolls) = deterministic_game(starting_spaces);
     (losing_score * number_of_rolls).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let starting_spaces = starting_spaces(input);
     let number_of_wins = quantum_game(&mut AHashMap::new(), starting_spaces, [0, 0], 0);
     number_of_wins
@@ -109,17 +109,17 @@ mod tests {
     const DAY: usize = 21;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 739_785);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 1_002_474);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(
             DAY,
             Puzzle::Second,
@@ -129,7 +129,7 @@ mod tests {
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(
             DAY,
             Puzzle::Second,

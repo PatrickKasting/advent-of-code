@@ -8,11 +8,11 @@ type Combination = fn(Number, Number) -> Number;
 type Prediction = fn(Number, Number) -> Number;
 type Number = isize;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     sum_of_predictions(input, false).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     sum_of_predictions(input, true).to_string()
 }
 
@@ -66,17 +66,17 @@ mod tests {
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 1_995_001_648);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 2);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 988);
     }
 }

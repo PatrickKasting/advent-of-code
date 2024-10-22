@@ -7,12 +7,12 @@ type FoldInstruction = (FoldDirection, Coordinate);
 type FoldDirection = usize;
 type Coordinate = usize;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let (paper, instructions) = transparent_paper_and_fold_instructions(input);
     fold(paper, instructions[0]).len().to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let (mut paper, instructions) = transparent_paper_and_fold_instructions(input);
     for instruction in instructions {
         paper = fold(paper, instruction);
@@ -106,17 +106,17 @@ mod tests {
     const DAY: usize = 13;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 17);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 755);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         let expected = "\
             ###..#....#..#...##.###..###...##...##\n\
             #..#.#....#.#.....#.#..#.#..#.#..#.#..#\n\

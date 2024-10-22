@@ -10,11 +10,11 @@ type Parity = usize;
 const EVEN: Parity = 0;
 const ODD: Parity = 1;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     number_of_reachable_plots_in_exactly(&Garden::from(input), 64).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     const NUMBER_OF_STEPS: usize = 26_501_365;
 
     let garden = Garden::from(input);
@@ -167,7 +167,7 @@ mod tests {
     const DAY: usize = 21;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         let garden = Garden::from(input(DAY, Input::Example(0)));
         let actual = number_of_reachable_plots_in_exactly(&garden, 6);
         let expected = 16;
@@ -175,12 +175,12 @@ mod tests {
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 3642);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(
             DAY,
             Puzzle::Second,

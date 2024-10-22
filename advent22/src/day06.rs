@@ -1,10 +1,10 @@
 use ahash::AHashSet;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     index_of_marker(4, input.as_bytes()).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     index_of_marker(14, input.as_bytes()).to_string()
 }
 
@@ -39,12 +39,12 @@ mod tests {
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 1582);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 19);
         test_on_input(DAY, Puzzle::Second, Input::Example(1), 23);
         test_on_input(DAY, Puzzle::Second, Input::Example(2), 23);
@@ -53,7 +53,7 @@ mod tests {
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 3588);
     }
 }

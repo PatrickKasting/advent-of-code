@@ -9,13 +9,13 @@ type Position = [Coordinate; 3];
 type Velocity = [Coordinate; 3];
 type Coordinate = f64;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let hailstones = hailstones(input);
     let area = 200_000_000_000_000.0..=400_000_000_000_000.0;
     number_of_intersections_in_test_area(area, &hailstones).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let hailstones = hailstones(input);
     let (position, _) = initial_position_and_velocity(&hailstones);
     position.into_iter().sum::<Coordinate>().round().to_string()
@@ -183,24 +183,24 @@ mod tests {
     const DAY: usize = 24;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         let hailstones = hailstones(&input(DAY, Input::Example(0)));
         let number_of_intersections = number_of_intersections_in_test_area(7.0..=27.0, &hailstones);
         assert_eq!(number_of_intersections, 2);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 17776);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 47);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(
             DAY,
             Puzzle::Second,

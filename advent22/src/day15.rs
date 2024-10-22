@@ -12,11 +12,11 @@ type Range = [Coordinate; 2];
 type Position = [Coordinate; 2];
 type Coordinate = isize;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     number_of_impossible_positions_from_input(input, 2_000_000).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let distress_beacon = distress_beacon_from_input(input, 4_000_000);
     tuning_frequency(distress_beacon).to_string()
 }
@@ -197,26 +197,26 @@ mod tests {
     const DAY: usize = 15;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         let input = input(DAY, Input::Example(0));
         let actual = number_of_impossible_positions_from_input(&input, 10);
         assert_eq!(actual, 26);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 4_502_208);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         let input = input(DAY, Input::Example(0));
         let actual = tuning_frequency(distress_beacon_from_input(&input, 20));
         assert_eq!(actual, 56_000_011);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(
             DAY,
             Puzzle::Second,

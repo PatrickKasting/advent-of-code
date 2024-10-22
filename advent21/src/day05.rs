@@ -6,13 +6,13 @@ type Line = [Point; 2];
 type Point = [Coordinate; 2];
 type Coordinate = isize;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let lines = lines(input);
     let lines = lines.filter(|&line| !is_diagonal(line));
     number_of_overlap_points(lines).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let lines = lines(input);
     number_of_overlap_points(lines).to_string()
 }
@@ -69,22 +69,22 @@ mod tests {
     const DAY: usize = 5;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 5);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 8622);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 12);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 22037);
     }
 }

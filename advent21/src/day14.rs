@@ -8,12 +8,12 @@ type PairCounts = HashMap<Pair, usize>;
 type Pair = [Element; 2];
 type Element = u8;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let [minimum_count, maximum_count] = minimum_and_maximum_element_counts(input, 10);
     (maximum_count - minimum_count).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let [minimum_count, maximum_count] = minimum_and_maximum_element_counts(input, 40);
     (maximum_count - minimum_count).to_string()
 }
@@ -92,17 +92,17 @@ mod tests {
     const DAY: usize = 14;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 1588);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 3009);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(
             DAY,
             Puzzle::Second,
@@ -112,7 +112,7 @@ mod tests {
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(
             DAY,
             Puzzle::Second,

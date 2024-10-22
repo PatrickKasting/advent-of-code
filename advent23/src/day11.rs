@@ -7,11 +7,11 @@ type Image = Grid<char>;
 type Coordinate = usize;
 type Distance = usize;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     sum_of_distances(input, 2).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     sum_of_distances(input, 1_000_000).to_string()
 }
 
@@ -83,12 +83,12 @@ mod tests {
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 9_521_776);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(
             DAY,
             Puzzle::Second,

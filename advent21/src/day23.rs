@@ -22,12 +22,12 @@ const NUMBER_OF_ROOMS: usize = 4;
 const HALLWAY_SPACES: [usize; NUMBER_OF_HALLWAY_POSITIONS] = [1, 2, 4, 6, 8, 10, 11];
 const NUMBER_OF_HALLWAY_POSITIONS: usize = 7;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let burrow = burrow(input);
     least_total_energy_to_organize(burrow).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let burrow = unfold(burrow(input));
     least_total_energy_to_organize(burrow).to_string()
 }
@@ -237,22 +237,22 @@ mod tests {
     const DAY: usize = 23;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 12521);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 17120);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 44169);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 47234);
     }
 

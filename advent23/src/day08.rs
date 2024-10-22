@@ -6,14 +6,14 @@ type Connection<'input> = (Node<'input>, [Node<'input>; 2]);
 type Node<'input> = &'input str;
 type Time = usize;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let (directions, network) = directions_and_network(input);
     destination_and_time(&network, directions, 0, "AAA")
         .1
         .to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let (directions, network) = directions_and_network(input);
     time_to_all_ghosts_at_destinations(&network, directions).to_string()
 }
@@ -101,18 +101,18 @@ mod tests {
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 18673);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(2), 6);
     }
 
     #[test]
     #[ignore = "this takes roughly three minutes with the 'dev' compilation profile"]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(
             DAY,
             Puzzle::Second,

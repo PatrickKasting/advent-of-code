@@ -11,7 +11,7 @@ enum Packet {
 
 type Integer = u8;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     (1..)
         .zip(packet_pairs(input))
         .filter_map(|(index, [left, right])| compare(&left, &right).is_le().then_some(index))
@@ -19,7 +19,7 @@ pub fn first(input: &str) -> String {
         .to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let packets = all_packets(input).collect_vec();
     divider_packet_indices(packets, ["[[2]]", "[[6]]"].map(packet))
         .into_iter()
@@ -146,22 +146,22 @@ mod tests {
     const DAY: usize = 13;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 13);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 4821);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 140);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 21890);
     }
 }

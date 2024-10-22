@@ -13,11 +13,11 @@ use shared::{
 type Tile = char;
 type Cycle = Vec<Position>;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     (longest_cycle(&Grid::from(input)).len() / 2).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     area(&mut longest_cycle(&Grid::from(input))).to_string()
 }
 
@@ -123,19 +123,19 @@ mod tests {
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 6690);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(2), 4);
         test_on_input(DAY, Puzzle::Second, Input::Example(3), 8);
         test_on_input(DAY, Puzzle::Second, Input::Example(4), 10);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 525);
     }
 }

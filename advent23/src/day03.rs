@@ -8,13 +8,13 @@ type GearRatio = usize;
 type PartNumber = usize;
 type Coordinate = usize;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let mut sum: PartNumber = 0;
     for_each_part_number(input, |part_number, _, _| sum += part_number);
     sum.to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     gear_ratios(&part_numbers_next_to_stars(input))
         .sum::<GearRatio>()
         .to_string()
@@ -108,22 +108,22 @@ mod tests {
     const DAY: usize = 3;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 4361);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 521_515);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 467_835);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 69_527_306);
     }
 }

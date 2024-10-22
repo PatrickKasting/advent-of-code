@@ -2,11 +2,11 @@ type Score = i64;
 type Game = [Symbol; 2];
 type Symbol = i64; // Rock = 0, Paper = 1, Scissors = 2 OR Loss = 0, Draw = 1, Win = 2
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     total_score(games(input), score_known_shape).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     total_score(games(input), score_known_outcome).to_string()
 }
 
@@ -42,22 +42,22 @@ mod tests {
     const DAY: usize = 2;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 15);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 13565);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 12);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 12424);
     }
 }

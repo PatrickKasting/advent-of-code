@@ -7,12 +7,12 @@ type Position = isize;
 type Distance = isize;
 type FuelConsumption = isize;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let crabs = crabs(input);
     minimum_fuel_comsumption(&crabs, identity).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let crabs = crabs(input);
     minimum_fuel_comsumption(&crabs, triangular_fuel_comsumption).to_string()
 }
@@ -60,22 +60,22 @@ mod tests {
     const DAY: usize = 7;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 37);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 329_389);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 168);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 86_397_080);
     }
 }

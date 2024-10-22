@@ -9,13 +9,13 @@ type Corner = [Coordinate; 2];
 type Direction = [Coordinate; 2];
 type Coordinate = isize;
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let dig_plan = dig_plan(input, dig_plan_step_from_directions_and_distances);
     let trench = trench(dig_plan);
     area(&trench).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let dig_plan = dig_plan(input, dig_plan_step_from_color_codes);
     let trench = trench(dig_plan);
     area(&trench).to_string()
@@ -95,17 +95,17 @@ mod tests {
     const DAY: usize = 18;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 62);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 70253);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(
             DAY,
             Puzzle::Second,
@@ -115,7 +115,7 @@ mod tests {
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(
             DAY,
             Puzzle::Second,

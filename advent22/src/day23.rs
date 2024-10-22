@@ -11,13 +11,13 @@ use shared::{
 
 const INITIAL_DIRECTIONS: [Direction; 4] = [grid::NORTH, grid::SOUTH, grid::WEST, grid::EAST];
 
-pub fn first(input: &str) -> String {
+pub fn first_answer(input: &str) -> String {
     let mut elves = elves(input);
     simulation(&mut elves, Some(10));
     number_of_free_tiles(&elves).to_string()
 }
 
-pub fn second(input: &str) -> String {
+pub fn second_answer(input: &str) -> String {
     let mut elves = elves(input);
     let number_of_rounds_before_steady_state =
         simulation(&mut elves, None).expect("steady state should be reached");
@@ -120,22 +120,22 @@ mod tests {
     const DAY: usize = 23;
 
     #[test]
-    fn first_example() {
+    fn first_answer_example() {
         test_on_input(DAY, Puzzle::First, Input::Example(0), 110);
     }
 
     #[test]
-    fn first_input() {
+    fn first_answer_input() {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 4241);
     }
 
     #[test]
-    fn second_example() {
+    fn second_answer_example() {
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 20);
     }
 
     #[test]
-    fn second_input() {
+    fn second_answer_input() {
         test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 1079);
     }
 
