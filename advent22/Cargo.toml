@@ -9,6 +9,7 @@ rust-version.workspace = true
 ahash.workspace = true
 anyhow.workspace = true
 bitvec.workspace = true
+bytecount.workspace = true
 easy-cast.workspace = true
 itertools.workspace = true
 num-traits.workspace = true

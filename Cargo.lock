@@ -22,6 +22,7 @@ dependencies = [
  "ahash",
  "anyhow",
  "bitvec",
+ "bytecount",
  "easy-cast",
  "infrastructure",
  "itertools",
@@ -38,6 +39,7 @@ dependencies = [
  "ahash",
  "anyhow",
  "bitvec",
+ "bytecount",
  "easy-cast",
  "infrastructure",
  "itertools",
@@ -54,6 +56,7 @@ dependencies = [
  "ahash",
  "anyhow",
  "bitvec",
+ "bytecount",
  "easy-cast",
  "infrastructure",
  "itertools",
@@ -70,6 +73,7 @@ dependencies = [
  "ahash",
  "anyhow",
  "bitvec",
+ "bytecount",
  "easy-cast",
  "infrastructure",
  "itertools",
@@ -172,6 +176,12 @@ dependencies = [
  "tap",
  "wyz",
 ]
+
+[[package]]
+name = "bytecount"
+version = "0.6.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5ce89b21cab1437276d2650d57e971f9d548a2d9037cc231abdc0562b97498ce"
 
 [[package]]
 name = "byteorder"
