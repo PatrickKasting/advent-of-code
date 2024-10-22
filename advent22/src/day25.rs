@@ -6,7 +6,7 @@ pub fn first_answer(input: &str) -> String {
 }
 
 pub fn second_answer(_input: &str) -> String {
-    panic!("there is no second part on the 25th");
+    "There is no second puzzle on the 25th. Merry Christmas!".to_owned()
 }
 
 fn snafu(mut decimal: Decimal) -> String {
