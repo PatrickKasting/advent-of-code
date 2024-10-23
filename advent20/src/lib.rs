@@ -1,11 +1,13 @@
 mod day01;
 mod day02;
 mod day03;
+mod day04;
 
 const SOLUTIONS: &[[infrastructure::Solution; 2]] = &[
     [day01::first_answer, day01::second_answer],
     [day02::first_answer, day02::second_answer],
     [day03::first_answer, day03::second_answer],
+    [day04::first_answer, day04::second_answer],
 ];
 
 /// # Errors
