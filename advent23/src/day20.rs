@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use ahash::AHashMap;
 use itertools::Itertools;
-use shared::arithmetic::least_common_multiple;
+use shared::number_theory::least_common_multiple;
 
 type Configuration<'input> = AHashMap<&'input str, (Module<'input>, Vec<&'input str>)>;
 
