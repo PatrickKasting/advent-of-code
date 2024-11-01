@@ -1,12 +1,13 @@
 use std::{
     cmp::Reverse,
-    collections::{hash_map::Entry, BinaryHeap},
+    collections::{hash_map::Entry, BTreeMap, BTreeSet, BinaryHeap},
     hash::Hash,
     mem,
     ops::Add,
 };
 
 use ahash::{AHashMap, AHashSet};
+use itertools::Itertools;
 
 pub struct Exploration<T: Copy + Eq + Hash>(AHashSet<T>);
 
@@ -166,4 +167,89 @@ where
         );
     }
     None
+}
+
+#[must_use]
+pub fn bijections<K, V>(possibilities: BTreeMap<K, BTreeSet<V>>) -> Vec<AHashMap<K, V>>
+where
+    K: Copy + Eq + Hash,
+    V: Copy + Eq + Hash,
+{
+    let mut possibilities_descending = possibilities
+        .into_iter()
+        .sorted_unstable_by_key(|(_, values)| usize::MAX - values.len())
+        .collect_vec();
+    all_bijections(&mut AHashSet::new(), &mut possibilities_descending)
+}
+
+fn all_bijections<K, V>(
+    invalid: &mut AHashSet<V>,
+    possibilites: &mut Vec<(K, BTreeSet<V>)>,
+) -> Vec<AHashMap<K, V>>
+where
+    K: Copy + Eq + Hash,
+    V: Copy + Eq + Hash,
+{
+    if possibilites.is_empty() {
+        return vec![AHashMap::new()];
+    }
+
+    let mut bijections = vec![];
+    let (key, values) = possibilites
+        .pop()
+        .expect("possibilities should not be empty");
+    for &value in &values {
+        if !invalid.insert(value) {
+            continue;
+        }
+        for mut bijection in all_bijections(invalid, possibilites) {
+            bijection.insert(key, value);
+            bijections.push(bijection);
+        }
+        invalid.remove(&value);
+    }
+    possibilites.push((key, values));
+    bijections
+}
+
+#[cfg(test)]
+mod tests {
+    use infrastructure::test;
+
+    use super::*;
+
+    #[test]
+    fn assignment() {
+        type Case<'case, 'values> = (&'case [(usize, &'values [char])], usize);
+
+        let function = |possibilities: &[(usize, &[char])]| {
+            let possibilities: BTreeMap<usize, BTreeSet<char>> = possibilities
+                .iter()
+                .map(|&(key, values)| (key, values.iter().copied().collect()))
+                .collect();
+            super::bijections(possibilities).len()
+        };
+        let cases: [Case; 5] = [
+            (
+                &[
+                    (1, &['a', 'b', 'c']),
+                    (2, &['a', 'b', 'c']),
+                    (3, &['a', 'b', 'c']),
+                ],
+                6,
+            ),
+            (
+                &[
+                    (2, &['b', 'c']),
+                    (3, &['a', 'b', 'c']),
+                    (5, &['a', 'b', 'c']),
+                ],
+                4,
+            ),
+            (&[(7, &['b', 'c']), (11, &['a', 'b', 'c']), (14, &['b'])], 1),
+            (&[(4, &['b', 'c']), (16, &['c', 'b']), (64, &['b', 'c'])], 0),
+            (&[], 1),
+        ];
+        test::cases(function, cases);
+    }
 }
