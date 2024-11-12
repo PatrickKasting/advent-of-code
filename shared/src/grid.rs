@@ -1,6 +1,7 @@
 use std::{
     convert::identity,
     fmt::{Debug, Display, Write},
+    mem,
     ops::{Index, IndexMut},
 };
 
@@ -133,6 +134,36 @@ impl<T> Grid<T> {
         midpoints.cast()
     }
 
+    pub fn flip_horizontally(&mut self) {
+        let width = self.width();
+        for row in self.elements.chunks_mut(width) {
+            row.reverse();
+        }
+    }
+
+    #[allow(clippy::missing_panics_doc)]
+    pub fn rotate_clockwise(&mut self) {
+        let mut elements = vec![];
+        mem::swap(&mut elements, &mut self.elements);
+
+        let rows = elements.into_iter().chunks(self.width());
+        let mut rows = rows.into_iter().collect_vec();
+        for _ in 0..self.width() {
+            for row in rows.iter_mut().rev() {
+                let element = row
+                    .next()
+                    .expect("row should have number of elements equal to grid width");
+                self.elements.push(element);
+            }
+        }
+        debug_assert!(
+            rows.iter_mut().all(|row| row.next().is_none()),
+            "all elements should have been moved",
+        );
+
+        self.width = self.height();
+    }
+
     #[must_use]
     pub fn height(&self) -> usize {
         self.elements.len() / self.width()
@@ -254,4 +285,25 @@ pub fn neighbors(position: Position) -> [Position; 4] {
 #[must_use]
 pub fn neighbors_including_diagonal(position: Position) -> [Position; 8] {
     DIRECTIONS_INCLUDING_DIAGONAL.map(|direction| position.add(direction))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn flip_horizontally() {
+        let mut grid: Grid<u8> = Grid::from("abc\ndef\nghi\njkl\n");
+        grid.flip_horizontally();
+        let expected = Grid::from("cba\nfed\nihg\nlkj\n");
+        assert_eq!(grid, expected);
+    }
+
+    #[test]
+    fn rotate_clockwise() {
+        let mut grid: Grid<u8> = Grid::from("abc\ndef\nghi\njkl\n");
+        grid.rotate_clockwise();
+        let expected = Grid::from("jgda\nkheb\nlifc\n");
+        assert_eq!(grid, expected);
+    }
 }
