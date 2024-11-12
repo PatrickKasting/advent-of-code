@@ -1,9 +1,28 @@
+use itertools::Itertools;
+use shared::{grid::Grid, string::usizes};
+
+type Tile = Grid<Pixel>;
+type Id = usize;
+type Pixel = u8;
+
 pub fn first_answer(input: &str) -> String {
+    let tiles = tiles(input);
     todo!()
 }
 
 pub fn second_answer(input: &str) -> String {
     todo!()
+}
+
+fn tiles(input: &str) -> Vec<(Id, Tile)> {
+    input.split("\n\n").map(tile).collect_vec()
+}
+
+fn tile(str: &str) -> (Id, Tile) {
+    let (id, tile) = str
+        .split_once('\n')
+        .expect("id should be on a separate line from image");
+    (usizes(id)[0], Tile::from(tile))
 }
 
 #[cfg(test)]
