@@ -78,7 +78,12 @@ mod tests {
 
     #[test]
     fn second_answer_example() {
-        test_on_input(DAY, Puzzle::Second, Input::Example(0), 291);
+        test_on_input(
+            DAY,
+            Puzzle::Second,
+            Input::Example(0),
+            149_245_887_792_usize,
+        );
     }
 
     #[test]
