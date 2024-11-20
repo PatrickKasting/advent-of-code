@@ -17,6 +17,7 @@ mod day17;
 mod day18;
 mod day19;
 mod day22;
+mod day24;
 
 const SOLUTIONS: &[[infrastructure::Solution; 2]] = &[
     [day01::first_answer, day01::second_answer],
@@ -41,6 +42,8 @@ const SOLUTIONS: &[[infrastructure::Solution; 2]] = &[
     [|_| unimplemented!(), |_| unimplemented!()],
     [|_| unimplemented!(), |_| unimplemented!()],
     [day22::first_answer, day22::second_answer],
+    [|_| unimplemented!(), |_| unimplemented!()],
+    [day24::first_answer, day24::second_answer],
 ];
 
 /// # Errors
