@@ -1,6 +1,8 @@
 use ahash::AHashSet;
 use shared::{grid::Position, vector::Vector};
 
+type Floor = AHashSet<Position>;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Direction {
     East,
@@ -13,24 +15,26 @@ enum Direction {
 
 pub fn first_answer(input: &str) -> String {
     let walks = walks(input);
-    black(walks).len().to_string()
+    floor(walks).len().to_string()
 }
 
 pub fn second_answer(input: &str) -> String {
-    todo!()
+    let walks = walks(input);
+    let floor = floor(walks);
+    floor_after(100, floor).len().to_string()
 }
 
-fn black(
+fn floor(
     walks: impl IntoIterator<Item = impl IntoIterator<Item = Direction>>,
 ) -> AHashSet<Position> {
-    let mut black = AHashSet::new();
+    let mut floor = AHashSet::new();
     for walk in walks {
         let destination = destination(walk);
-        if !black.insert(destination) {
-            black.remove(&destination);
+        if !floor.insert(destination) {
+            floor.remove(&destination);
         }
     }
-    black
+    floor
 }
 
 fn destination(walk: impl IntoIterator<Item = Direction>) -> Position {
@@ -47,6 +51,46 @@ fn destination(walk: impl IntoIterator<Item = Direction>) -> Position {
         position = position.add(step);
     }
     position
+}
+
+fn floor_after(days: usize, mut floor: Floor) -> Floor {
+    for _ in 1..=days {
+        floor = next_floor(&floor);
+    }
+    floor
+}
+
+fn next_floor(floor: &Floor) -> Floor {
+    let neighborhood: AHashSet<Position> = floor
+        .iter()
+        .flat_map(|&position| neighbors(position))
+        .chain(floor.iter().copied())
+        .collect();
+    neighborhood
+        .into_iter()
+        .filter(|&position| should_be_black(floor, position))
+        .collect()
+}
+
+fn should_be_black(floor: &Floor, position: Position) -> bool {
+    let is_black = floor.contains(&position);
+    let number_of_black_neighbors = number_of_black_neighbors(floor, position);
+    let is_black_with_one_or_two_black_neighbors =
+        is_black && [1, 2].contains(&number_of_black_neighbors);
+    let is_white_with_two_black_neighbors = !is_black && number_of_black_neighbors == 2;
+    is_black_with_one_or_two_black_neighbors || is_white_with_two_black_neighbors
+}
+
+fn number_of_black_neighbors(floor: &Floor, position: Position) -> usize {
+    neighbors(position)
+        .into_iter()
+        .filter(|neighbor| floor.contains(neighbor))
+        .count()
+}
+
+fn neighbors(position: Position) -> [Position; 6] {
+    let steps = [[2, 0], [1, 1], [-1, 1], [-2, 0], [-1, -1], [1, -1]];
+    steps.map(|step| position.add(step))
 }
 
 fn walks(input: &str) -> impl Iterator<Item = Vec<Direction>> + '_ {
@@ -79,9 +123,11 @@ fn direction(str: &str) -> (&str, Direction) {
 
 #[cfg(test)]
 mod tests {
-    use infrastructure::{Input, Puzzle};
+    use ahash::AHashMap;
+    use infrastructure::{test, Input, Puzzle};
 
-    use crate::tests::test_on_input;
+    use super::*;
+    use crate::tests::{input, test_on_input};
 
     const DAY: usize = 24;
 
@@ -92,16 +138,99 @@ mod tests {
 
     #[test]
     fn first_answer_puzzle_input() {
-        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 32629);
+        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 465);
     }
 
     #[test]
     fn second_answer_example() {
-        test_on_input(DAY, Puzzle::Second, Input::Example(0), 291);
+        let input = input(DAY, Input::Example(0));
+        let mut floor = floor(walks(&input));
+
+        let expected = AHashMap::from([
+            (1, 15),
+            (2, 12),
+            (3, 25),
+            (4, 14),
+            (5, 23),
+            (6, 28),
+            (7, 41),
+            (8, 37),
+            (9, 49),
+            (10, 37),
+            (20, 132),
+            (30, 259),
+            (40, 406),
+            (50, 566),
+            (60, 788),
+            (70, 1106),
+            (80, 1373),
+            (90, 1844),
+            (100, 2208),
+        ]);
+
+        for day in 1..=100 {
+            floor = next_floor(&floor);
+
+            if let Some(&expected) = expected.get(&day) {
+                assert_eq!(
+                    floor.len(),
+                    expected,
+                    "number of black tiles should match expected for day {day}"
+                );
+            }
+        }
     }
 
     #[test]
     fn second_answer_puzzle_input() {
-        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 32519);
+        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 4078);
+    }
+
+    #[test]
+    fn should_be_black() {
+        let function =
+            |(floor, position)| super::should_be_black(&AHashSet::from_iter(floor), position);
+        let cases = [
+            (
+                (vec![[0, 2], [0, -2], [4, 0], [3, 1], [0, 0]], [0, 0]),
+                false,
+            ),
+            ((vec![[5, 3], [7, 3], [6, 0], [6, 4], [6, 2]], [6, 2]), true),
+            (
+                (vec![[4, 4], [5, 5], [2, 6], [1, 5], [2, 4]], [3, 5]),
+                false,
+            ),
+            ((vec![[4, 4], [5, 4], [2, 7], [0, 5], [2, 4]], [3, 5]), true),
+        ];
+        test::cases(function, cases);
+    }
+
+    #[test]
+    fn number_of_black_neighbors() {
+        let function = |(floor, position)| {
+            super::number_of_black_neighbors(&AHashSet::from_iter(floor), position)
+        };
+        let cases = [
+            ((vec![[0, 2], [0, -2], [4, 0], [3, 1]], [0, 0]), 0),
+            ((vec![[5, 3], [7, 3], [6, 0], [6, 4]], [6, 2]), 2),
+            ((vec![[4, 4], [5, 5], [2, 6], [1, 5], [2, 4]], [3, 5]), 5),
+        ];
+        test::cases(function, cases);
+    }
+
+    #[test]
+    fn neighbors() {
+        let function = |position| AHashSet::from(super::neighbors(position));
+        let cases = [
+            (
+                [0, 0],
+                AHashSet::from([[2, 0], [1, 1], [-1, 1], [-2, 0], [-1, -1], [1, -1]]),
+            ),
+            (
+                [3, 4],
+                AHashSet::from([[5, 4], [4, 5], [2, 5], [1, 4], [2, 3], [4, 3]]),
+            ),
+        ];
+        test::cases(function, cases);
     }
 }
