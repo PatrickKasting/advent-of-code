@@ -2,7 +2,7 @@ use std::{collections::BTreeSet, ops::RangeInclusive};
 
 use ahash::AHashMap;
 use itertools::Itertools;
-use shared::{search::bijections, string::usizes};
+use shared::{search::injections, string::usizes};
 
 type Rules<'input> = AHashMap<Field<'input>, Vec<RangeInclusive<Value>>>;
 type Field<'input> = &'input str;
@@ -49,7 +49,7 @@ fn field_order<'input>(
             (position, possibilities)
         })
         .collect();
-    bijections(possible_fields)
+    injections(possible_fields)
         .into_iter()
         .exactly_one()
         .expect("only one field order should be possible")
