@@ -170,7 +170,7 @@ where
 }
 
 #[must_use]
-pub fn bijections<K, V>(possibilities: BTreeMap<K, BTreeSet<V>>) -> Vec<AHashMap<K, V>>
+pub fn injections<K, V>(possibilities: BTreeMap<K, BTreeSet<V>>) -> Vec<AHashMap<K, V>>
 where
     K: Copy + Eq + Hash,
     V: Copy + Eq + Hash,
@@ -179,10 +179,10 @@ where
         .into_iter()
         .sorted_unstable_by_key(|(_, values)| usize::MAX - values.len())
         .collect_vec();
-    all_bijections(&mut AHashSet::new(), &mut possibilities_descending)
+    all_injections(&mut AHashSet::new(), &mut possibilities_descending)
 }
 
-fn all_bijections<K, V>(
+fn all_injections<K, V>(
     invalid: &mut AHashSet<V>,
     possibilites: &mut Vec<(K, BTreeSet<V>)>,
 ) -> Vec<AHashMap<K, V>>
@@ -194,7 +194,7 @@ where
         return vec![AHashMap::new()];
     }
 
-    let mut bijections = vec![];
+    let mut injections = vec![];
     let (key, values) = possibilites
         .pop()
         .expect("possibilities should not be empty");
@@ -202,14 +202,14 @@ where
         if !invalid.insert(value) {
             continue;
         }
-        for mut bijection in all_bijections(invalid, possibilites) {
-            bijection.insert(key, value);
-            bijections.push(bijection);
+        for mut injection in all_injections(invalid, possibilites) {
+            injection.insert(key, value);
+            injections.push(injection);
         }
         invalid.remove(&value);
     }
     possibilites.push((key, values));
-    bijections
+    injections
 }
 
 #[cfg(test)]
@@ -227,7 +227,7 @@ mod tests {
                 .iter()
                 .map(|&(key, values)| (key, values.iter().copied().collect()))
                 .collect();
-            super::bijections(possibilities).len()
+            super::injections(possibilities).len()
         };
         let cases: [Case; 5] = [
             (
