@@ -84,6 +84,7 @@ advent20 = { path = "advent20" }
 advent21 = { path = "advent21" }
 advent22 = { path = "advent22" }
 advent23 = { path = "advent23" }
+advent24 = { path = "advent24" }
 
 [lints]
 workspace = true

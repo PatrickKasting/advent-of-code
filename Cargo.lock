@@ -10,6 +10,7 @@ dependencies = [
  "advent21",
  "advent22",
  "advent23",
+ "advent24",
  "anyhow",
  "clap",
  "infrastructure",
@@ -68,6 +69,23 @@ dependencies = [
 
 [[package]]
 name = "advent23"
+version = "0.1.0"
+dependencies = [
+ "ahash",
+ "anyhow",
+ "bitvec",
+ "bytecount",
+ "easy-cast",
+ "infrastructure",
+ "itertools",
+ "num-traits",
+ "rand",
+ "regex",
+ "shared",
+]
+
+[[package]]
+name = "advent24"
 version = "0.1.0"
 dependencies = [
  "ahash",
