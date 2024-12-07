@@ -1,4 +1,5 @@
 pub mod floating_point;
+pub mod graph;
 pub mod grid;
 pub mod linear_equations;
 pub mod matrix;
