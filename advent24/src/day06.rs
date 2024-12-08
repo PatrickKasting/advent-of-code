@@ -1,5 +1,5 @@
 use shared::{
-    grid::{self, Grid, Position},
+    grid::{self, Direction, Grid, Position},
     vector::{RotationInTwoDimensions, Vector},
 };
 
@@ -16,16 +16,58 @@ pub fn first_answer(input: &str) -> String {
 }
 
 pub fn second_answer(input: &str) -> String {
-    todo!()
+    let (map, starting_position) = map_and_starting_position(input);
+    let cycle_obstacles = cycle_obstacles(&map, starting_position);
+    cycle_obstacles.len().to_string()
 }
 
-fn visited_positions(map: &Map, starting_position: [isize; 2]) -> Grid<bool> {
+fn visited_positions(map: &Map, starting_position: Position) -> Grid<bool> {
     let mut visited = map.map(|_, _| false);
-    let mut position = starting_position;
-    let mut direction = grid::NORTH;
-    while map.get(position).is_some() {
+    walk(map, starting_position, grid::NORTH, |position, _| {
         visited[position] = true;
+        false
+    });
+    visited
+}
 
+fn cycle_obstacles(map: &Map, starting_position: Position) -> Vec<Position> {
+    let mut directions = map.map(|_, _| None);
+    let mut cycle_obstacles = vec![];
+    walk(
+        map,
+        starting_position,
+        grid::NORTH,
+        |position, direction| {
+            directions[position] = Some(direction);
+
+            let in_front = position.add(direction);
+            if map.get(in_front) == Some(&'.') {
+                let mut is_cycle = false;
+                walk(map, position, direction.right(), |position, direction| {
+                    if directions.get(position) == Some(&Some(direction)) {
+                        is_cycle = true;
+                        true
+                    } else {
+                        false
+                    }
+                });
+                if is_cycle {
+                    cycle_obstacles.push(in_front);
+                }
+            }
+            false
+        },
+    );
+    cycle_obstacles
+}
+
+fn walk(
+    map: &Map,
+    mut position: Position,
+    mut direction: Direction,
+    mut stop: impl FnMut(Position, Direction) -> bool,
+) {
+    while map.get(position).is_some() && !stop(position, direction) {
         let mut next_position;
         loop {
             next_position = position.add(direction);
@@ -36,7 +78,6 @@ fn visited_positions(map: &Map, starting_position: [isize; 2]) -> Grid<bool> {
         }
         position = next_position;
     }
-    visited
 }
 
 fn map_and_starting_position(input: &str) -> (Map, Position) {
