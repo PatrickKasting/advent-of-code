@@ -15,9 +15,10 @@ fn main() -> anyhow::Result<()> {
         advent21::answer,
         advent22::answer,
         advent23::answer,
+        advent24::answer,
     ]
     .get(year - 2020)
-    .context("year should be 2020, 2021, 2022, or 2023")?;
+    .context("year should be 2020, 2021, 2022, 2023, or 2024")?;
     let answer = answer(day, puzzle)?;
     println!("{answer}");
 
@@ -42,5 +43,5 @@ struct CommandLineArguments {
 }
 
 fn year(str: &str) -> anyhow::Result<Year> {
-    usize_within(2020..=2023, str)
+    usize_within(2020..=2024, str)
 }
