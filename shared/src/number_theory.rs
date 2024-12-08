@@ -82,6 +82,16 @@ pub fn greatest_common_divisor(mut lhs: usize, mut rhs: usize) -> usize {
     }
 }
 
+#[must_use]
+pub fn number_of_decimal_digits(mut number: isize) -> u32 {
+    let mut number_of_digits = 0;
+    while number != 0 {
+        number /= 10;
+        number_of_digits += 1;
+    }
+    number_of_digits
+}
+
 #[cfg(test)]
 mod tests {
     use easy_cast::Cast;
@@ -154,5 +164,22 @@ mod tests {
             ((24, 54), 6),
         ];
         test::cases(function, cases);
+    }
+
+    #[test]
+    fn number_of_decimal_digits() {
+        let cases = [
+            (1, 1),
+            (9, 1),
+            (10, 2),
+            (9_827_007, 7),
+            (1_000_000_000, 10),
+            (-1, 1),
+            (-9, 1),
+            (-10, 2),
+            (-9_827_007, 7),
+            (-1_000_000_000, 10),
+        ];
+        test::cases(super::number_of_decimal_digits, cases);
     }
 }
