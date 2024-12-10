@@ -15,7 +15,7 @@
     devShells.${system}.default = pkgs.mkShell {
       packages = let
         nix = [pkgs.nil formatter.${system}];
-        rust = with pkgs; [rustc cargo rustfmt clippy rust-analyzer];
+        rust = with pkgs; [rustc cargo rustfmt clippy];
         llvm = with pkgs; [clang libclang];
       in
         nix ++ rust ++ llvm;
