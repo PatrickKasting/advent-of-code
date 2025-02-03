@@ -5,7 +5,7 @@ members = ["advent*", "infrastructure", "shared"]
 version = "0.1.0"
 authors = ["Patrick Kasting"]
 edition = "2021"
-rust-version = "1.80.1"
+rust-version = "1.82.0"
 
 [workspace.dependencies]
 ahash = { version = "0.8.11", default-features = false, features = [
