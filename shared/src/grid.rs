@@ -241,6 +241,17 @@ pub const SOUTH_WEST: Direction = [1, -1];
 pub const WEST: Direction = [0, -1];
 pub const NORTH_WEST: Direction = [-1, -1];
 
+#[must_use]
+pub fn direction(char: char) -> Option<Direction> {
+    match char {
+        '^' => Some(NORTH),
+        '>' => Some(EAST),
+        'v' => Some(SOUTH),
+        '<' => Some(WEST),
+        _ => None,
+    }
+}
+
 pub const DIRECTIONS: [Direction; 4] = [NORTH, EAST, SOUTH, WEST];
 pub const DIRECTIONS_INCLUDING_DIAGONAL: [Direction; 8] = [
     NORTH, NORTH_EAST, EAST, SOUTH_EAST, SOUTH, SOUTH_WEST, WEST, NORTH_WEST,

@@ -3,7 +3,7 @@ use easy_cast::{Cast, Conv};
 use itertools::Itertools;
 
 use shared::{
-    grid::{self, Coordinate, Direction, Position},
+    grid::{self, direction, Coordinate, Direction, Position},
     vector::Vector,
 };
 
@@ -109,13 +109,7 @@ fn valley(input: &str) -> ([Coordinate; 2], Blizzards) {
         .enumerate()
         .flat_map(|(row, line)| {
             line.chars().enumerate().filter_map(move |(column, char)| {
-                let blizzard_direction = match char {
-                    '^' => Some(grid::NORTH),
-                    '>' => Some(grid::EAST),
-                    'v' => Some(grid::SOUTH),
-                    '<' => Some(grid::WEST),
-                    _ => None,
-                }?;
+                let blizzard_direction = direction(char)?;
                 let position = [row.cast(), column.cast()];
                 Some((position, blizzard_direction))
             })

@@ -5,7 +5,7 @@ use easy_cast::Cast;
 use itertools::Itertools;
 
 use shared::{
-    grid::{self, Direction, Grid, Position},
+    grid::{self, direction, Direction, Grid, Position},
     vector::{Negation, Vector},
 };
 
@@ -118,14 +118,7 @@ fn next_path_tiles(map: &Map, from: Direction, position: Position) -> Vec<(Posit
 }
 
 fn slope(tile: Tile) -> Option<Direction> {
-    match tile {
-        '^' => Some(grid::NORTH),
-        '>' => Some(grid::EAST),
-        'v' => Some(grid::SOUTH),
-        '<' => Some(grid::WEST),
-        '.' => None,
-        _ => panic!("only walkable tiles should be checked for slopes"),
-    }
+    direction(tile)
 }
 
 fn last_junction(graph: &Graph, goal: Position) -> (Position, Distance) {
