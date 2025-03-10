@@ -6,7 +6,6 @@ use crate::{Day, Input, Puzzle, Solution};
 ///
 /// Panics if the return value of the solution applied to the input does not equal
 /// `expected.to_string()`.
-#[allow(clippy::needless_pass_by_value)]
 pub fn on_input(
     inputs: fn(Day, Input) -> String,
     solutions: &[[Solution; 2]],

@@ -17,7 +17,10 @@ pub fn vector_mul<
     lhs.map(|row| row.dot(rhs))
 }
 
-#[allow(clippy::module_name_repetitions)]
+#[expect(
+    clippy::module_name_repetitions,
+    reason = "module name indicates lhs of matrix multiplication"
+)]
 pub fn matrix_mul<
     T: Copy + Zero + NumOps + NumCast,
     const LHS_NUM_ROWS: usize,

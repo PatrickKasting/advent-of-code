@@ -65,7 +65,10 @@ fn is_height_valid(value: Value) -> bool {
 }
 
 fn is_hair_color_valid(value: Value) -> bool {
-    #[allow(clippy::unreadable_literal)]
+    #[expect(
+        clippy::unreadable_literal,
+        reason = "underscore spilts color hex oddly"
+    )]
     if let Some(value) = value.strip_prefix('#') {
         value.len() == 6 && is_number_within(0x000000..=0xffffff, 16, value)
     } else {

@@ -4,7 +4,10 @@ use ahash::AHashMap;
 use itertools::Itertools;
 
 #[must_use]
-#[allow(clippy::missing_panics_doc)]
+#[expect(
+    clippy::missing_panics_doc,
+    reason = "all edges of original graph should be present"
+)]
 pub fn topological_sort<Vertex>(graph: &AHashMap<Vertex, Vec<Vertex>>) -> Option<Vec<Vertex>>
 where
     Vertex: Copy + Eq + Ord + Hash,
