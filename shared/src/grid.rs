@@ -102,9 +102,17 @@ impl<T> Grid<T> {
         }
     }
 
-    pub fn position(&self, mut predicate: impl FnMut(&T) -> bool) -> Option<Position> {
+    pub fn find(&self, mut predicate: impl FnMut(Position, &T) -> bool) -> Option<(Position, &T)> {
         self.iter_row_major()
-            .find_map(|(position, element)| predicate(element).then_some(position))
+            .find(|(position, element)| predicate(*position, element))
+    }
+
+    pub fn find_map<U>(
+        &self,
+        mut f: impl FnMut(Position, &T) -> Option<U>,
+    ) -> Option<(Position, U)> {
+        self.iter_row_major()
+            .find_map(|(position, element)| f(position, element).map(|result| (position, result)))
     }
 
     #[must_use]

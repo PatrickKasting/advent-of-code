@@ -44,7 +44,7 @@ pub fn losing_board_score(
 
 fn mark(number: Number, boards: &mut [Board]) {
     for (numbers, marks) in boards {
-        if let Some(position) = numbers.position(|&board_number| board_number == number) {
+        if let Some((position, _)) = numbers.find(|_, &board_number| board_number == number) {
             marks[position] = true;
         }
     }
