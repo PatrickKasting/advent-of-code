@@ -57,18 +57,18 @@ fn matches_sequence<'input>(
         })
 }
 
-fn rules_and_messages(input: &str) -> (Rules, impl Iterator<Item = Message>) {
+fn rules_and_messages(input: &str) -> (Rules<'_>, impl Iterator<Item = Message<'_>>) {
     let (rules, messages) = input
         .split_once("\n\n")
         .expect("rules and messages should be separated by a blank line");
     (self::rules(rules), messages.lines())
 }
 
-fn rules(str: &str) -> Rules {
+fn rules(str: &str) -> Rules<'_> {
     str.lines().map(rule).collect()
 }
 
-fn rule(line: &str) -> (usize, Pattern) {
+fn rule(line: &str) -> (usize, Pattern<'_>) {
     let (index, pattern) = line
         .split_once(": ")
         .expect("index and pattern should be separated by a colon");

@@ -98,7 +98,7 @@ fn distances_to_functioning_valves<'input>(
         .collect_vec()
 }
 
-fn cave(input: &str) -> Cave {
+fn cave(input: &str) -> Cave<'_> {
     input.lines().map(valve).collect()
 }
 

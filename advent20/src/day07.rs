@@ -37,18 +37,18 @@ fn number_of_contained_bags(rules: &Rules, color: Color) -> usize {
         .sum()
 }
 
-fn rules(input: &str) -> Rules {
+fn rules(input: &str) -> Rules<'_> {
     input.lines().map(rule).collect()
 }
 
-fn rule(line: &str) -> Rule {
+fn rule(line: &str) -> Rule<'_> {
     let (color, contained_bags) = line
         .split_once(" bags contain ")
         .expect("rule should contain ' bags contain '");
     (color, self::contained_bags(contained_bags))
 }
 
-fn contained_bags(str: &str) -> Vec<(usize, Color)> {
+fn contained_bags(str: &str) -> Vec<(usize, Color<'_>)> {
     static REGEX: OnceLock<Regex> = OnceLock::new();
     let regex = REGEX.get_or_init(|| {
         Regex::new(r"(?<amount>\d+) (?<color>.+?) bags?").expect("regex should be valid")

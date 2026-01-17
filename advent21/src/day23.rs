@@ -199,7 +199,9 @@ fn burrow(input: &str) -> Burrow<2> {
         .map(str::as_bytes)
         .map(ToOwned::to_owned)
         .collect_vec();
-    lines.iter_mut().for_each(|line| line.resize(13, b' '));
+    for line in &mut lines {
+        line.resize(13, b' ');
+    }
     let burrow =
         Grid::from(str::from_utf8(&lines.join(&b'\n')).expect("slice should still be utf8"));
 

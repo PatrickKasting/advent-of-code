@@ -82,7 +82,7 @@ fn number_of_light_pixels(image: &Image) -> usize {
         .count()
 }
 
-fn enhancement_string_and_image(input: &str) -> (EnhancementString, Image) {
+fn enhancement_string_and_image(input: &str) -> (EnhancementString<'_>, Image) {
     let (enhancement_string, image) = input
         .split_once("\n\n")
         .expect("enhancement string and image should be separated by an empty line");

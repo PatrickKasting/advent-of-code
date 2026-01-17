@@ -65,7 +65,7 @@ fn group_size(apparatus: &Apparatus, paths: &AHashSet<Connection>, component: Co
     exploration.explored().len()
 }
 
-fn apparatus(input: &str) -> Apparatus {
+fn apparatus(input: &str) -> Apparatus<'_> {
     let mut apparatus = AHashMap::new();
     let mut add_connection = |from, to| {
         apparatus

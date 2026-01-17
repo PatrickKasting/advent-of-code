@@ -64,6 +64,7 @@ fn subtract_pivot_row_from_other_rows<const NUM_ROWS: usize, const NUM_COLUMNS: 
     for row in (0..NUM_ROWS).filter(|&row| row != pivot_row) {
         let ratio = matrix[row][pivot_column] / pivot;
         matrix[row][pivot_column] = 0.0;
+        #[expect(clippy::needless_range_loop, reason = "indices make intention clearer")]
         for column in pivot_column + 1..NUM_COLUMNS {
             matrix[row][column] -= matrix[pivot_row][column] * ratio;
         }
@@ -76,6 +77,7 @@ fn divide_pivot_row_by_pivot<const NUM_ROWS: usize, const NUM_COLUMNS: usize>(
     pivot_column: usize,
     pivot: f64,
 ) {
+    #[expect(clippy::needless_range_loop, reason = "indices make intention clearer")]
     for column in pivot_column..NUM_COLUMNS {
         matrix[pivot_row][column] /= pivot;
     }

@@ -39,7 +39,7 @@ fn output_value((signal_patterns, outputs): &Entry) -> Number {
     number
 }
 
-fn wiring(signal_patterns: &[SevenSegmentDigit; 10]) -> Wiring {
+fn wiring(signal_patterns: &[SevenSegmentDigit; 10]) -> Wiring<'_> {
     let [one, seven, four, eight] = [2, 3, 4, 7].map(|number_of_segments| {
         digit_satisfying(signal_patterns.each_ref().each_ref(), |digit| {
             digit.len() == number_of_segments

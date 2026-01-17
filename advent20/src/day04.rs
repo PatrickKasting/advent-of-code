@@ -88,15 +88,15 @@ fn is_number_within(range: RangeInclusive<usize>, radix: u32, value: Value) -> b
     usize::from_str_radix(value, radix).is_ok_and(|number| range.contains(&number))
 }
 
-fn passports(input: &str) -> impl Iterator<Item = Passport> {
+fn passports(input: &str) -> impl Iterator<Item = Passport<'_>> {
     input.split("\n\n").map(passport)
 }
 
-fn passport(str: &str) -> Passport {
+fn passport(str: &str) -> Passport<'_> {
     str.split_whitespace().map(field).collect()
 }
 
-fn field(str: &str) -> (Key, Value) {
+fn field(str: &str) -> (Key<'_>, Value<'_>) {
     str.split_once(':')
         .expect("key and value should ne separated by a colon")
 }

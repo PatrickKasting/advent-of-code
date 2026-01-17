@@ -145,16 +145,16 @@ fn reduce_binary_operator<'input>(
     }
 }
 
-fn monkeys(input: &str) -> AHashMap<&str, Expression> {
+fn monkeys(input: &str) -> AHashMap<&str, Expression<'_>> {
     input.lines().map(monkey).collect()
 }
 
-fn monkey(line: &str) -> Monkey {
+fn monkey(line: &str) -> Monkey<'_> {
     let (name, expression) = (&line[0..4], &line[6..]);
     (name, self::expression(expression))
 }
 
-fn expression(str: &str) -> Expression {
+fn expression(str: &str) -> Expression<'_> {
     if let Ok(constant) = str.parse() {
         Expression::Constant(constant)
     } else {

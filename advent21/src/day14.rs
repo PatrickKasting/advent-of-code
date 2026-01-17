@@ -67,7 +67,9 @@ fn pair_counts_after_one_step(rules: &PairInsertionRules, pair_counts: PairCount
     result
 }
 
-fn polymer_template_and_pair_insertion_rules(input: &str) -> (PolymerTemplate, PairInsertionRules) {
+fn polymer_template_and_pair_insertion_rules(
+    input: &str,
+) -> (PolymerTemplate<'_>, PairInsertionRules) {
     let (template, rules) = input
         .split_once("\n\n")
         .expect("template and rules should be separated by an empty line");

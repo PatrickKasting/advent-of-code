@@ -71,7 +71,7 @@ fn acceptable_ranges(
         }
         if false_range.is_empty() {
             return acceptable_ranges;
-        };
+        }
         possible_ranges[category] = false_range;
     }
     let acceptable_ranges_from_default_range =
@@ -127,18 +127,18 @@ fn number_of_combinations(ranges: &[RatingRanges]) -> usize {
         .sum::<usize>()
 }
 
-fn workflows(str: &str) -> Workflows {
+fn workflows(str: &str) -> Workflows<'_> {
     str.lines().map(workflow).collect()
 }
 
-fn workflow(line: &str) -> Workflow {
+fn workflow(line: &str) -> Workflow<'_> {
     let (name, rules) = line
         .split_once('{')
         .expect("workflow should contain opening brackets");
     (name, self::rules(&rules[..rules.len() - 1]))
 }
 
-fn rules(str: &str) -> Rules {
+fn rules(str: &str) -> Rules<'_> {
     let mut conditions = vec![];
     for rule in str.split(',') {
         let comparison = match rule.chars().nth(1) {

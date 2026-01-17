@@ -62,7 +62,7 @@ fn prefix_is_possible_group(row: &[Spring], size: GroupSize) -> bool {
         return false;
     };
     let separated = row.get(size) != Some(&b'#');
-    let all_damaged = !group_maybe.iter().any(|&spring| spring == b'.');
+    let all_damaged = !group_maybe.contains(&b'.');
     separated && all_damaged
 }
 
@@ -74,7 +74,7 @@ fn row_and_group_sizes(
         .split_once(' ')
         .expect("a space should separate row and group sizes");
 
-    let repeated_row = iter::repeat(row.as_bytes().iter()).take(number_of_unfold_copies);
+    let repeated_row = iter::repeat_n(row.as_bytes().iter(), number_of_unfold_copies);
     let interspersed_unknowns = Itertools::intersperse(repeated_row, [b'?'].iter());
     let row = interspersed_unknowns.flatten().copied().collect_vec();
 

@@ -87,11 +87,11 @@ fn canonical_dangerous_ingredient_list(contained_in: &AHashMap<Allergen, Ingredi
         .join(",")
 }
 
-fn list(input: &str) -> Vec<Line> {
+fn list(input: &str) -> Vec<Line<'_>> {
     input.lines().map(line).collect_vec()
 }
 
-fn line(line: &str) -> Line {
+fn line(line: &str) -> Line<'_> {
     let (ingredients, allergens) = line
         .split_once("(contains ")
         .expect("ingredients and allergens should be separated");

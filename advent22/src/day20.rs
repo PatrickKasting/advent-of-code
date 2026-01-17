@@ -32,7 +32,9 @@ fn decrypt(file: &mut File, decryption_key: Number, rounds_of_mixing: usize) -> 
 }
 
 fn apply_decryption_key(file: &mut [Number], key: Number) {
-    file.iter_mut().for_each(|number| *number *= key);
+    for number in file {
+        *number *= key;
+    }
 }
 
 fn mixed_file(file: &[Number], rounds: usize) -> File {

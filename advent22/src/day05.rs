@@ -64,7 +64,9 @@ fn stacks(str: &str) -> Stacks {
             stacks[stack_index].push(char);
         }
     }
-    stacks.iter_mut().for_each(|stack| stack.reverse());
+    for stack in &mut stacks {
+        stack.reverse();
+    }
     stacks
 }
 

@@ -78,7 +78,7 @@ fn valid_values(ranges: &[RangeInclusive<Value>], values: &[Value]) -> bool {
         .all(|value| ranges.iter().any(|range| range.contains(value)))
 }
 
-fn notes(input: &str) -> (Rules, Ticket, impl Iterator<Item = Ticket> + '_) {
+fn notes(input: &str) -> (Rules<'_>, Ticket, impl Iterator<Item = Ticket> + '_) {
     let [rules, my_ticket, nearby_tickets]: [&str; 3] = input
         .split("\n\n")
         .collect_vec()
@@ -88,7 +88,7 @@ fn notes(input: &str) -> (Rules, Ticket, impl Iterator<Item = Ticket> + '_) {
     (self::rules(rules), usizes(my_ticket), nearby_tickets)
 }
 
-fn rules(str: &str) -> Rules {
+fn rules(str: &str) -> Rules<'_> {
     str.lines().map(rule).collect()
 }
 

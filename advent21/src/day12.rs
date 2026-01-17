@@ -43,7 +43,7 @@ fn is_small_cave(cave: Cave) -> bool {
     cave[0].is_ascii_lowercase()
 }
 
-fn cave_system(input: &str) -> CaveSystem {
+fn cave_system(input: &str) -> CaveSystem<'_> {
     let mut cave_system = CaveSystem::new();
     for line in input.lines() {
         let (left, right) = line

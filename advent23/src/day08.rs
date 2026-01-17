@@ -71,18 +71,18 @@ fn is_destination(node: Node) -> bool {
     node.ends_with('Z')
 }
 
-fn directions_and_network(input: &str) -> (&str, Network) {
+fn directions_and_network(input: &str) -> (&str, Network<'_>) {
     let (directions, network) = input
         .split_once("\n\n")
         .expect("input should contain directions and map");
     (directions, self::network(network))
 }
 
-fn network(connections: &str) -> Network {
+fn network(connections: &str) -> Network<'_> {
     connections.lines().map(connection).collect()
 }
 
-fn connection(connection: &str) -> Connection {
+fn connection(connection: &str) -> Connection<'_> {
     (&connection[0..3], [&connection[7..10], &connection[12..15]])
 }
 

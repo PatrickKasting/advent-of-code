@@ -80,7 +80,7 @@ fn decimal(binary_number: BinaryNumber) -> usize {
     decimal
 }
 
-fn binary_numbers(input: &str) -> Vec<BinaryNumber> {
+fn binary_numbers(input: &str) -> Vec<BinaryNumber<'_>> {
     input.lines().map(str::as_bytes).collect_vec()
 }
 

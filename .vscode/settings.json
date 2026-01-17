@@ -1,0 +1,16 @@
+{
+    "nix.enableLanguageServer": true,
+    "nix.serverPath": "nil",
+    "nix.serverSettings": {
+        "nil": {
+            "formatting": {
+                "command": [
+                    "alejandra"
+                ],
+            },
+        },
+    },
+    "nix.formatterPath": "alejandra",
+    "rust-analyzer.cargo.features": "all",
+    "rust-analyzer.cargo.allTargets": true,
+}

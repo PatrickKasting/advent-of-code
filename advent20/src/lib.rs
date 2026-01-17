@@ -66,7 +66,6 @@ mod tests {
     ///
     /// Panics if the return value of the solution applied to the input does not equal
     /// `expected.to_string()`.
-    #[expect(clippy::needless_pass_by_value)]
     pub fn test_on_input(day: Day, puzzle: Puzzle, input: Input, expected: impl Display) {
         infrastructure::test::on_input(self::input, super::SOLUTIONS, day, puzzle, input, expected);
     }

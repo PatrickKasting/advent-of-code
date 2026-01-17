@@ -145,10 +145,6 @@ fn reboot_step(line: &str) -> RebootStep {
     (switch, self::cuboid(cuboid))
 }
 
-#[expect(
-    clippy::range_plus_one,
-    reason = "type 'Range<Coordinate>' should be used consistently"
-)]
 fn cuboid(str: &str) -> Cuboid {
     let coordinates = isizes(str);
     debug_assert_eq!(
@@ -219,7 +215,10 @@ mod tests {
     fn range_difference() {
         let sample = 5..15;
         let function = |rhs| super::range_difference(&sample, &rhs);
-        #[expect(clippy::single_range_in_vec_init)]
+        #[expect(
+            clippy::single_range_in_vec_init,
+            reason = "a list of ranges is desired"
+        )]
         let cases = [
             (6..14, (vec![5..6, 14..15], 6..14)),
             (1..14, (vec![14..15], 5..14)),

@@ -129,7 +129,7 @@ fn receive(pulse: Pulse, to: &mut Module, from: &str) -> Option<Pulse> {
     }
 }
 
-fn configuration(str: &str) -> Configuration {
+fn configuration(str: &str) -> Configuration<'_> {
     let mut configuration: Configuration = str.lines().map(module).collect();
 
     for source in configuration.keys().copied().collect_vec() {
@@ -145,7 +145,7 @@ fn configuration(str: &str) -> Configuration {
     configuration
 }
 
-fn module(line: &str) -> (&str, (Module, Vec<&str>)) {
+fn module(line: &str) -> (&str, (Module<'_>, Vec<&str>)) {
     let (module, destinations) = line
         .split_once(" -> ")
         .expect("every line should contain ' -> '");

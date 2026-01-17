@@ -88,10 +88,6 @@ fn map_numbers(block: &str) -> Vec<[Number; 3]> {
         .collect_vec()
 }
 
-#[expect(
-    clippy::range_plus_one,
-    reason = "type 'Range<Number>' should be used consistently"
-)]
 fn singleton_seed_ranges(seeds: &str) -> Vec<Range<Number>> {
     isizes(seeds)
         .into_iter()

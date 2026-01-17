@@ -32,11 +32,11 @@ fn is_password_valid_based_on_indices((range, character): &Policy, password: Pas
     (first == *character) != (second == *character)
 }
 
-fn policies_and_passwords(input: &str) -> impl Iterator<Item = (Policy, Password)> {
+fn policies_and_passwords(input: &str) -> impl Iterator<Item = (Policy, Password<'_>)> {
     input.lines().map(policy_and_password)
 }
 
-fn policy_and_password(line: &str) -> (Policy, Password) {
+fn policy_and_password(line: &str) -> (Policy, Password<'_>) {
     let (policy, password) = line
         .split_once(": ")
         .expect("policy and password should be separated by a colon");

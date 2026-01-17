@@ -43,7 +43,7 @@ fn total_sizes(directory: &Directory) -> Vec<Size> {
         .collect_vec()
 }
 
-fn root(input: &str) -> Directory {
+fn root(input: &str) -> Directory<'_> {
     let mut current_path = Vec::new();
     let mut root = empty_directory();
     let mut current_directory = &mut root;
