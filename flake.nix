@@ -14,12 +14,13 @@
   in rec {
     devShells.${system}.default = pkgs.mkShell {
       packages = let
-        nix = [formatter.${system}];
+        nix = [pkgs.nil formatter.${system}];
         rust = with pkgs; [rustc cargo rustfmt clippy rust-analyzer];
         llvm = with pkgs; [clang libclang];
       in
         nix ++ rust ++ llvm;
       RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
+      LIBCLANG_PATH = "${pkgs.libclang.lib}/lib";
     };
     formatter.${system} = pkgs.alejandra;
   };
