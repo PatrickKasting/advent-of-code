@@ -1,18 +1,16 @@
-use std::cmp::Ordering;
-
 use itertools::Itertools;
 
 type DiskMap = Vec<usize>;
 
 pub fn first_answer(input: &str) -> String {
-    checksum(disk_map(input)).to_string()
+    checksum_blocks(disk_map(input)).to_string()
 }
 
 pub fn second_answer(input: &str) -> String {
-    todo!()
+    checksum_files(disk_map(input)).to_string()
 }
 
-fn checksum(mut disk_map: DiskMap) -> usize {
+fn checksum_blocks(mut disk_map: DiskMap) -> usize {
     let (mut front, mut back) = (0, disk_map.len() - 1);
     let mut checksum = 0;
     for position in 0.. {
@@ -39,6 +37,36 @@ fn checksum(mut disk_map: DiskMap) -> usize {
         disk_map[front] -= 1;
     }
     unreachable!("loop should break when indices meet");
+}
+
+fn checksum_files(mut disk_map: DiskMap) -> usize {
+    let mut position = 0;
+    let mut moved = vec![false; disk_map.len()];
+    let mut checksum = 0;
+    for front in 0..disk_map.len() {
+        if front % 2 == 0 && !moved[front] {
+            let id = front / 2;
+            checksum += id * sum(position, disk_map[front]);
+        } else {
+            let mut back = disk_map.len() - 1;
+            while front < back && disk_map[front] != 0 {
+                if !moved[back] && disk_map[back] <= disk_map[front] {
+                    disk_map[front] -= disk_map[back];
+                    let id = back / 2;
+                    checksum += id * sum(position, disk_map[back]);
+                    position += disk_map[back];
+                    moved[back] = true;
+                }
+                back -= 2;
+            }
+        }
+        position += disk_map[front];
+    }
+    checksum
+}
+
+fn sum(start: usize, len: usize) -> usize {
+    (start..start + len).sum()
 }
 
 fn disk_map(input: &str) -> DiskMap {
@@ -76,36 +104,41 @@ mod tests {
 
     #[test]
     fn second_answer_example() {
-        test_on_input(DAY, Puzzle::Second, Input::Example(0), 34);
+        test_on_input(DAY, Puzzle::Second, Input::Example(0), 2858);
     }
 
     #[test]
     fn second_answer_input() {
-        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 1200);
+        test_on_input(
+            DAY,
+            Puzzle::Second,
+            Input::PuzzleInput,
+            6_381_624_803_796_usize,
+        );
     }
 
     #[test]
     fn single() {
-        assert_correct("3", "000");
+        assert_checksum_blocks("3", "000");
     }
 
     #[test]
     fn zero_first_and_last() {
-        assert_correct("03240", "11");
+        assert_checksum_blocks("03240", "11");
     }
 
     #[test]
     fn small() {
-        assert_correct("12345", "022111222");
+        assert_checksum_blocks("12345", "022111222");
     }
 
-    fn assert_correct(input: &str, compacted: &str) {
-        let actual = checksum(disk_map(input));
+    fn assert_checksum_blocks(input: &str, compacted: &str) {
+        let actual = checksum_blocks(disk_map(input));
         let expected: usize = compacted
             .chars()
             .enumerate()
             .map(|(position, id)| position * (id as usize - '0' as usize))
             .sum();
-        assert_eq!(actual, expected);
+        assert_eq!(actual, expected, "block checksum should be expected");
     }
 }
