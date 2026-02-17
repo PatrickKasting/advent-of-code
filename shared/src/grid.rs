@@ -19,6 +19,9 @@ pub struct Grid<T> {
 }
 
 impl<T> Grid<T> {
+    /// # Panics
+    ///
+    /// Panics if `height` or `width` is zero.
     #[must_use]
     pub fn new(height: usize, width: usize, mut element: impl FnMut(Position) -> T) -> Self {
         let mut elements = vec![];
@@ -27,12 +30,17 @@ impl<T> Grid<T> {
                 elements.push(element([row.cast(), column.cast()]));
             }
         }
+        assert!(!elements.is_empty(), "grid should not be empty");
         Self { elements, width }
     }
 
+    /// # Panics
+    ///
+    /// Panics if grid is empty.
     #[must_use]
     pub fn from_elements(elements: Vec<T>, width: usize) -> Self {
-        debug_assert!(
+        assert!(!elements.is_empty(), "grid should not be empty");
+        assert!(
             elements.len() % width == 0,
             "width should divide number of elements for rectangular grid"
         );
@@ -126,9 +134,12 @@ impl<T> Grid<T> {
         corners.cast()
     }
 
+    /// # Panics
+    ///
+    /// Panics if grid dimensions are even.
     #[must_use]
     pub fn edge_midpoints_clockwise(&self) -> [Position; 4] {
-        debug_assert!(
+        assert!(
             self.height() % 2 == 1 && self.width() % 2 == 1,
             "width and height should be odd"
         );
@@ -161,7 +172,7 @@ impl<T> Grid<T> {
 
     fn from_str(str: &str, element_from_char: impl FnMut(char) -> T) -> Self {
         let width = str.lines().next().expect("grid should not be empty").len();
-        debug_assert!(
+        assert!(
             str.lines().map(str::len).all(|len| len == width),
             "every row should have the same width"
         );
@@ -170,6 +181,7 @@ impl<T> Grid<T> {
             .flat_map(|line| line.chars())
             .map(element_from_char)
             .collect_vec();
+        assert!(!elements.is_empty(), "grid should not be empty");
         Self { elements, width }
     }
 }
