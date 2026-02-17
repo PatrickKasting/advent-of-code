@@ -124,7 +124,7 @@ impl<T> Grid<T> {
     }
 
     #[must_use]
-    pub fn corners_clockwise(&self) -> [Position; 4] {
+    pub fn corner_positions_clockwise(&self) -> [Position; 4] {
         let corners = [
             [0, 0],
             [0, self.width() - 1],
