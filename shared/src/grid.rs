@@ -5,7 +5,7 @@ use std::{
 };
 
 use easy_cast::Cast;
-use itertools::Itertools;
+use itertools::{chain, Itertools};
 
 use crate::vector::Vector;
 
@@ -124,7 +124,7 @@ impl<T> Grid<T> {
     }
 
     #[must_use]
-    pub fn corners_clockwise(&self) -> [Position; 4] {
+    pub fn corner_positions_clockwise(&self) -> [Position; 4] {
         let corners = [
             [0, 0],
             [0, self.width() - 1],
@@ -132,6 +132,16 @@ impl<T> Grid<T> {
             [self.height() - 1, 0],
         ];
         corners.cast()
+    }
+
+    pub fn edge_positions_clockwise(&self) -> impl Iterator<Item = Position> {
+        let eastmost: Coordinate = (self.width() - 1).cast();
+        let southmost: Coordinate = (self.height() - 1).cast();
+        let north = (0..(eastmost)).map(|column| [0, column]);
+        let east = (0..southmost).map(move |row| [row, eastmost]);
+        let south = (1..=eastmost).rev().map(move |column| [southmost, column]);
+        let west = (1..=southmost).rev().map(|row| [row, 0]);
+        chain!(north, east, south, west)
     }
 
     /// # Panics

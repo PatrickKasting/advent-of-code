@@ -123,7 +123,7 @@ fn number_of_reachable_plots_full(garden: &Garden, repeats: usize) -> usize {
 
 fn number_of_reachable_plots_eighths(garden: &Garden, repeats: usize) -> usize {
     let sum_of_four_distinct_eights: usize = garden
-        .corners_clockwise()
+        .corner_positions_clockwise()
         .into_iter()
         .map(|starting_plot| {
             number_of_reachable_plots(garden, starting_plot, EVEN, size(garden) / 2)
@@ -135,7 +135,7 @@ fn number_of_reachable_plots_eighths(garden: &Garden, repeats: usize) -> usize {
 fn number_of_reachable_plots_seven_eighths(garden: &Garden, repeats: usize) -> usize {
     let number_of_steps = size(garden) - 1 + size(garden) / 2;
     let sum_of_four_distinct_seven_eighths: usize = garden
-        .corners_clockwise()
+        .corner_positions_clockwise()
         .into_iter()
         .map(|starting_plot| number_of_reachable_plots(garden, starting_plot, ODD, number_of_steps))
         .sum();

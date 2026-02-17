@@ -3,10 +3,16 @@ use shared::grid::Grid;
 type TopographicMap = Grid<usize>;
 
 pub fn first_answer(input: &str) -> String {
+    let map = TopographicMap::from(input);
+    for pos in map.edge_positions_clockwise() {
+        println!("{pos:?}");
+    }
     todo!()
 }
 
 pub fn second_answer(input: &str) -> String {
+    let map = TopographicMap::from(input);
+
     todo!()
 }
 

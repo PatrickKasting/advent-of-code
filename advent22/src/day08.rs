@@ -19,7 +19,7 @@ pub fn second_answer(input: &str) -> String {
 fn number_of_visible_trees_from_edges(grid: &Grid<Height>) -> usize {
     let mut visibility = grid.map(|_, _| false);
     for (from_corner, to_corner) in grid
-        .corners_clockwise()
+        .corner_positions_clockwise()
         .into_iter()
         .circular_tuple_windows()
     {
