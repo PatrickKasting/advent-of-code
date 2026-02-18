@@ -1,0 +1,42 @@
+use shared::grid::Grid;
+
+type Map = Grid<u8>;
+
+pub fn first_answer(input: &str) -> String {
+    todo!()
+}
+
+pub fn second_answer(input: &str) -> String {
+    todo!()
+}
+
+#[cfg(test)]
+mod tests {
+    use infrastructure::{Input, Puzzle};
+
+    use crate::tests::test_on_input;
+
+    const DAY: usize = 12;
+
+    #[test]
+    fn first_answer_examples() {
+        test_on_input(DAY, Puzzle::First, Input::Example(0), 140);
+        test_on_input(DAY, Puzzle::First, Input::Example(1), 772);
+        test_on_input(DAY, Puzzle::First, Input::Example(2), 1930);
+    }
+
+    #[test]
+    fn first_answer_input() {
+        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 396);
+    }
+
+    #[test]
+    fn second_answer_example() {
+        test_on_input(DAY, Puzzle::Second, Input::Example(0), 34);
+    }
+
+    #[test]
+    fn second_answer_input() {
+        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 1200);
+    }
+}
