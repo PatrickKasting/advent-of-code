@@ -40,7 +40,7 @@ pub fn area(cycle: &mut [Position]) -> usize {
             panic!("cycle should only curve left or right")
         };
         for direction in directions_toward_inside {
-            area.explore(second.add(direction), grid::neighbors);
+            area.explore(second.add(direction), grid::orthogonal_neighbors);
         }
     }
     area.explored().len() - cycle.len()
@@ -63,7 +63,7 @@ fn longest_cycle(grid: &Grid<Tile>) -> Cycle {
         .iter_row_major()
         .find_map(|(position, &tile)| (tile == 'S').then_some(position))
         .expect("there should be exactly one starting position");
-    grid::DIRECTIONS
+    grid::ORTHOGONAL_DIRECTIONS
         .into_iter()
         .filter_map(|direction| cycle(grid, starting_position, direction))
         .max_by_key(Vec::len)

@@ -28,7 +28,7 @@ pub fn second_answer(input: &str) -> String {
 fn score(map: &TopographicMap, trailhead: Position) -> Score {
     let mut exploration = search::Exploration::new([]);
     let successors = |position| {
-        grid::neighbors(position)
+        grid::orthogonal_neighbors(position)
             .into_iter()
             .filter(move |&neighbor| {
                 map.get(neighbor)
@@ -47,7 +47,7 @@ fn ratings(map: &TopographicMap) -> Grid<Rating> {
     let mut ratings = map.map(|_, &height| usize::from(height == 9));
     for height in (0..9).rev() {
         for position in positions_with(map, height) {
-            let previous = grid::neighbors(position).into_iter().filter(|&neighbor| {
+            let previous = grid::orthogonal_neighbors(position).into_iter().filter(|&neighbor| {
                 map.get(neighbor)
                     .is_some_and(|&previous_height| previous_height.wrapping_sub(height) == 1)
             });

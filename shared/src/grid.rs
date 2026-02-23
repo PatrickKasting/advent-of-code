@@ -272,17 +272,23 @@ pub fn direction(char: char) -> Option<Direction> {
     }
 }
 
-pub const DIRECTIONS: [Direction; 4] = [NORTH, EAST, SOUTH, WEST];
-pub const DIRECTIONS_INCLUDING_DIAGONAL: [Direction; 8] = [
+pub const ORTHOGONAL_DIRECTIONS: [Direction; 4] = [NORTH, EAST, SOUTH, WEST];
+pub const DIAGONAL_DIRECTIONS: [Direction; 4] = [NORTH_EAST, SOUTH_EAST, SOUTH_WEST, NORTH_WEST];
+pub const ORTHOGONAL_AND_DIAGONAL_DIRECTIONS: [Direction; 8] = [
     NORTH, NORTH_EAST, EAST, SOUTH_EAST, SOUTH, SOUTH_WEST, WEST, NORTH_WEST,
 ];
 
 #[must_use]
-pub fn neighbors(position: Position) -> [Position; 4] {
-    DIRECTIONS.map(|direction| position.add(direction))
+pub fn orthogonal_neighbors(position: Position) -> [Position; 4] {
+    ORTHOGONAL_DIRECTIONS.map(|direction| position.add(direction))
 }
 
 #[must_use]
-pub fn neighbors_including_diagonal(position: Position) -> [Position; 8] {
-    DIRECTIONS_INCLUDING_DIAGONAL.map(|direction| position.add(direction))
+pub fn diagonal_neighbors(position: Position) -> [Position; 4] {
+    DIAGONAL_DIRECTIONS.map(|direction| position.add(direction))
+}
+
+#[must_use]
+pub fn orthogonal_and_diagonal_neighbors(position: Position) -> [Position; 8] {
+    ORTHOGONAL_AND_DIAGONAL_DIRECTIONS.map(|direction| position.add(direction))
 }

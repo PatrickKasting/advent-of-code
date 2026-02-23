@@ -1,5 +1,5 @@
 use easy_cast::Cast;
-use shared::grid::{neighbors_including_diagonal, Grid, Position};
+use shared::grid::{orthogonal_and_diagonal_neighbors, Grid, Position};
 
 type Octopusses = Grid<EnergyLevel>;
 type EnergyLevel = usize;
@@ -60,7 +60,7 @@ fn number_of_flashes_from_energy_increase(
 
 fn number_of_flashes_from_flash(octopusses: &mut Grid<usize>, position: [isize; 2]) -> usize {
     let mut number_of_flashes = 1;
-    for neighbor in neighbors_including_diagonal(position) {
+    for neighbor in orthogonal_and_diagonal_neighbors(position) {
         if octopusses.get(neighbor).is_some() {
             number_of_flashes += number_of_flashes_from_energy_increase(octopusses, neighbor);
         }

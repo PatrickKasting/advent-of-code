@@ -31,7 +31,7 @@ pub fn second_answer(input: &str) -> String {
 
 fn next_considering_adjacent_seats(seat_layout: &SeatLayout) -> SeatLayout {
     seat_layout.map(|position, &seat| {
-        let number_of_occupied_adjacent_seats = grid::neighbors_including_diagonal(position)
+        let number_of_occupied_adjacent_seats = grid::orthogonal_and_diagonal_neighbors(position)
             .into_iter()
             .filter(|&neighbor| seat_layout.get(neighbor).is_some_and(|&seat| seat == '#'))
             .count();
@@ -50,7 +50,7 @@ fn visible_seats_from_all(seat_layout: &SeatLayout) -> Grid<Vec<Position>> {
 }
 
 fn visible_seats_from_one(seat_layout: &SeatLayout, position: Position) -> Vec<Position> {
-    grid::DIRECTIONS_INCLUDING_DIAGONAL
+    grid::ORTHOGONAL_AND_DIAGONAL_DIRECTIONS
         .into_iter()
         .filter_map(|direction| visible_seat_in_direction(seat_layout, position, direction))
         .collect_vec()

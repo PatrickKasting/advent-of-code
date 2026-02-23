@@ -42,7 +42,7 @@ fn moves(
 ) -> impl Iterator<Item = (Move, HeatLoss)> + '_ {
     let next_directions = match previous_direction {
         Some(previous_direction) => vec![previous_direction.left(), previous_direction.right()],
-        None => grid::DIRECTIONS.into(),
+        None => grid::ORTHOGONAL_DIRECTIONS.into(),
     };
     next_directions.into_iter().flat_map(move |next_direction| {
         moves_in_direction(map, position, next_direction, number_of_steps.clone())

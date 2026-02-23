@@ -22,7 +22,7 @@ fn xmas_count(word_search: &WordSearch) -> usize {
     word_search
         .iter_row_major()
         .map(|(position, _)| position)
-        .cartesian_product(grid::DIRECTIONS_INCLUDING_DIAGONAL)
+        .cartesian_product(grid::ORTHOGONAL_AND_DIAGONAL_DIRECTIONS)
         .filter(|&(position, direction)| is_xmas_match(word_search, position, direction))
         .count()
 }
