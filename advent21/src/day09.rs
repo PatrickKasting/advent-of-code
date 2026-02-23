@@ -1,6 +1,6 @@
 use itertools::Itertools;
 use shared::{
-    grid::{neighbors, Grid, Position},
+    grid::{orthogonal_neighbors, Grid, Position},
     search::Exploration,
 };
 
@@ -36,7 +36,7 @@ fn descending_basin_sizes(heightmap: &Heightmap) -> Vec<BasinSize> {
 fn basin_size(heightmap: &Heightmap, low_point: Position) -> BasinSize {
     let mut exploration = Exploration::new([]);
     let successors = |point| {
-        neighbors(point)
+        orthogonal_neighbors(point)
             .into_iter()
             .filter(|&neighbor| heightmap.get(neighbor).is_some())
             .filter(|&point| heightmap[point] != 9)
@@ -58,7 +58,7 @@ fn low_points(heightmap: &Heightmap) -> impl Iterator<Item = Position> + '_ {
 
 fn is_low_point(heightmap: &Heightmap, point: Position) -> bool {
     let height = heightmap[point];
-    let mut neighbor_heights = neighbors(point)
+    let mut neighbor_heights = orthogonal_neighbors(point)
         .into_iter()
         .filter_map(|neighbor| heightmap.get(neighbor))
         .copied();

@@ -48,7 +48,7 @@ fn fastest_path(
         move_blizzards(valley_dimensions, blizzards);
         let mut valid_neighbors = vec![];
         for &position in &positions {
-            for neighbor in grid::neighbors(position) {
+            for neighbor in grid::orthogonal_neighbors(position) {
                 if neighbor == end {
                     return time;
                 }

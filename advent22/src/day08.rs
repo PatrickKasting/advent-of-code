@@ -69,7 +69,7 @@ fn max_scenic_score(grid: &Grid<Height>) -> ScenicScore {
 }
 
 fn scenic_score(grid: &Grid<Height>, position: Position) -> ScenicScore {
-    grid::DIRECTIONS
+    grid::ORTHOGONAL_DIRECTIONS
         .into_iter()
         .map(|direction| number_of_visible_trees_along_line(grid, position, direction))
         .product()

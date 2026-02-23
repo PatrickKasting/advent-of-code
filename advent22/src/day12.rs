@@ -20,7 +20,7 @@ pub fn second_answer(input: &str) -> String {
 
 fn number_of_steps(heightmap: &Heightmap, from: impl Fn(Position) -> bool, to: Position) -> usize {
     let next_squares = |position: Position| {
-        grid::neighbors(position)
+        grid::orthogonal_neighbors(position)
             .into_iter()
             .filter(move |&neighbor| {
                 heightmap

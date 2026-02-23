@@ -1,6 +1,6 @@
 use easy_cast::{Cast, Conv};
 use shared::{
-    grid::{neighbors, Grid, Position},
+    grid::{orthogonal_neighbors, Grid, Position},
     search::minimum_path_cost,
     vector::Vector,
 };
@@ -24,9 +24,11 @@ fn lowest_total_risk(cave: &Cave, expansion_factor: isize) -> RiskLevel {
     let expanded_cave_size = isize::conv(cave.width()) * expansion_factor;
     let [start, goal] = [[0, 0], [expanded_cave_size - 1, expanded_cave_size - 1]];
     let successors = |position| {
-        neighbors(position).into_iter().filter_map(|neighbor| {
-            extended_cave_risk(cave, expansion_factor, neighbor).map(|risk| (neighbor, risk))
-        })
+        orthogonal_neighbors(position)
+            .into_iter()
+            .filter_map(|neighbor| {
+                extended_cave_risk(cave, expansion_factor, neighbor).map(|risk| (neighbor, risk))
+            })
     };
     minimum_path_cost(start, successors, |position| position == goal)
         .expect("path from start to goal should exist")

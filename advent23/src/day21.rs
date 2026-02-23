@@ -98,7 +98,7 @@ fn number_of_reachable_plots(
                 number_of_reachable_garden_plots += 1;
             }
 
-            for neighbor in grid::neighbors(plot) {
+            for neighbor in grid::orthogonal_neighbors(plot) {
                 let is_plot = [Some(&'.'), Some(&'S')].contains(&garden.get(neighbor));
                 if is_plot && explored.insert(neighbor) {
                     next_frontier.push(neighbor);

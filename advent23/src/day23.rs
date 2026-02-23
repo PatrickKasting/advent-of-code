@@ -107,7 +107,7 @@ fn next_junction(
 }
 
 fn next_path_tiles(map: &Map, from: Direction, position: Position) -> Vec<(Position, Direction)> {
-    grid::DIRECTIONS
+    grid::ORTHOGONAL_DIRECTIONS
         .into_iter()
         .filter(|&direction| direction != from)
         .filter_map(move |direction| {
