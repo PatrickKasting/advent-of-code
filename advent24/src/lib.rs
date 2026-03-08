@@ -27,6 +27,7 @@ const SOLUTIONS: &[[infrastructure::Solution; 2]] = &[
     [day11::first_answer, day11::second_answer],
     [day12::first_answer, day12::second_answer],
     [day13::first_answer, day13::second_answer],
+    [day14::first_answer, day14::second_answer],
 ];
 
 /// # Errors
