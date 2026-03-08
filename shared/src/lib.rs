@@ -4,6 +4,7 @@ pub mod grid;
 pub mod linear_equations;
 pub mod matrix;
 pub mod number_theory;
+pub mod numbers;
 pub mod search;
 pub mod string;
 pub mod vector;
