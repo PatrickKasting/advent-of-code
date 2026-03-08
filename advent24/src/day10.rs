@@ -47,10 +47,12 @@ fn ratings(map: &TopographicMap) -> Grid<Rating> {
     let mut ratings = map.map(|_, &height| usize::from(height == 9));
     for height in (0..9).rev() {
         for position in positions_with(map, height) {
-            let previous = grid::orthogonal_neighbors(position).into_iter().filter(|&neighbor| {
-                map.get(neighbor)
-                    .is_some_and(|&previous_height| previous_height.wrapping_sub(height) == 1)
-            });
+            let previous = grid::orthogonal_neighbors(position)
+                .into_iter()
+                .filter(|&neighbor| {
+                    map.get(neighbor)
+                        .is_some_and(|&previous_height| previous_height.wrapping_sub(height) == 1)
+                });
             ratings[position] = previous.map(|previous| ratings[previous]).sum();
         }
     }
