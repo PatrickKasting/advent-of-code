@@ -16,6 +16,9 @@ num-traits.workspace = true
 rand.workspace = true
 regex.workspace = true
 
+image = "0.25.9"
+tflitec = "0.7.0"
+
 infrastructure = { path = "../infrastructure" }
 shared = { path = "../shared" }
 
