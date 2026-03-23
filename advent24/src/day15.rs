@@ -60,38 +60,39 @@ fn r#move(warehouse: &mut Warehouse, from: Position, direction: Direction) -> bo
 }
 
 fn move_wide_box(warehouse: &mut Warehouse, west: Position, direction: Direction) -> bool {
-    if let Some(boxes) = match direction {
+    let boxes = match direction {
         EAST | WEST => wide_boxes_east_west(warehouse, west, direction),
         NORTH | SOUTH => wide_boxes_north_south(warehouse, west, direction),
         _ => panic!("direction should be orthogonal"),
-    } {
-        for west in boxes {
-            let to_west = west.add(direction);
-            let [east, to_east] = [west, to_west].map(|p| p.add(EAST));
-            [warehouse[west], warehouse[east]] = [b'.', b'.'];
-            [warehouse[to_west], warehouse[to_east]] = [b'[', b']'];
-        }
-        true
-    } else {
-        false
+    };
+    for &west in &boxes {
+        let to_west = west.add(direction);
+        let [east, to_east] = [west, to_west].map(|p| p.add(EAST));
+        [warehouse[west], warehouse[east]] = [b'.', b'.'];
+        [warehouse[to_west], warehouse[to_east]] = [b'[', b']'];
     }
+    !boxes.is_empty()
 }
 
 fn wide_boxes_east_west(
     warehouse: &mut Grid<u8>,
     west: Position,
     direction: Direction,
-) -> Option<Vec<Position>> {
-    let append = |vec| [vec, vec![west]].concat();
-
+) -> Vec<Position> {
     let to_west = west.add(direction);
     let next = to_west.add(direction);
     let neighbor = to_west.add(direction.mul(isize::from(direction == EAST)));
     let element = warehouse[neighbor];
     match element {
-        b'#' => None,
-        b'[' | b']' => wide_boxes_east_west(warehouse, next, direction).map(append),
-        b'.' => Some(vec![west]),
+        b'#' => vec![],
+        b'[' | b']' => {
+            let mut boxes = wide_boxes_east_west(warehouse, next, direction);
+            if !boxes.is_empty() {
+                boxes.push(west);
+            }
+            boxes
+        }
+        b'.' => vec![west],
         _ => panic!("wide warehouse should contain only expected elements"),
     }
 }
@@ -100,23 +101,43 @@ fn wide_boxes_north_south(
     warehouse: &mut Grid<u8>,
     west: Position,
     direction: Direction,
-) -> Option<Vec<Position>> {
-    let append = |vec| [vec, vec![west]].concat();
+) -> Vec<Position> {
+    let append_if_non_empty = |mut boxes: Vec<Position>| {
+        if !boxes.is_empty() {
+            boxes.push(west);
+        }
+        boxes
+    };
 
     let east = west.add(EAST);
     let [to_west, to_east] = [west, east].map(|p| p.add(direction));
     let [west_element, east_element] = [to_west, to_east].map(|p| warehouse[p]);
     match [west_element, east_element] {
-        [b'#', _] | [_, b'#'] => None,
-        [b'[', b']'] => wide_boxes_north_south(warehouse, to_west, direction).map(append),
-        [b']', b'['] => wide_boxes_north_south(warehouse, to_west.add(WEST), direction)
-            .and_then(|lhs| {
-                wide_boxes_north_south(warehouse, to_east, direction).map(|rhs| [lhs, rhs].concat())
-            })
-            .map(append),
-        [b']', _] => wide_boxes_north_south(warehouse, to_west.add(WEST), direction).map(append),
-        [_, b'['] => wide_boxes_north_south(warehouse, to_east, direction).map(append),
-        _ => Some(vec![west]),
+        [b'#', _] | [_, b'#'] => vec![],
+        [b'[', b']'] => {
+            let boxes = wide_boxes_north_south(warehouse, to_west, direction);
+            append_if_non_empty(boxes)
+        }
+        [b']', b'['] => {
+            let west_boxes = wide_boxes_north_south(warehouse, to_west.add(WEST), direction);
+            if west_boxes.is_empty() {
+                return vec![];
+            }
+            let east_boxes = wide_boxes_north_south(warehouse, to_east, direction);
+            if east_boxes.is_empty() {
+                return vec![];
+            }
+            [west_boxes, east_boxes, vec![west]].concat()
+        }
+        [b']', _] => {
+            let boxes = wide_boxes_north_south(warehouse, to_west.add(WEST), direction);
+            append_if_non_empty(boxes)
+        }
+        [_, b'['] => {
+            let boxes = wide_boxes_north_south(warehouse, to_east, direction);
+            append_if_non_empty(boxes)
+        }
+        _ => vec![west],
     }
 }
 
