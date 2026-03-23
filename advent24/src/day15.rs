@@ -52,7 +52,10 @@ fn r#move(warehouse: &mut Warehouse, from: Position, direction: Direction) -> bo
         b'#' => false,
         b'O' => r#move(warehouse, to, direction),
         b'[' => move_wide_box(warehouse, to, direction),
-        b']' => move_wide_box(warehouse, to.add(WEST), direction),
+        b']' => {
+            dbg!("EAST!", from, direction);
+            dbg!(move_wide_box(warehouse, to.add(WEST), direction))
+        }
         b'.' => true,
         _ => panic!("warehouse should contain only expected elements"),
     };
@@ -63,20 +66,22 @@ fn r#move(warehouse: &mut Warehouse, from: Position, direction: Direction) -> bo
 }
 
 fn move_wide_box(warehouse: &mut Warehouse, west: Position, direction: Direction) -> bool {
-    let Some(boxes) = (match direction {
+    if let Some(boxes) = match direction {
         EAST | WEST => wide_boxes_east_west(warehouse, west, direction),
         NORTH | SOUTH => wide_boxes_north_south(warehouse, west, direction),
         _ => panic!("direction should be orthogonal"),
-    }) else {
-        return false;
-    };
-    for west in boxes {
-        let to_west = west.add(direction);
-        let [east, to_east] = [west, to_west].map(|p| p.add(EAST));
-        [warehouse[west], warehouse[east]] = [b'.', b'.'];
-        [warehouse[to_west], warehouse[to_east]] = [b'[', b']'];
+    } {
+        assert!(!boxes.is_empty());
+        for west in boxes {
+            let to_west = west.add(direction);
+            let [east, to_east] = [west, to_west].map(|p| p.add(EAST));
+            [warehouse[west], warehouse[east]] = [b'.', b'.'];
+            [warehouse[to_west], warehouse[to_east]] = [b'[', b']'];
+        }
+        true
+    } else {
+        false
     }
-    true
 }
 
 fn wide_boxes_east_west(
@@ -85,6 +90,7 @@ fn wide_boxes_east_west(
     direction: Direction,
 ) -> Option<Vec<Position>> {
     let append = |vec| [vec, vec![west]].concat();
+
     let to_west = west.add(direction);
     let next = to_west.add(direction);
     let neighbor = to_west.add(direction.mul(isize::from(direction == EAST)));
@@ -103,17 +109,18 @@ fn wide_boxes_north_south(
     direction: Direction,
 ) -> Option<Vec<Position>> {
     let append = |vec| [vec, vec![west]].concat();
+
     let east = west.add(EAST);
     let [to_west, to_east] = [west, east].map(|p| p.add(direction));
     let [west_element, east_element] = [to_west, to_east].map(|p| warehouse[p]);
     match [west_element, east_element] {
         [b'#', _] | [_, b'#'] => None,
         [b'[', b']'] => wide_boxes_north_south(warehouse, to_west, direction).map(append),
-        [b']', b'['] => {
-            wide_boxes_north_south(warehouse, to_west.add(WEST), direction).and_then(|lhs| {
+        [b']', b'['] => wide_boxes_north_south(warehouse, to_west.add(WEST), direction)
+            .and_then(|lhs| {
                 wide_boxes_north_south(warehouse, to_east, direction).map(|rhs| [lhs, rhs].concat())
             })
-        }
+            .map(append),
         [b']', _] => wide_boxes_north_south(warehouse, to_west.add(WEST), direction).map(append),
         [_, b'['] => wide_boxes_north_south(warehouse, to_east, direction).map(append),
         _ => Some(vec![west]),
@@ -186,12 +193,12 @@ mod tests {
 
     #[test]
     fn second_answer_example() {
-        // test_on_input(DAY, Puzzle::Second, Input::Example(2), 105 + 207 + 306);
+        test_on_input(DAY, Puzzle::Second, Input::Example(2), 105 + 207 + 306);
         test_on_input(DAY, Puzzle::Second, Input::Example(0), 9021);
     }
 
-    // #[test]
-    // fn second_answer_input() {
-    //     test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 1200);
-    // }
+    #[test]
+    fn second_answer_input() {
+        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 1200);
+    }
 }
