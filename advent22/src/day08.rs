@@ -27,7 +27,7 @@ fn number_of_visible_trees_from_edges(grid: &Grid<Height>) -> usize {
     }
     visibility
         .iter_row_major()
-        .filter(|(_, &visible)| visible)
+        .filter(|&(_, &visible)| visible)
         .count()
 }
 

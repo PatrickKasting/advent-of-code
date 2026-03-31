@@ -78,7 +78,7 @@ fn output_pixel_index(image: &Image, outside_pixel: Pixel, [row, column]: Positi
 fn number_of_light_pixels(image: &Image) -> usize {
     image
         .iter_row_major()
-        .filter(|(_, &pixel)| pixel == b'#')
+        .filter(|&(_, &pixel)| pixel == b'#')
         .count()
 }
 
@@ -93,7 +93,7 @@ fn enhancement_string_and_image(input: &str) -> (EnhancementString<'_>, Image) {
 mod tests {
     use std::array;
 
-    use infrastructure::{test, Input, Puzzle};
+    use infrastructure::{Input, Puzzle, test};
 
     use super::*;
     use crate::tests::{input, test_on_input};

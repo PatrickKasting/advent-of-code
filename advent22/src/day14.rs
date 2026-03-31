@@ -27,7 +27,7 @@ pub fn second_answer(input: &str) -> String {
 
 fn number_of_units_of_sand(cave: &Cave) -> usize {
     cave.iter_row_major()
-        .filter(|(_, &element)| element == b'o')
+        .filter(|&(_, &element)| element == b'o')
         .count()
 }
 
@@ -62,11 +62,7 @@ fn cave(input: &str) -> (Cave, Position) {
     let paths = input.lines().map(path).collect_vec();
     let (height, width, sand_source) = needed_cave_dimensions(&paths);
     let empty_cave_element = |[row, _]: Position| {
-        if row == height - 1 {
-            b'#'
-        } else {
-            b'.'
-        }
+        if row == height - 1 { b'#' } else { b'.' }
     };
     let mut cave = Grid::new(height.cast(), width.cast(), empty_cave_element);
     for path in paths {

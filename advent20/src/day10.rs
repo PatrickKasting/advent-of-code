@@ -37,7 +37,7 @@ fn number_of_adapter_arrangements(joltage_ratings: &mut Vec<Joltage>) -> usize {
             .iter()
             .enumerate()
             .skip(from_index + 1)
-            .take_while(|(_, &to_rating)| to_rating - from_rating <= 3);
+            .take_while(|&(_, &to_rating)| to_rating - from_rating <= 3);
         for (to_index, _) in connections {
             number_of_arrangements[to_index] += number_of_arrangements[from_index];
         }

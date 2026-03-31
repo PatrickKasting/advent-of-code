@@ -79,7 +79,7 @@ fn maximum_release<'input, const NUM_AGENTS: usize>(
 
 fn contracted_cave<'input>(cave: &Cave<'input>, start: Valve<'input>) -> ContractedCave<'input> {
     cave.iter()
-        .filter(|(&valve, &(flow, _))| flow != 0 || valve == start)
+        .filter(|&(&valve, &(flow, _))| flow != 0 || valve == start)
         .map(|(&source, &(flow, _))| {
             let distances = distances_to_functioning_valves(cave, source);
             (source, (flow, distances))

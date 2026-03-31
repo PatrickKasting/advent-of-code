@@ -93,7 +93,7 @@ fn next_considering_visible_seats(
 fn number_of_occupied_seats(seat_layout: &SeatLayout) -> usize {
     seat_layout
         .iter_row_major()
-        .filter(|(_, &seat)| seat == '#')
+        .filter(|&(_, &seat)| seat == '#')
         .count()
 }
 
