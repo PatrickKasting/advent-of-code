@@ -2,6 +2,7 @@ use easy_cast::Cast;
 use itertools::Itertools;
 use shared::string::usizes;
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 struct Computer {
     a: Register,
     b: Register,
@@ -20,7 +21,18 @@ pub fn first_answer(input: &str) -> String {
 }
 
 pub fn second_answer(input: &str) -> String {
-    todo!()
+    let (original_computer, program) = computer_and_program(input);
+    (0..=Register::MAX)
+        .find(|&a| {
+            let mut computer = Computer {
+                a,
+                ..original_computer.clone()
+            };
+            execute(&mut computer, &program);
+            computer.outputs == program
+        })
+        .expect("register value making output equal to program should be found")
+        .to_string()
 }
 
 fn execute(computer: &mut Computer, program: &[Register]) {
@@ -35,7 +47,7 @@ fn execute(computer: &mut Computer, program: &[Register]) {
             6 => bdv(computer, operand),
             7 => cdv(computer, operand),
             _ => panic!("instruction should be known"),
-        };
+        }
     }
 }
 
@@ -121,13 +133,13 @@ mod tests {
 
     #[test]
     fn first_answer_input() {
-        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 396);
+        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, "3,6,7,0,5,7,3,1,4");
     }
 
-    // #[test]
-    // fn second_answer_example() {
-    //     test_on_input(DAY, Puzzle::Second, Input::Example(0), 34);
-    // }
+    #[test]
+    fn second_answer_example() {
+        test_on_input(DAY, Puzzle::Second, Input::Example(1), 117_440);
+    }
 
     // #[test]
     // fn second_answer_input() {
