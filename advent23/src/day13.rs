@@ -109,11 +109,7 @@ fn summary_from_reflections(
 }
 
 fn opposite(tile: Tile) -> Tile {
-    if tile == b'#' {
-        b'.'
-    } else {
-        b'#'
-    }
+    if tile == b'#' { b'.' } else { b'#' }
 }
 
 fn pattern(pattern: &str) -> Vec<Vec<Tile>> {

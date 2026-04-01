@@ -41,7 +41,7 @@ fn probe_hit_velocities(
 
 fn x_velocity_range(target_x_range: &RangeInclusive<Coordinate>) -> RangeInclusive<Coordinate> {
     let d: f64 = (1 + 8 * target_x_range.start()).cast();
-    let minimum_x_velocity = ((-1.0 + d.sqrt()) / 2.0).cast_ceil();
+    let minimum_x_velocity = f64::midpoint(-1.0, d.sqrt()).cast_ceil();
     let &maximum_x_velocity = target_x_range.end();
     minimum_x_velocity..=maximum_x_velocity
 }
@@ -73,7 +73,7 @@ fn target_area(input: &str) -> TargetArea {
 
 #[cfg(test)]
 mod tests {
-    use infrastructure::{test, Input, Puzzle};
+    use infrastructure::{Input, Puzzle, test};
 
     use crate::tests::test_on_input;
 

@@ -3,7 +3,7 @@ pub mod test;
 
 use std::{fmt::Debug, fs, ops::Index};
 
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 use strum::EnumString;
 
 pub type Day = usize;

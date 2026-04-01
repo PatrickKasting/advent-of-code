@@ -32,10 +32,10 @@ fn total_syntax_score(input: &str) -> Score {
 fn completion_string_scores(input: &str) -> Vec<usize> {
     let mut completion_string_scores = vec![];
     for line_status in lines(input).map(line_status) {
-        if let LineStatus::CompletionString(completion_string) = line_status {
-            if !completion_string.is_empty() {
-                completion_string_scores.push(completion_string_score(&completion_string));
-            }
+        if let LineStatus::CompletionString(completion_string) = line_status
+            && !completion_string.is_empty()
+        {
+            completion_string_scores.push(completion_string_score(&completion_string));
         }
     }
     completion_string_scores
@@ -129,7 +129,7 @@ fn lines(input: &str) -> impl Iterator<Item = &[Character]> {
 
 #[cfg(test)]
 mod tests {
-    use infrastructure::{test, Input, Puzzle};
+    use infrastructure::{Input, Puzzle, test};
 
     use crate::tests::test_on_input;
 

@@ -3,8 +3,8 @@ use std::fmt::Debug;
 use anyhow::Context;
 use clap::Parser;
 use infrastructure::{
-    cli::{day, usize_within},
     Day, Puzzle,
+    cli::{day, usize_within},
 };
 
 fn main() -> anyhow::Result<()> {

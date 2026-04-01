@@ -34,7 +34,7 @@ fn number_of_stones(
     let number_of_digits = number_of_decimal_digits(stone);
     let number_of_stones = if stone == 0 {
         number_of_stones(cache, 1, number_of_steps - 1)
-    } else if number_of_digits % 2 == 0 {
+    } else if number_of_digits.is_multiple_of(2) {
         let half_number_of_digits = number_of_digits / 2;
         let divisor = 10_isize.pow(half_number_of_digits);
         let mut stones = [stone / divisor, stone % divisor];

@@ -231,7 +231,7 @@ mod tests {
     use std::iter;
 
     use ahash::AHashSet;
-    use infrastructure::{test, Input, Puzzle};
+    use infrastructure::{Input, Puzzle, test};
 
     use super::*;
     use crate::tests::{input, test_on_input};

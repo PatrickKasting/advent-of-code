@@ -58,7 +58,7 @@ fn cave_system(input: &str) -> CaveSystem<'_> {
 
 #[cfg(test)]
 mod tests {
-    use infrastructure::{test, Input, Puzzle};
+    use infrastructure::{Input, Puzzle, test};
 
     use crate::tests::{input, test_on_input};
 

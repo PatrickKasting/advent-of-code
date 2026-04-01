@@ -49,7 +49,7 @@ fn buses(line: &str) -> Vec<Option<Bus>> {
 
 #[cfg(test)]
 mod tests {
-    use infrastructure::{test, Input, Puzzle};
+    use infrastructure::{Input, Puzzle, test};
 
     use crate::tests::test_on_input;
 

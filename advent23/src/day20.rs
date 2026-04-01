@@ -95,11 +95,10 @@ fn press_button(configuration: &mut Configuration) -> (usize, usize) {
 
         if let Some((destination_module, output_pulse_destinations)) =
             configuration.get_mut(&destination)
+            && let Some(output_pulse) = receive(pulse, destination_module, source)
         {
-            if let Some(output_pulse) = receive(pulse, destination_module, source) {
-                for output_pulse_destination in output_pulse_destinations {
-                    pulses.push_back((destination, output_pulse, output_pulse_destination));
-                }
+            for output_pulse_destination in output_pulse_destinations {
+                pulses.push_back((destination, output_pulse, output_pulse_destination));
             }
         }
     }

@@ -48,7 +48,7 @@ fn round(
             let monkey = &monkeys[monkey_index];
             let worry = monkey.items[item_index];
             let worry = ((monkey.operation)(worry) / worry_divisor) % worry_modulo;
-            let destination = if worry % monkey.divisor == 0 {
+            let destination = if worry.is_multiple_of(monkey.divisor) {
                 monkey.receivers[0]
             } else {
                 monkey.receivers[1]

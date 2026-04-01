@@ -3,7 +3,7 @@ use easy_cast::{Cast, Conv};
 use itertools::Itertools;
 
 use shared::{
-    grid::{self, direction, Coordinate, Direction, Position},
+    grid::{self, Coordinate, Direction, Position, direction},
     vector::Vector,
 };
 
@@ -124,7 +124,7 @@ fn valley(input: &str) -> ([Coordinate; 2], Blizzards) {
 
 #[cfg(test)]
 mod tests {
-    use infrastructure::{test, Input, Puzzle};
+    use infrastructure::{Input, Puzzle, test};
 
     use super::*;
     use crate::tests::test_on_input;

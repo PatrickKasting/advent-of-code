@@ -132,7 +132,7 @@ fn packet(mut input: &str) -> Packet {
 #[cfg(test)]
 mod tests {
     use bitvec::bits;
-    use infrastructure::{test, Input, Puzzle};
+    use infrastructure::{Input, Puzzle, test};
 
     use super::*;
     use crate::tests::test_on_input;

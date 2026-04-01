@@ -1,7 +1,7 @@
 use easy_cast::Conv;
 use itertools::Itertools;
 use shared::{
-    grid::{self, Direction, Grid, Position, EAST, NORTH, SOUTH, WEST},
+    grid::{self, Direction, EAST, Grid, NORTH, Position, SOUTH, WEST},
     vector::Vector,
 };
 

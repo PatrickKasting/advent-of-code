@@ -1,6 +1,6 @@
 use ahash::AHashSet;
 use shared::{
-    grid::{self, Direction, Grid, Position, DIAGONAL_DIRECTIONS},
+    grid::{self, DIAGONAL_DIRECTIONS, Direction, Grid, Position},
     search,
     vector::Vector,
 };

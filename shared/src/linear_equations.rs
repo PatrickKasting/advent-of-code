@@ -194,7 +194,10 @@ mod tests {
 
     fn assert_solution_sets_approx_eq(left: SolutionSet, right: SolutionSet) {
         match [left, right] {
-            [Some((left_origin, left_directions)), Some((right_origin, right_directions))] => {
+            [
+                Some((left_origin, left_directions)),
+                Some((right_origin, right_directions)),
+            ] => {
                 if !vectors_approx_eq(&left_origin, &right_origin) {
                     test::panic_left_right(
                         "solution set origins should be equal",

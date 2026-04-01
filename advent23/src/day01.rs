@@ -22,11 +22,9 @@ fn sum_of_calibration_values(input: &str, consider_numerals: bool) -> Calibratio
 
 fn calibration_value(line: &str, consider_numerals: bool) -> CalibrationValue {
     let [mut first_value, mut last_value] = first_and_last_digit(line);
-    if consider_numerals {
-        if let Some([first_numeral, last_numeral]) = first_and_last_numeral(line) {
-            first_value = cmp::min(first_value, first_numeral);
-            last_value = cmp::max(last_value, last_numeral);
-        }
+    if consider_numerals && let Some([first_numeral, last_numeral]) = first_and_last_numeral(line) {
+        first_value = cmp::min(first_value, first_numeral);
+        last_value = cmp::max(last_value, last_numeral);
     }
     first_value.1 * 10 + last_value.1
 }

@@ -1,5 +1,5 @@
 use shared::{
-    grid::{Coordinate, Position, EAST},
+    grid::{Coordinate, EAST, Position},
     matrix::{self, Matrix},
     vector::{RotationInTwoDimensions, Vector},
 };

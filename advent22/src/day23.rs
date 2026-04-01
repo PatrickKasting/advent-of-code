@@ -112,7 +112,7 @@ fn elves(input: &str) -> AHashSet<Position> {
 
 #[cfg(test)]
 mod tests {
-    use infrastructure::{test, Input, Puzzle};
+    use infrastructure::{Input, Puzzle, test};
 
     use super::*;
     use crate::tests::{input, test_on_input};

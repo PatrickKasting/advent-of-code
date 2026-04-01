@@ -60,7 +60,7 @@ fn equation(line: &str) -> (TestValue, Vec<Number>) {
 
 #[cfg(test)]
 mod tests {
-    use infrastructure::{test, Input, Puzzle};
+    use infrastructure::{Input, Puzzle, test};
     use itertools::Itertools;
 
     use super::*;

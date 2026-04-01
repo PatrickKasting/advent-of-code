@@ -1,6 +1,6 @@
 use itertools::Itertools;
 use shared::{
-    grid::{orthogonal_neighbors, Grid, Position},
+    grid::{Grid, Position, orthogonal_neighbors},
     search::Exploration,
 };
 

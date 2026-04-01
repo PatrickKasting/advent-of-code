@@ -29,8 +29,10 @@ fn exterior_area(cubes: &AHashSet<Position>) -> Coordinate {
 }
 
 fn bounding_box(cubes: &AHashSet<Position>) -> [Position; 2] {
-    let [[mut min_x, mut min_y, mut min_z], [mut max_x, mut max_y, mut max_z]] =
-        [[Coordinate::MAX; 3], [Coordinate::MIN; 3]];
+    let [
+        [mut min_x, mut min_y, mut min_z],
+        [mut max_x, mut max_y, mut max_z],
+    ] = [[Coordinate::MAX; 3], [Coordinate::MIN; 3]];
     for &[x, y, z] in cubes {
         min_x = cmp::min(min_x, x);
         min_y = cmp::min(min_y, y);

@@ -1,5 +1,5 @@
 use easy_cast::Cast;
-use shared::grid::{orthogonal_and_diagonal_neighbors, Grid, Position};
+use shared::grid::{Grid, Position, orthogonal_and_diagonal_neighbors};
 
 type Octopusses = Grid<EnergyLevel>;
 type EnergyLevel = usize;

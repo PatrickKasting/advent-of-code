@@ -4,8 +4,8 @@ use ahash::AHashSet;
 use itertools::Itertools;
 use shared::{
     matrix::{
-        self, quarter_rotation_around_x_axis, quarter_rotation_around_y_axis,
-        quarter_rotation_around_z_axis, Matrix,
+        self, Matrix, quarter_rotation_around_x_axis, quarter_rotation_around_y_axis,
+        quarter_rotation_around_z_axis,
     },
     string::isizes,
     vector::{ManhattanDistance, Vector},

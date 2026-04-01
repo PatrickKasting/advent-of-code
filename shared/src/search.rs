@@ -1,6 +1,6 @@
 use std::{
     cmp::Reverse,
-    collections::{hash_map::Entry, BTreeMap, BTreeSet, BinaryHeap},
+    collections::{BTreeMap, BTreeSet, BinaryHeap, hash_map::Entry},
     hash::Hash,
     mem,
     ops::Add,

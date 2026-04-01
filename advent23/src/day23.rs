@@ -5,7 +5,7 @@ use easy_cast::Cast;
 use itertools::Itertools;
 
 use shared::{
-    grid::{self, direction, Direction, Grid, Position},
+    grid::{self, Direction, Grid, Position, direction},
     vector::{Negation, Vector},
 };
 

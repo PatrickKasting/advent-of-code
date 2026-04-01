@@ -1,6 +1,6 @@
 use easy_cast::{Cast, Conv};
 use shared::{
-    grid::{orthogonal_neighbors, Grid, Position},
+    grid::{Grid, Position, orthogonal_neighbors},
     search::minimum_path_cost,
     vector::Vector,
 };

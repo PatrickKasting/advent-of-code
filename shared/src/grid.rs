@@ -41,7 +41,7 @@ impl<T> Grid<T> {
     pub fn from_elements(elements: Vec<T>, width: usize) -> Self {
         assert!(!elements.is_empty(), "grid should not be empty");
         assert!(
-            elements.len() % width == 0,
+            elements.len().is_multiple_of(width),
             "width should divide number of elements for rectangular grid"
         );
         Self { elements, width }
