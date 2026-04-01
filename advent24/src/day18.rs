@@ -1,6 +1,6 @@
 use easy_cast::Cast;
 use shared::{
-    grid::{Grid, orthogonal_neighbors},
+    grid::{Grid, Position, orthogonal_neighbors},
     search,
     string::isizes,
 };
@@ -8,18 +8,29 @@ use shared::{
 type MemorySpace = Grid<u8>;
 
 const MEMORY_SPACE_SIZE: usize = 70 + 1;
-const NUMBER_OF_FALLING_BYTES: usize = 1024;
 
 pub fn first_answer(input: &str) -> String {
-    let memory_space = memory_space(input);
-    minimum_number_of_steps(&memory_space).to_string()
+    let mut memory_space = uncorrupted_memory_space();
+    for position in falling_byte_positions(input).take(1024) {
+        memory_space[position] = b'#';
+    }
+    shortest_path_length(&memory_space)
+        .expect("path from top left to bottom right should exist")
+        .to_string()
 }
 
 pub fn second_answer(input: &str) -> String {
-    todo!()
+    let mut memory_space = uncorrupted_memory_space();
+    for position in falling_byte_positions(input) {
+        memory_space[position] = b'#';
+        if shortest_path_length(&memory_space).is_none() {
+            return format!("{},{}", position[1], position[0]);
+        }
+    }
+    unreachable!("a falling byte should prevent reaching the exit");
 }
 
-fn minimum_number_of_steps(memory_space: &MemorySpace) -> usize {
+fn shortest_path_length(memory_space: &MemorySpace) -> Option<usize> {
     let source = [0; 2];
     let successors = |position| {
         orthogonal_neighbors(position)
@@ -32,16 +43,17 @@ fn minimum_number_of_steps(memory_space: &MemorySpace) -> usize {
     };
     let target = |position| position == [(memory_space.width() - 1).cast(); 2];
     search::shortest_path_length(source, successors, target)
-        .expect("path from top left to bottom right should exist")
 }
 
-fn memory_space(input: &str) -> MemorySpace {
-    let mut memory_space = MemorySpace::new(MEMORY_SPACE_SIZE, MEMORY_SPACE_SIZE, |_| b'.');
-    for line in input.lines().take(NUMBER_OF_FALLING_BYTES) {
+fn falling_byte_positions(input: &str) -> impl Iterator<Item = Position> {
+    input.lines().map(|line| {
         let coordinates = isizes(line);
-        memory_space[[coordinates[1], coordinates[0]]] = b'#';
-    }
-    memory_space
+        [coordinates[1], coordinates[0]]
+    })
+}
+
+fn uncorrupted_memory_space() -> MemorySpace {
+    MemorySpace::new(MEMORY_SPACE_SIZE, MEMORY_SPACE_SIZE, |_| b'.')
 }
 
 #[cfg(test)]
@@ -57,13 +69,8 @@ mod tests {
         test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 372);
     }
 
-    // #[test]
-    // fn second_answer_example() {
-    //     test_on_input(DAY, Puzzle::Second, Input::Example(0), 34);
-    // }
-
-    // #[test]
-    // fn second_answer_input() {
-    //     test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, 1200);
-    // }
+    #[test]
+    fn second_answer_input() {
+        test_on_input(DAY, Puzzle::Second, Input::PuzzleInput, "25,6");
+    }
 }

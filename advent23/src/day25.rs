@@ -1,7 +1,7 @@
 use ahash::{AHashMap, AHashSet};
-use rand::{rngs::SmallRng, seq::IteratorRandom, SeedableRng};
+use rand::{SeedableRng, rngs::SmallRng, seq::IteratorRandom};
 
-use shared::search::{shortest_path, Exploration};
+use shared::search::{Exploration, shortest_path};
 
 type Apparatus<'input> = AHashMap<Component<'input>, AHashSet<Component<'input>>>;
 type Connection<'input> = [Component<'input>; 2];
