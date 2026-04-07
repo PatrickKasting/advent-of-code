@@ -6,5 +6,4 @@ pub mod matrix;
 pub mod number_theory;
 pub mod search;
 pub mod string;
-pub mod trie;
 pub mod vector;
