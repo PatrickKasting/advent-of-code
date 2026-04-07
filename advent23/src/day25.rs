@@ -22,7 +22,7 @@ pub fn second_answer(_input: &str) -> String {
 fn disconnected_group_sizes(apparatus: &Apparatus) -> [usize; 2] {
     let mut rng = SmallRng::from_seed([0; 32]);
     loop {
-        let terminals = apparatus.keys().copied().choose_multiple(&mut rng, 2);
+        let terminals = apparatus.keys().copied().sample(&mut rng, 2);
         let (source, target) = (terminals[0], |component| component == terminals[1]);
         let mut paths: AHashSet<Connection> = AHashSet::new();
         let mut number_of_disjoint_paths = 0;
