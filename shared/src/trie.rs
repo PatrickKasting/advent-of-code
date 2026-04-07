@@ -56,19 +56,71 @@ impl<T: Copy + Eq + Hash> Trie<T> {
         }
         node.is_end
     }
+
+    pub fn prefix_lengths<S: IntoIterator<Item = T>>(
+        &self,
+        sequence: S,
+    ) -> PrefixLengths<'_, T, S::IntoIter> {
+        PrefixLengths {
+            sequence: sequence.into_iter(),
+            prefix: vec![],
+            node: Some(&self.root),
+        }
+    }
 }
 
-impl<T: Debug + Eq + Hash> Debug for Trie<T> {
+pub struct PrefixLengths<'trie, T, S> {
+    sequence: S,
+    prefix: Vec<T>,
+    node: Option<&'trie Node<T>>,
+}
+
+impl<T: Copy + Eq + Hash, S: Iterator<Item = T>> Iterator for PrefixLengths<'_, T, S> {
+    type Item = usize;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let mut prefix_length = None;
+        while prefix_length.is_none() {
+            prefix_length = self.node?.is_end.then_some(self.prefix.len());
+            self.node = if let Some(node) = self.node
+                && let Some(element) = self.sequence.next()
+            {
+                self.prefix.push(element);
+                node.children.get(&element)
+            } else {
+                None
+            };
+        }
+        prefix_length
+    }
+}
+
+impl<
+    T: Copy + Eq + Hash,
+    Sequence: IntoIterator<Item = T>,
+    Sequences: IntoIterator<Item = Sequence>,
+> From<Sequences> for Trie<T>
+{
+    fn from(sequences: Sequences) -> Self {
+        let mut trie = Self::new();
+        for sequence in sequences {
+            trie.insert(sequence);
+        }
+        trie
+    }
+}
+
+impl<T: Debug + Copy + Eq + Hash> Debug for Trie<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        fn fmt_node<'element, T: Debug + Eq + Hash>(
+        fn fmt_node<T: Debug + Copy + Eq + Hash>(
             debug_set: &mut DebugSet,
-            sequence: &mut Vec<&'element T>,
-            node: &'element Node<T>,
+            sequence: &mut Vec<T>,
+            node: &Node<T>,
         ) {
             if node.is_end {
                 debug_set.entry(&sequence);
             }
-            for (element, child) in &node.children {
+            for (&element, child) in &node.children {
                 sequence.push(element);
                 fmt_node(debug_set, sequence, child);
                 sequence.pop();
@@ -118,5 +170,23 @@ mod tests {
             .take(len)
             .map(char::from)
             .collect()
+    }
+
+    #[test]
+    fn prefix_lengths_with_short_elements() {
+        let elements = ["", "ab", "bc", "abc", "abcde", "bcd", "c"];
+        let trie = Trie::from(elements.map(str::chars));
+        let actual = trie.prefix_lengths("abcdef".chars());
+        let expected = [0, 2, 3, 5];
+        assert!(itertools::equal(actual, expected));
+    }
+
+    #[test]
+    fn prefix_lengths_with_short_query() {
+        let elements = ["", "ab", "bc", "abc", "abcde", "bcd", "c", "abcdefg"];
+        let trie = Trie::from(elements.map(str::chars));
+        let actual = trie.prefix_lengths("abcdef".chars());
+        let expected = [0, 2, 3, 5];
+        assert!(itertools::equal(actual, expected));
     }
 }
