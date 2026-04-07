@@ -1,3 +1,4 @@
+use ahash::AHashMap;
 use itertools::Itertools;
 
 type Towel<'s> = &'s str;
@@ -5,8 +6,9 @@ type Design<'s> = &'s str;
 
 pub fn first_answer(input: &str) -> String {
     let (towels, designs) = towels_and_designs(input);
+    let mut cache = AHashMap::new();
     designs
-        .filter(|design| is_possible(&towels, design))
+        .filter(|design| is_possible(&mut cache, &towels, design))
         .count()
         .to_string()
 }
@@ -15,13 +17,22 @@ pub fn second_answer(input: &str) -> String {
     todo!()
 }
 
-fn is_possible(towels: &[Towel], design: Design) -> bool {
-    design.is_empty()
+fn is_possible<'design>(
+    cache: &mut AHashMap<Design<'design>, bool>,
+    towels: &[Towel],
+    design: Design<'design>,
+) -> bool {
+    if let Some(&cached) = cache.get(design) {
+        return cached;
+    }
+    let result = design.is_empty()
         || towels.iter().any(|towel| {
             design
                 .strip_prefix(towel)
-                .is_some_and(|rest| is_possible(towels, rest))
-        })
+                .is_some_and(|rest| is_possible(cache, towels, rest))
+        });
+    cache.insert(design, result);
+    result
 }
 
 fn towels_and_designs(input: &'_ str) -> (Vec<Towel<'_>>, impl Iterator<Item = Design<'_>>) {
@@ -48,7 +59,7 @@ mod tests {
 
     #[test]
     fn first_answer_input() {
-        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 396);
+        test_on_input(DAY, Puzzle::First, Input::PuzzleInput, 369);
     }
 
     // #[test]
