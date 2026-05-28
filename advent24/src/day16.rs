@@ -106,7 +106,7 @@ fn target(maze: &Maze) -> impl Fn(State) -> bool {
     move |(tile, _)| tile == end_tile
 }
 
-fn end_tile(maze: &Grid<u8>) -> [isize; 2] {
+fn end_tile(maze: &Maze) -> [isize; 2] {
     maze.find(|_, &element| element == b'E')
         .expect("maze should have an end tile")
         .0
